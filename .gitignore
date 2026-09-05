@@ -1,0 +1,44 @@
+# Brainstorming/spec working directory — local only
+docs/superpowers/
+
+# Applicant data — contains PII, must never be committed
+*.csv
+# ...except invented test fixtures, which contain no real data
+!tests/fixtures/*.csv
+
+# Secrets
+.env
+.env.*
+# ...except the documented template, which holds no secrets
+!.env.example
+
+# Local database
+*.db
+*.db-*
+
+# Local backups of production data taken before teardown — contains PII, never committed
+backups/
+
+# Dependencies and build output
+node_modules/
+build/
+.svelte-kit/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Local deployment rehearsal artifacts
+deploy/replica/
+
+.DS_Store
+
+# E2E artefacts
+.e2e/
+test-results/
+playwright-report/
+
+# Worktrees for isolated task execution
+.worktrees/

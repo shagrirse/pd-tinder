@@ -1,0 +1,28 @@
+# Local rehearsal override: expose the app directly, terminate TLS locally with
+# Caddy's internal CA, and replicate to a local directory instead of S3.
+# Use: docker compose -f deploy/compose.yaml -f deploy/compose.local.yml up -d
+# Ports 18080/18443 (not 8080/8443): 8080 is commonly taken by other tools.
+name: pdtinder
+services:
+  app:
+    ports:
+      - "3000:3000"
+    volumes:
+      # Rehearsal only: named volume instead of the production EBS bind mount.
+      - data:/data
+  caddy:
+    ports:
+      - "18080:80"
+      - "18443:443"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+  litestream:
+    volumes:
+      - ./litestream.local.yml:/etc/litestream.yml:ro
+      - data:/data
+      - ./replica:/replica
+
+volumes:
+  data: {}

@@ -1,0 +1,298 @@
+/* Design tokens and shared primitives for pd-tinder.
+   Dark "case file" theme: ink backdrop, cream index-card surfaces, stamp-style accents.
+   This is a deliberate single committed theme (no light/dark toggle), like a branded app. */
+
+:root {
+	color-scheme: dark;
+
+	/* ink (page) surfaces */
+	--bg: #150f0f;
+	--bg-raised: #1d1615;
+	--bg-raised-2: #251c1a;
+
+	/* paper (card) surfaces */
+	--paper: #f6efe0;
+	--paper-dim: #ece0c7;
+	--ink-on-paper: #221a14;
+	--ink-on-paper-soft: #6c5c49;
+	--line-on-paper: rgba(34, 26, 20, 0.14);
+
+	/* text on ink */
+	--text: #f4ece0;
+	--text-dim: #ab9a86;
+	--text-faint: #756355;
+
+	--line: rgba(244, 236, 224, 0.12);
+	--line-strong: rgba(244, 236, 224, 0.24);
+
+	/* brand + semantic ink colors */
+	--flame: #ff5a36;
+	--flame-dim: #c4431f;
+	--flame-soft: rgba(255, 90, 54, 0.16);
+
+	--like: #34a374;
+	--like-soft: rgba(52, 163, 116, 0.16);
+	--meh: #dd9f2c;
+	--meh-soft: rgba(221, 159, 44, 0.16);
+	--skip: #b1552f;
+	--skip-soft: rgba(177, 85, 47, 0.16);
+	--danger: #e2382c;
+	--danger-soft: rgba(226, 56, 44, 0.14);
+
+	--radius-sm: 0.5rem;
+	--radius-md: 0.9rem;
+	--radius-lg: 1.5rem;
+	--radius-pill: 999px;
+
+	--shadow-card:
+		0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 24px -8px rgba(0, 0, 0, 0.55), 0 32px 64px -28px rgba(0, 0, 0, 0.5);
+
+	--font-display: 'Fraunces', ui-serif, Georgia, serif;
+	--font-body: 'Libre Franklin', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+	--verdict-h: 230px;
+
+	--grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-body);
+	font-size: 16px;
+	line-height: 1.55;
+	-webkit-font-smoothing: antialiased;
+	position: relative;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -2;
+	background:
+		radial-gradient(60rem 40rem at 12% -12%, rgba(255, 90, 54, 0.16), transparent 60%),
+		radial-gradient(50rem 40rem at 105% 110%, rgba(52, 163, 116, 0.08), transparent 55%),
+		var(--bg);
+}
+
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-image: var(--grain);
+	opacity: 0.045;
+	mix-blend-mode: overlay;
+	pointer-events: none;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-display);
+	margin: 0 0 0.5rem;
+	font-weight: 700;
+}
+
+p {
+	margin: 0 0 0.75rem;
+}
+
+a {
+	color: var(--flame);
+}
+
+::selection {
+	background: var(--flame);
+	color: #1c0d05;
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--line-strong);
+	border-radius: 999px;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* --- shared vocabulary: eyebrow labels, stamp chips, buttons, fields --- */
+
+.eyebrow {
+	font-family: var(--font-mono);
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.72rem;
+	color: var(--flame);
+	margin: 0 0 0.4rem;
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.03em;
+	padding: 0.3rem 0.6rem;
+	border-radius: var(--radius-pill);
+	background: var(--paper-dim);
+	color: var(--ink-on-paper-soft);
+	border: 1px solid var(--line-on-paper);
+}
+.chip-primary {
+	background: var(--flame);
+	color: #1c0d05;
+	border-color: transparent;
+	font-weight: 700;
+}
+
+.verdict-tag {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 0.2rem 0.6rem;
+	border-radius: var(--radius-pill);
+	white-space: nowrap;
+	display: inline-block;
+}
+.verdict-like {
+	background: var(--like-soft);
+	color: var(--like);
+}
+.verdict-meh {
+	background: var(--meh-soft);
+	color: var(--meh);
+}
+.verdict-skip {
+	background: var(--skip-soft);
+	color: var(--skip);
+}
+.verdict-flag {
+	background: var(--danger-soft);
+	color: var(--danger);
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	min-height: 46px;
+	padding: 0 1.15rem;
+	border-radius: var(--radius-md);
+	border: 1.5px solid transparent;
+	font-family: var(--font-body);
+	font-weight: 700;
+	font-size: 0.92rem;
+	cursor: pointer;
+	text-decoration: none;
+	transition:
+		transform 120ms ease,
+		filter 120ms ease,
+		background 120ms ease,
+		border-color 120ms ease,
+		color 120ms ease;
+}
+.btn:active {
+	transform: scale(0.96);
+}
+.btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+	transform: none;
+}
+.btn-primary {
+	background: var(--flame);
+	color: #1c0d05;
+}
+.btn-primary:hover:not(:disabled) {
+	filter: brightness(1.08);
+}
+.btn-ghost {
+	background: transparent;
+	border-color: var(--line-strong);
+	color: var(--text);
+}
+.btn-ghost:hover:not(:disabled) {
+	border-color: var(--text-dim);
+}
+.btn-danger {
+	background: var(--danger);
+	color: #fff;
+}
+.btn-danger:disabled {
+	background: var(--bg-raised-2);
+	color: var(--text-dim);
+	border-color: var(--line);
+}
+.btn-block {
+	width: 100%;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	text-align: left;
+}
+.field-label {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-dim);
+}
+.field input,
+.field textarea {
+	background: var(--bg-raised-2);
+	border: 1.5px solid var(--line);
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font: inherit;
+	font-size: 1rem;
+	padding: 0.75rem 0.9rem;
+	min-height: 46px;
+	transition:
+		border-color 140ms ease,
+		box-shadow 140ms ease;
+}
+.field input:focus-visible,
+.field textarea:focus-visible {
+	outline: none;
+	border-color: var(--flame);
+	box-shadow: 0 0 0 3px var(--flame-soft);
+}
+.field input::placeholder,
+.field textarea::placeholder {
+	color: var(--text-faint);
+}

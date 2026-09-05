@@ -1,0 +1,5 @@
+dbs:
+  - path: /data/pd-tinder.db
+    replicas:
+      - type: file
+        path: /replica/pd-tinder

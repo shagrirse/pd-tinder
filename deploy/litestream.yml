@@ -1,0 +1,16 @@
+# Replicates the SQLite database (already in WAL mode — src/lib/server/db/index.ts)
+# continuously to S3. ${LITESTREAM_BUCKET} is expanded by Litestream from the
+# container's environment, set by compose.yaml.
+dbs:
+  - path: /data/pd-tinder.db
+    replicas:
+      - type: s3
+        bucket: ${LITESTREAM_BUCKET}
+        path: pd-tinder
+        retention: 720h
+        snapshot-interval: 6h
+
+# The drill's `litestream sync -wait` is a control-socket client; the socket
+# is disabled by default in 0.5 and must be enabled here.
+socket:
+  enabled: true

@@ -1,0 +1,47 @@
+# Three-container instance stack (spec §6). Every value below that varies is
+# interpolated by Compose from deploy/.env in this directory, which the deploy
+# script generates and the committed .env.example documents.
+# Explicit project name: the default (directory basename "deploy") collides
+# with unrelated compose projects on shared dev machines.
+name: pdtinder
+services:
+  app:
+    image: ${APP_IMAGE:-pd-tinder:latest}
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      # Bind-mount the EBS data volume — the database must live on the EBS,
+      # not in a Docker named volume on the root disk (spec §7). The local
+      # rehearsal override swaps this back to a named volume.
+      - /srv/pdtinder/data:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  litestream:
+    image: litestream/litestream:0.5.16
+    restart: unless-stopped
+    command: replicate
+    environment:
+      LITESTREAM_BUCKET: ${LITESTREAM_BUCKET}
+    volumes:
+      - ./litestream.yml:/etc/litestream.yml:ro
+      - /srv/pdtinder/data:/data
+    depends_on:
+      - app
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
