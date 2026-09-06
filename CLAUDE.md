@@ -27,3 +27,14 @@ pd-tinder — SvelteKit app for structured applicant review in selection rounds 
 ## Runbook maintenance rule
 
 `deploy/RUNBOOK.md` is frozen: a historical record of the torn-down deployment, not maintained (a rebuild would start a fresh runbook from it). `docs/teardown-runbook.md` is the living procedure: **if a change's blast radius touches what it describes** — deploy scripts, Terraform resources, backup layout, ECR, DNS, env config, or the teardown steps — update it in the same change. Canonical statement: `README.md` → "Docs maintenance".
+
+## Development workflow
+
+- Issue-first: every change starts as a GitHub issue; branch names are
+  `<type>/<issue>-<slug>` where type is one of `feat`, `fix`, `hotfix`,
+  `chore`, `docs`.
+- PRs need one approving review and squash-merge; the PR title (conventional
+  commit) becomes the commit on `main`.
+- Releases are calendar-versioned tags (`v2027.1`) cut before each recruitment
+  cycle (June mentors → ~September mentees); hotfixes branch off the tag.
+- Full procedure: `CONTRIBUTING.md` — the handover document for future batches.
