@@ -6,6 +6,10 @@ docs/superpowers/
 # ...except invented test fixtures, which contain no real data
 !tests/fixtures/*.csv
 
+# Programme records (pairings, attendance) — contain PII, must never be committed
+*.xlsx
+*.xls
+
 # Secrets
 .env
 .env.*
