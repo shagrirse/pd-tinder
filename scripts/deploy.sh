@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy pd-tinder (spec §8):
+# Deploy pd-tinder:
 #   scripts/deploy.sh              run the full local gate, build, push, restart
 #   scripts/deploy.sh --config-only   ship configs only, start nothing (restore drill)
 #
@@ -11,7 +11,7 @@ REGION=${AWS_REGION:-ap-southeast-1}
 ECR_REPO=pd-tinder
 CONFIG_BUCKET=pdtinder-backup
 TAG=${IMAGE_TAG:-$(git rev-parse --short HEAD)}
-SITE_DOMAIN=${SITE_DOMAIN:-pdtinder.kattokloset.com}
+SITE_DOMAIN=${SITE_DOMAIN:-pdtinder.example.com}
 CONFIG_ONLY=false
 case "${1:-}" in
   "")
@@ -84,5 +84,5 @@ aws ssm send-command \
 
 log "Deploy triggered (command id above). Watch it with:"
 log "  aws ssm get-command-invocation --region $REGION --command-id <id> --instance-id $INSTANCE_ID --query 'StandardOutputContent'"
-log "Then run the smoke test (spec §9):"
+log "Then run the smoke test:"
 log "  SMOKE_BASE_URL=https://$SITE_DOMAIN SMOKE_ADMIN_EMAIL=<admin-email> SMOKE_ADMIN_PASSWORD=<operator-only> npm run smoke"

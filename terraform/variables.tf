@@ -5,7 +5,7 @@ variable "region" {
 }
 
 variable "instance_type" {
-  description = "x86, not Graviton — spec §5: avoids cross-architecture builds of better-sqlite3."
+  description = "x86, not Graviton: avoids cross-architecture builds of better-sqlite3."
   type        = string
   default     = "t3.micro"
 }
@@ -19,13 +19,12 @@ variable "ebs_size" {
 variable "domain" {
   description = "Public domain of the application."
   type        = string
-  default     = "pdtinder.kattokloset.com"
+  default     = "pdtinder.example.com"
 }
 
 variable "hosted_zone_id" {
-  description = "Pre-existing hosted zone; referenced by data source, never managed."
+  description = "Pre-existing hosted zone; referenced by data source, never managed. Required — supply via tfvars or -var."
   type        = string
-  default     = "Z005699638UW9YAI8SKLJ"
 }
 
 variable "backup_bucket_name" {

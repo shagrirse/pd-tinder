@@ -74,7 +74,7 @@ aws ssm send-command --region ap-southeast-1 \
   --parameters 'commands=["cd /srv/pdtinder/deploy && docker compose exec -T app npx tsx scripts/create-cycle.ts --name \"Mentee Recruitment 2026\" --year 2026"]'
 ```
 
-## 5. Live smoke test (spec §9)
+## 5. Live smoke test
 
 ```bash
 SMOKE_BASE_URL=https://pdtinder.kattokloset.com \

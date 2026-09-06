@@ -1,6 +1,6 @@
 /**
  * Local dev seed script. Not part of the shipped app — the admin surface
- * (spec §9) that would normally create cycles/users/imports isn't built yet,
+ * that would normally create cycles/users/imports isn't built yet,
  * so this stands in for it during manual testing.
  *
  * Usage:

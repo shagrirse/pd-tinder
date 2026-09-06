@@ -15,7 +15,7 @@ const REVIEWER = {
 	password: 'smoke-reviewer-password-1'
 };
 
-test('spec §9 steps 1–5: serve, sign in, import, invite a reviewer, submit a verdict', async ({
+test('live flow steps 1–5: serve, sign in, import, invite a reviewer, submit a verdict', async ({
 	page,
 	context
 }) => {
@@ -24,7 +24,7 @@ test('spec §9 steps 1–5: serve, sign in, import, invite a reviewer, submit a 
 	await page.goto('/login');
 	await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
 
-	// Step 2: a form POST succeeds — the ORIGIN check (§3.3). No other step
+	// Step 2: a form POST succeeds — the ORIGIN check. No other step
 	// catches a rejected CSRF origin.
 	await page.getByLabel('Email').fill(ADMIN.email);
 	await page.getByLabel('Password').fill(ADMIN.password);
