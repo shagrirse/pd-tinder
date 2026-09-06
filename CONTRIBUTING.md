@@ -24,12 +24,12 @@ CSV files at the repo root contain applicant PII — never commit them
 
 ## Workflow
 
-Issue-first. Every change starts as a GitHub issue; the issue number goes into
-the branch name.
+Issue-first. Every change starts as a GitHub issue; the PR references it with
+`Closes #N`.
 
-1. **Branch** from `main`: `<type>/<issue>-<short-slug>`, where `type` is one
+1. **Branch** from `main`: `<type>/<short-slug>`, where `type` is one
    of `feat`, `fix`, `hotfix`, `chore`, `docs`. Examples:
-   `feat/12-weighted-scoring`, `fix/31-verdict-button`, `chore/9-upgrade-deps`.
+   `feat/weighted-scoring`, `fix/verdict-button`, `chore/upgrade-deps`.
 2. **Commit** early and often on the branch.
 3. **Open a PR** whose title is a conventional commit — after squash-merge,
    the PR title becomes the commit on `main`. Reference the issue with
@@ -85,7 +85,7 @@ each cycle runs a tagged release.
 1. Branch off the cycle's tag:
 
    ```bash
-   git switch -c hotfix/41-verdict-crash v2027.1
+   git switch -c hotfix/verdict-crash v2027.1
    ```
 
 2. Fix, test, commit, push.
