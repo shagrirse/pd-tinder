@@ -5,7 +5,7 @@ terraform {
     key          = "terraform.tfstate"
     region       = "ap-southeast-1"
     encrypt      = true
-    use_lockfile = true # native S3 locking (Terraform >= 1.10) — spec §4
+    use_lockfile = true # native S3 locking (Terraform >= 1.10)
   }
 }
 
@@ -13,7 +13,7 @@ provider "aws" {
   region = var.region
 }
 
-# --- Network: default VPC, one security group, no SSH (spec §4) ---
+# --- Network: default VPC, one security group, no SSH ---
 
 data "aws_vpc" "default" {
   default = true
@@ -129,21 +129,21 @@ resource "aws_eip_association" "pdtinder" {
   allocation_id = aws_eip.pdtinder.id
 }
 
-# --- DNS: A record in the pre-existing zone, never managed (spec §4) ---
+# --- DNS: A record in the pre-existing zone, never managed ---
 
-data "aws_route53_zone" "kattokloset" {
+data "aws_route53_zone" "hosted" {
   zone_id = var.hosted_zone_id
 }
 
 resource "aws_route53_record" "pdtinder" {
-  zone_id = data.aws_route53_zone.kattokloset.zone_id
+  zone_id = data.aws_route53_zone.hosted.zone_id
   name    = var.domain
   type    = "A"
   ttl     = 300
   records = [aws_eip.pdtinder.public_ip]
 }
 
-# --- Backup storage: versioned, lifecycle expiry (spec §4) ---
+# --- Backup storage: versioned, lifecycle expiry ---
 
 resource "aws_s3_bucket" "backup" {
   bucket        = var.backup_bucket_name

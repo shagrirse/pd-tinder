@@ -1,4 +1,4 @@
-# Three-container instance stack (spec §6). Every value below that varies is
+# Three-container instance stack. Every value below that varies is
 # interpolated by Compose from deploy/.env in this directory, which the deploy
 # script generates and the committed .env.example documents.
 # Explicit project name: the default (directory basename "deploy") collides
@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
     volumes:
       # Bind-mount the EBS data volume — the database must live on the EBS,
-      # not in a Docker named volume on the root disk (spec §7). The local
+      # not in a Docker named volume on the root disk. The local
       # rehearsal override swaps this back to a named volume.
       - /srv/pdtinder/data:/data
 

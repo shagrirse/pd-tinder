@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
-// Live smoke test (spec §9). Starts no server of its own: the target is either
-// the deployed instance (SMOKE_BASE_URL=https://pdtinder.kattokloset.com) or a
+// Live smoke test. Starts no server of its own: the target is either
+// the deployed instance (SMOKE_BASE_URL=<live site URL>) or a
 // locally rehearsed compose stack (SMOKE_BASE_URL=https://localhost:18443).
 // TLS errors are tolerated only for the localhost rehearsal — on the live URL
 // Playwright's normal certificate validation is the TLS check itself.
