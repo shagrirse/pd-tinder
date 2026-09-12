@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	mutualFirstPass,
+	mutualAnyPass,
 	type MemberRef,
 	type PreferenceRef
 } from '../../../src/lib/server/pairing/passes';
@@ -83,6 +84,72 @@ describe('mutualFirstPass', () => {
 		const input = [pref(1, 1, 2), pref(2, 1, 1), pref(3, 1, 4), pref(4, 1, 3)];
 		const forward = mutualFirstPass(roster, input, new Set());
 		const reversed = mutualFirstPass(roster, [...input].reverse(), new Set());
+		expect(reversed).toEqual(forward);
+	});
+});
+
+describe('mutualAnyPass', () => {
+	it('pairs two members who named each other at any rank', () => {
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(roster, [pref(1, 2, 2), pref(2, 3, 1)], locked);
+		expect(pairs).toEqual([
+			{ mentorId: 1, menteeId: 2, method: 'mutual_any', mentorRank: 2, menteeRank: 3 }
+		]);
+	});
+
+	it('processes candidates in ascending combined rank', () => {
+		// 1<->2 is 2+2=4; 3<->4 is 1+2=3. The cheaper pair is taken first, but both
+		// survive because they share no member.
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(
+			roster,
+			[pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 4), pref(4, 2, 3)],
+			locked
+		);
+		expect(pairs.map((p) => [p.mentorId, p.menteeId])).toEqual([
+			[3, 4],
+			[1, 2]
+		]);
+	});
+
+	it('lets the lower combined rank win a contested member', () => {
+		// Mentee 2 is named back by both mentor 1 (combined 4) and mentor 3
+		// (combined 2). Mentor 3 wins; mentor 1 is left for a later pass.
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(
+			roster,
+			[pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 2), pref(2, 1, 3)],
+			locked
+		);
+		expect(pairs).toEqual([
+			{ mentorId: 3, menteeId: 2, method: 'mutual_any', mentorRank: 1, menteeRank: 1 }
+		]);
+		expect(locked.has(1)).toBe(false);
+	});
+
+	it('breaks a genuine combined-rank tie on mentor id ascending', () => {
+		// 3<->2 costs 1+2 and 5<->2 costs 2+1. Both want mentee 2 at the same combined
+		// rank, so the lower mentor id takes them.
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(
+			roster,
+			[pref(3, 1, 2), pref(2, 2, 3), pref(5, 2, 2), pref(2, 1, 5)],
+			locked
+		);
+		expect(pairs).toEqual([
+			{ mentorId: 3, menteeId: 2, method: 'mutual_any', mentorRank: 1, menteeRank: 2 }
+		]);
+	});
+
+	it('ignores a one-sided choice', () => {
+		const locked = new Set<number>();
+		expect(mutualAnyPass(roster, [pref(1, 1, 2)], locked)).toEqual([]);
+	});
+
+	it('is order-independent', () => {
+		const input = [pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 4), pref(4, 2, 3)];
+		const forward = mutualAnyPass(roster, input, new Set());
+		const reversed = mutualAnyPass(roster, [...input].reverse(), new Set());
 		expect(reversed).toEqual(forward);
 	});
 });

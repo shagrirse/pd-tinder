@@ -102,3 +102,28 @@ export function mutualFirstPass(
 	candidates.sort(byCombinedRankThenId);
 	return lockInOrder(candidates, locked);
 }
+
+/**
+ * Pass two: both named each other at any rank, processed in ascending order of
+ * combined rank. Pass one's pairs are already locked, so they do not reappear.
+ */
+export function mutualAnyPass(
+	members: MemberRef[],
+	prefs: PreferenceRef[],
+	locked: Set<number>
+): ProposedPair[] {
+	const index = buildIndex(members, prefs);
+	const candidates: ProposedPair[] = [];
+
+	for (const p of prefs) {
+		const back = rankGiven(index, p.choiceMemberId, p.memberId);
+		if (back === undefined) continue;
+		const oriented = orient(index, p.memberId, p.choiceMemberId);
+		if (!oriented) continue;
+		if (oriented.mentorId !== p.memberId) continue;
+		candidates.push({ ...oriented, method: 'mutual_any', mentorRank: p.rank, menteeRank: back });
+	}
+
+	candidates.sort(byCombinedRankThenId);
+	return lockInOrder(candidates, locked);
+}
