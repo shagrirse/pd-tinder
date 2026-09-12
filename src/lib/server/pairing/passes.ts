@@ -104,8 +104,9 @@ export function mutualFirstPass(
 }
 
 /**
- * Pass two: both named each other at any rank, processed in ascending order of
- * combined rank. Pass one's pairs are already locked, so they do not reappear.
+ * Pass two: the mentor ranked the mentee first and the mentee named the mentor
+ * back at any rank, processed in ascending order of combined rank. Pass one's
+ * pairs are already locked, so they do not reappear.
  */
 export function mutualAnyPass(
 	members: MemberRef[],
@@ -121,6 +122,8 @@ export function mutualAnyPass(
 		const oriented = orient(index, p.memberId, p.choiceMemberId);
 		if (!oriented) continue;
 		if (oriented.mentorId !== p.memberId) continue;
+		// The mentor must have ranked the mentee first; the mentee's rank is free.
+		if (p.rank !== 1) continue;
 		candidates.push({ ...oriented, method: 'mutual_any', mentorRank: p.rank, menteeRank: back });
 	}
 

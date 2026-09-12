@@ -36,11 +36,12 @@ function choices(ids: number[]) {
 
 describe('runReconciliation', () => {
 	beforeEach(() => {
-		// mentor0 <-> mentee0 mutual first. mentor1 <-> mentee1 mutual at 2/2.
+		// mentor0 <-> mentee0 mutual first. mentor1 ranks mentee1 first, and
+		// mentee1 names mentor1 back at rank 2 — a mutual-any pair.
 		// mentor2 names mentee2 first; mentee2 names nobody back at any rank.
 		setPreferences(db, mentors[0], choices([mentees[0], mentees[1], mentees[2]]));
 		setPreferences(db, mentees[0], choices([mentors[0], mentors[1], mentors[2]]));
-		setPreferences(db, mentors[1], choices([mentees[0], mentees[1], mentees[2]]));
+		setPreferences(db, mentors[1], choices([mentees[1], mentees[0], mentees[2]]));
 		setPreferences(db, mentees[1], choices([mentors[0], mentors[1], mentors[2]]));
 		setPreferences(db, mentors[2], choices([mentees[2], mentees[0], mentees[1]]));
 	});

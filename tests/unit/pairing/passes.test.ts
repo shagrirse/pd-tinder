@@ -90,21 +90,21 @@ describe('mutualFirstPass', () => {
 });
 
 describe('mutualAnyPass', () => {
-	it('pairs two members who named each other at any rank', () => {
+	it('pairs a mentor whose first choice named them back at any rank', () => {
 		const locked = new Set<number>();
-		const pairs = mutualAnyPass(roster, [pref(1, 2, 2), pref(2, 3, 1)], locked);
+		const pairs = mutualAnyPass(roster, [pref(1, 1, 2), pref(2, 3, 1)], locked);
 		expect(pairs).toEqual([
-			{ mentorId: 1, menteeId: 2, method: 'mutual_any', mentorRank: 2, menteeRank: 3 }
+			{ mentorId: 1, menteeId: 2, method: 'mutual_any', mentorRank: 1, menteeRank: 3 }
 		]);
 	});
 
 	it('processes candidates in ascending combined rank', () => {
-		// 1<->2 is 2+2=4; 3<->4 is 1+2=3. The cheaper pair is taken first, but both
+		// 1<->2 is 1+3=4; 3<->4 is 1+2=3. The cheaper pair is taken first, but both
 		// survive because they share no member.
 		const locked = new Set<number>();
 		const pairs = mutualAnyPass(
 			roster,
-			[pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 4), pref(4, 2, 3)],
+			[pref(1, 1, 2), pref(2, 3, 1), pref(3, 1, 4), pref(4, 2, 3)],
 			locked
 		);
 		expect(pairs.map((p) => [p.mentorId, p.menteeId])).toEqual([
@@ -114,12 +114,12 @@ describe('mutualAnyPass', () => {
 	});
 
 	it('lets the lower combined rank win a contested member', () => {
-		// Mentee 2 is named back by both mentor 1 (combined 4) and mentor 3
+		// Mentee 2 is named back by both mentor 1 (combined 3) and mentor 3
 		// (combined 2). Mentor 3 wins; mentor 1 is left for a later pass.
 		const locked = new Set<number>();
 		const pairs = mutualAnyPass(
 			roster,
-			[pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 2), pref(2, 1, 3)],
+			[pref(1, 1, 2), pref(2, 2, 1), pref(3, 1, 2), pref(2, 1, 3)],
 			locked
 		);
 		expect(pairs).toEqual([
@@ -129,17 +129,31 @@ describe('mutualAnyPass', () => {
 	});
 
 	it('breaks a genuine combined-rank tie on mentor id ascending', () => {
-		// 3<->2 costs 1+2 and 5<->2 costs 2+1. Both want mentee 2 at the same combined
+		// 3<->2 costs 1+2 and 5<->2 costs 1+2. Both want mentee 2 at the same combined
 		// rank, so the lower mentor id takes them.
 		const locked = new Set<number>();
 		const pairs = mutualAnyPass(
 			roster,
-			[pref(3, 1, 2), pref(2, 2, 3), pref(5, 2, 2), pref(2, 1, 5)],
+			[pref(3, 1, 2), pref(2, 2, 3), pref(5, 1, 2), pref(2, 2, 5)],
 			locked
 		);
 		expect(pairs).toEqual([
 			{ mentorId: 3, menteeId: 2, method: 'mutual_any', mentorRank: 1, menteeRank: 2 }
 		]);
+	});
+
+	it('ignores a mutual pair whose mentor did not rank the mentee first', () => {
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(roster, [pref(1, 2, 2), pref(2, 1, 1)], locked);
+		expect(pairs).toEqual([]);
+	});
+
+	it('does not pair the 9th Circle contradiction: mentor rank 3, mentee rank 2', () => {
+		// Both named each other, but the mentor's rank was not first, and PD
+		// hand-paired both members differently.
+		const locked = new Set<number>();
+		const pairs = mutualAnyPass(roster, [pref(3, 3, 4), pref(4, 2, 3)], locked);
+		expect(pairs).toEqual([]);
 	});
 
 	it('ignores a one-sided choice', () => {
@@ -148,7 +162,7 @@ describe('mutualAnyPass', () => {
 	});
 
 	it('is order-independent', () => {
-		const input = [pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 4), pref(4, 2, 3)];
+		const input = [pref(1, 1, 2), pref(2, 3, 1), pref(3, 1, 4), pref(4, 2, 3)];
 		const forward = mutualAnyPass(roster, input, new Set());
 		const reversed = mutualAnyPass(roster, [...input].reverse(), new Set());
 		expect(reversed).toEqual(forward);

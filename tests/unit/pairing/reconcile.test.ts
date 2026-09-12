@@ -25,8 +25,8 @@ describe('reconcile', () => {
 			// 1 <-> 2: mutual first
 			pref(1, 1, 2),
 			pref(2, 1, 1),
-			// 3 <-> 4: mutual, but at ranks 2 and 3
-			pref(3, 2, 4),
+			// 3 <-> 4: mutual, but the mentee named the mentor back at rank 3
+			pref(3, 1, 4),
 			pref(4, 3, 3),
 			// 5 -> 6 only
 			pref(5, 1, 6)
@@ -71,7 +71,7 @@ describe('reconcile', () => {
 	});
 
 	it('is deterministic across repeated runs on shuffled input', () => {
-		const input = [pref(1, 1, 2), pref(2, 1, 1), pref(3, 2, 4), pref(4, 3, 3), pref(5, 1, 6)];
+		const input = [pref(1, 1, 2), pref(2, 1, 1), pref(3, 1, 4), pref(4, 3, 3), pref(5, 1, 6)];
 		const first = reconcile(roster, input);
 		const second = reconcile(roster, [...input].reverse());
 		expect(second).toEqual(first);
