@@ -31,8 +31,8 @@ pd-tinder — SvelteKit app for structured applicant review in selection rounds 
 ## Development workflow
 
 - Issue-first: every change starts as a GitHub issue; branch names are
-  `<type>/<issue>-<slug>` where type is one of `feat`, `fix`, `hotfix`,
-  `chore`, `docs`.
+  `<type>/<slug>` where type is one of `feat`, `fix`, `hotfix`,
+  `chore`, `docs`. The issue is referenced from the PR, not the branch name.
 - PRs need one approving review and squash-merge; the PR title (conventional
   commit) becomes the commit on `main`.
 - Releases are calendar-versioned tags (`v2027.1`) cut before each recruitment
