@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	mutualFirstPass,
 	mutualAnyPass,
+	oneSidedPass,
 	type MemberRef,
 	type PreferenceRef
 } from '../../../src/lib/server/pairing/passes';
@@ -150,6 +151,53 @@ describe('mutualAnyPass', () => {
 		const input = [pref(1, 2, 2), pref(2, 2, 1), pref(3, 1, 4), pref(4, 2, 3)];
 		const forward = mutualAnyPass(roster, input, new Set());
 		const reversed = mutualAnyPass(roster, [...input].reverse(), new Set());
+		expect(reversed).toEqual(forward);
+	});
+});
+
+describe('oneSidedPass', () => {
+	it('pairs a member with someone who did not name them back', () => {
+		const locked = new Set<number>();
+		const pairs = oneSidedPass(roster, [pref(1, 1, 2)], locked);
+		expect(pairs).toEqual([
+			{ mentorId: 1, menteeId: 2, method: 'one_sided', mentorRank: 1, menteeRank: null }
+		]);
+	});
+
+	it('records which side did the naming when it was the mentee', () => {
+		const locked = new Set<number>();
+		const pairs = oneSidedPass(roster, [pref(2, 3, 1)], locked);
+		expect(pairs).toEqual([
+			{ mentorId: 1, menteeId: 2, method: 'one_sided', mentorRank: null, menteeRank: 3 }
+		]);
+	});
+
+	it('processes candidates in ascending rank', () => {
+		const locked = new Set<number>();
+		const pairs = oneSidedPass(roster, [pref(1, 3, 2), pref(3, 1, 4)], locked);
+		expect(pairs.map((p) => [p.mentorId, p.menteeId])).toEqual([
+			[3, 4],
+			[1, 2]
+		]);
+	});
+
+	it('lets the lower rank win a contested member', () => {
+		const locked = new Set<number>();
+		const pairs = oneSidedPass(roster, [pref(1, 3, 2), pref(3, 1, 2)], locked);
+		expect(pairs).toEqual([
+			{ mentorId: 3, menteeId: 2, method: 'one_sided', mentorRank: 1, menteeRank: null }
+		]);
+	});
+
+	it('ignores a mutual choice, which pass two already owns', () => {
+		const locked = new Set<number>();
+		expect(oneSidedPass(roster, [pref(1, 1, 2), pref(2, 1, 1)], locked)).toEqual([]);
+	});
+
+	it('is order-independent', () => {
+		const input = [pref(1, 3, 2), pref(3, 1, 4), pref(5, 2, 6)];
+		const forward = oneSidedPass(roster, input, new Set());
+		const reversed = oneSidedPass(roster, [...input].reverse(), new Set());
 		expect(reversed).toEqual(forward);
 	});
 });

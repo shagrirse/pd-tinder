@@ -127,3 +127,84 @@ export function mutualAnyPass(
 	candidates.sort(byCombinedRankThenId);
 	return lockInOrder(candidates, locked);
 }
+
+/**
+ * Pass three: exactly one of the two named the other, processed in ascending
+ * order of that rank. The named side ends up with a partner they did not choose,
+ * which is what `gotNoChoice` in the reconcile result surfaces.
+ */
+export function oneSidedPass(
+	members: MemberRef[],
+	prefs: PreferenceRef[],
+	locked: Set<number>
+): ProposedPair[] {
+	const index = buildIndex(members, prefs);
+	const candidates: ProposedPair[] = [];
+
+	for (const p of prefs) {
+		if (rankGiven(index, p.choiceMemberId, p.memberId) !== undefined) continue;
+		const oriented = orient(index, p.memberId, p.choiceMemberId);
+		if (!oriented) continue;
+		const namedByMentor = oriented.mentorId === p.memberId;
+		candidates.push({
+			...oriented,
+			method: 'one_sided',
+			mentorRank: namedByMentor ? p.rank : null,
+			menteeRank: namedByMentor ? null : p.rank
+		});
+	}
+
+	candidates.sort(byCombinedRankThenId);
+	return lockInOrder(candidates, locked);
+}
+
+export type ReconcileResult = {
+	pairs: ProposedPair[];
+	/** Member ids with no pair at all, ascending. */
+	unpaired: number[];
+	/** Member ids whose pair was none of their three choices, ascending. */
+	gotNoChoice: number[];
+};
+
+/**
+ * Run the three passes in order over a roster and its preferences.
+ *
+ * `manual` pairs are seeded as already locked and returned untouched, which is
+ * what makes a re-run safe: an admin override survives it. Spec §7.
+ */
+export function reconcile(
+	members: MemberRef[],
+	prefs: PreferenceRef[],
+	manual: ProposedPair[] = []
+): ReconcileResult {
+	const locked = new Set<number>();
+	for (const pair of manual) {
+		locked.add(pair.mentorId);
+		locked.add(pair.menteeId);
+	}
+
+	const pairs = [...manual];
+	pairs.push(...mutualFirstPass(members, prefs, locked));
+	pairs.push(...mutualAnyPass(members, prefs, locked));
+	pairs.push(...oneSidedPass(members, prefs, locked));
+
+	const index = buildIndex(members, prefs);
+
+	const unpaired = members
+		.filter((m) => !locked.has(m.id))
+		.map((m) => m.id)
+		.sort((a, b) => a - b);
+
+	const gotNoChoice: number[] = [];
+	for (const pair of pairs) {
+		if (rankGiven(index, pair.mentorId, pair.menteeId) === undefined) {
+			gotNoChoice.push(pair.mentorId);
+		}
+		if (rankGiven(index, pair.menteeId, pair.mentorId) === undefined) {
+			gotNoChoice.push(pair.menteeId);
+		}
+	}
+	gotNoChoice.sort((a, b) => a - b);
+
+	return { pairs, unpaired, gotNoChoice };
+}
