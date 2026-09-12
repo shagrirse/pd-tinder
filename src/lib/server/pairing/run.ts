@@ -24,8 +24,6 @@ export function runReconciliation(db: AppDb, cycleId: number): ReconcileResult {
 			.where(and(eq(members.cycleId, cycleId), eq(members.active, true)))
 			.all() satisfies MemberRef[];
 
-		if (roster.length === 0) return { pairs: [], unpaired: [], gotNoChoice: [] };
-
 		const rosterIds = roster.map((m) => m.id);
 
 		const prefs = tx

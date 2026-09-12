@@ -120,6 +120,17 @@ describe('runReconciliation', () => {
 		expect(result.unpaired).not.toContain(mentors[0]);
 	});
 
+	it('deletes a stale computed pairing when every member is later deactivated', () => {
+		runReconciliation(db, 1);
+		expect(db.select().from(pairings).all()).toHaveLength(3);
+
+		db.update(members).set({ active: false }).where(eq(members.cycleId, 1)).run();
+		const result = runReconciliation(db, 1);
+
+		expect(result.pairs).toEqual([]);
+		expect(db.select().from(pairings).all()).toHaveLength(0);
+	});
+
 	it('ignores another cycle entirely', () => {
 		runReconciliation(db, 1);
 		db.insert(cycles).values({ name: '11th Circle', year: 2027 }).run();
