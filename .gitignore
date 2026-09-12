@@ -3,6 +3,7 @@ docs/superpowers/
 
 # Applicant data — contains PII, must never be committed
 *.csv
+*.xlsx
 # ...except invented test fixtures, which contain no real data
 !tests/fixtures/*.csv
 
