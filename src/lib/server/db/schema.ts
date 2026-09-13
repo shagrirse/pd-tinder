@@ -134,3 +134,67 @@ export const verdicts = sqliteTable(
 	},
 	(t) => [unique('verdicts_user_applicant').on(t.userId, t.applicantId)]
 );
+
+/**
+ * The membership domain. Identity is the whole point here, which is the opposite
+ * of the selection domain above: `applicants` is blind and stays blind. Nothing
+ * in `src/lib/server/pairing/` may read `applicant_pii`.
+ */
+export const members = sqliteTable(
+	'members',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		cycleId: integer('cycle_id').notNull().references(() => cycles.id),
+		role: text('role', { enum: ['mentor', 'mentee'] }).notNull(),
+		fullName: text('full_name').notNull(),
+		email: text('email').notNull(),
+		// Nullable: the mentor sign-up form does not collect industry, and the 9th
+		// Circle encoded it in the name as a suffix. Roster import decides how it
+		// gets populated for mentors.
+		industry: text('industry'),
+		// Nullable because mentors are never applicants. For a selected mentee this
+		// is the link back to their application.
+		applicantId: integer('applicant_id').references(() => applicants.id),
+		active: integer('active', { mode: 'boolean' }).notNull().default(true)
+	},
+	(t) => [
+		unique('members_cycle_email').on(t.cycleId, t.email),
+		index('members_roster').on(t.cycleId, t.role)
+	]
+);
+
+export const preferences = sqliteTable(
+	'preferences',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		memberId: integer('member_id').notNull().references(() => members.id),
+		choiceMemberId: integer('choice_member_id').notNull().references(() => members.id),
+		rank: integer('rank').notNull(),
+		reason: text('reason').notNull().default('')
+	},
+	(t) => [
+		unique('preferences_member_rank').on(t.memberId, t.rank),
+		unique('preferences_member_choice').on(t.memberId, t.choiceMemberId)
+	]
+);
+
+export const pairings = sqliteTable(
+	'pairings',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		cycleId: integer('cycle_id').notNull().references(() => cycles.id),
+		mentorMemberId: integer('mentor_member_id').notNull().references(() => members.id),
+		menteeMemberId: integer('mentee_member_id').notNull().references(() => members.id),
+		// How this pair was arrived at. The 9th Circle's spreadsheet encoded this in
+		// its sheet structure and lost it between TOTAL and FINAL.
+		method: text('method', {
+			enum: ['mutual_first', 'mutual_any', 'one_sided', 'manual']
+		}).notNull(),
+		overrideReason: text('override_reason'),
+		createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+	},
+	(t) => [
+		unique('pairings_mentor').on(t.mentorMemberId),
+		unique('pairings_mentee').on(t.menteeMemberId)
+	]
+);

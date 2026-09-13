@@ -1,0 +1,1553 @@
+{
+	"source": "9th Circle",
+	"members": [
+		{
+			"id": 1,
+			"role": "mentor",
+			"industry": "Consulting"
+		},
+		{
+			"id": 2,
+			"role": "mentor",
+			"industry": "Consulting"
+		},
+		{
+			"id": 3,
+			"role": "mentor",
+			"industry": "Consulting"
+		},
+		{
+			"id": 4,
+			"role": "mentor",
+			"industry": "Consulting"
+		},
+		{
+			"id": 5,
+			"role": "mentor",
+			"industry": "Consulting"
+		},
+		{
+			"id": 6,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 7,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 8,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 9,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 10,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 11,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 12,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 13,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 14,
+			"role": "mentor",
+			"industry": "Finance"
+		},
+		{
+			"id": 15,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 16,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 17,
+			"role": "mentor",
+			"industry": "Marketing"
+		},
+		{
+			"id": 18,
+			"role": "mentor",
+			"industry": "Marketing"
+		},
+		{
+			"id": 19,
+			"role": "mentor",
+			"industry": "Marketing"
+		},
+		{
+			"id": 20,
+			"role": "mentor",
+			"industry": "Marketing"
+		},
+		{
+			"id": 21,
+			"role": "mentor",
+			"industry": "Marketing"
+		},
+		{
+			"id": 22,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 23,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 24,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 25,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 26,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 27,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 28,
+			"role": "mentor",
+			"industry": null
+		},
+		{
+			"id": 29,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 30,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 31,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 32,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 33,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 34,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 35,
+			"role": "mentor",
+			"industry": "Tech"
+		},
+		{
+			"id": 36,
+			"role": "mentee",
+			"industry": "Consulting"
+		},
+		{
+			"id": 37,
+			"role": "mentee",
+			"industry": "Consulting"
+		},
+		{
+			"id": 38,
+			"role": "mentee",
+			"industry": "Consulting"
+		},
+		{
+			"id": 39,
+			"role": "mentee",
+			"industry": "Consulting"
+		},
+		{
+			"id": 40,
+			"role": "mentee",
+			"industry": "Consulting"
+		},
+		{
+			"id": 41,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 42,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 43,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 44,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 45,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 46,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 47,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 48,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 49,
+			"role": "mentee",
+			"industry": "Finance"
+		},
+		{
+			"id": 50,
+			"role": "mentee",
+			"industry": null
+		},
+		{
+			"id": 51,
+			"role": "mentee",
+			"industry": null
+		},
+		{
+			"id": 52,
+			"role": "mentee",
+			"industry": "Marketing"
+		},
+		{
+			"id": 53,
+			"role": "mentee",
+			"industry": "Marketing"
+		},
+		{
+			"id": 54,
+			"role": "mentee",
+			"industry": "Marketing"
+		},
+		{
+			"id": 55,
+			"role": "mentee",
+			"industry": "Marketing"
+		},
+		{
+			"id": 56,
+			"role": "mentee",
+			"industry": "Marketing"
+		},
+		{
+			"id": 57,
+			"role": "mentee",
+			"industry": "Niche"
+		},
+		{
+			"id": 58,
+			"role": "mentee",
+			"industry": "Niche"
+		},
+		{
+			"id": 59,
+			"role": "mentee",
+			"industry": "Niche"
+		},
+		{
+			"id": 60,
+			"role": "mentee",
+			"industry": "Niche"
+		},
+		{
+			"id": 61,
+			"role": "mentee",
+			"industry": "Niche"
+		},
+		{
+			"id": 62,
+			"role": "mentee",
+			"industry": null
+		},
+		{
+			"id": 63,
+			"role": "mentee",
+			"industry": null
+		},
+		{
+			"id": 64,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 65,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 66,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 67,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 68,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 69,
+			"role": "mentee",
+			"industry": "Tech"
+		},
+		{
+			"id": 70,
+			"role": "mentee",
+			"industry": "Tech"
+		}
+	],
+	"preferences": [
+		{
+			"memberId": 1,
+			"rank": 1,
+			"choiceMemberId": 49
+		},
+		{
+			"memberId": 1,
+			"rank": 2,
+			"choiceMemberId": 38
+		},
+		{
+			"memberId": 1,
+			"rank": 3,
+			"choiceMemberId": 36
+		},
+		{
+			"memberId": 2,
+			"rank": 1,
+			"choiceMemberId": 38
+		},
+		{
+			"memberId": 2,
+			"rank": 2,
+			"choiceMemberId": 36
+		},
+		{
+			"memberId": 2,
+			"rank": 3,
+			"choiceMemberId": 37
+		},
+		{
+			"memberId": 3,
+			"rank": 1,
+			"choiceMemberId": 37
+		},
+		{
+			"memberId": 3,
+			"rank": 2,
+			"choiceMemberId": 38
+		},
+		{
+			"memberId": 3,
+			"rank": 3,
+			"choiceMemberId": 40
+		},
+		{
+			"memberId": 4,
+			"rank": 1,
+			"choiceMemberId": 37
+		},
+		{
+			"memberId": 4,
+			"rank": 2,
+			"choiceMemberId": 38
+		},
+		{
+			"memberId": 4,
+			"rank": 3,
+			"choiceMemberId": 36
+		},
+		{
+			"memberId": 5,
+			"rank": 1,
+			"choiceMemberId": 36
+		},
+		{
+			"memberId": 5,
+			"rank": 2,
+			"choiceMemberId": 62
+		},
+		{
+			"memberId": 5,
+			"rank": 3,
+			"choiceMemberId": 38
+		},
+		{
+			"memberId": 6,
+			"rank": 1,
+			"choiceMemberId": 44
+		},
+		{
+			"memberId": 6,
+			"rank": 2,
+			"choiceMemberId": 49
+		},
+		{
+			"memberId": 6,
+			"rank": 3,
+			"choiceMemberId": 43
+		},
+		{
+			"memberId": 7,
+			"rank": 1,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 7,
+			"rank": 2,
+			"choiceMemberId": 46
+		},
+		{
+			"memberId": 7,
+			"rank": 3,
+			"choiceMemberId": 48
+		},
+		{
+			"memberId": 8,
+			"rank": 1,
+			"choiceMemberId": 42
+		},
+		{
+			"memberId": 8,
+			"rank": 2,
+			"choiceMemberId": 49
+		},
+		{
+			"memberId": 8,
+			"rank": 3,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 9,
+			"rank": 1,
+			"choiceMemberId": 49
+		},
+		{
+			"memberId": 9,
+			"rank": 2,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 9,
+			"rank": 3,
+			"choiceMemberId": 44
+		},
+		{
+			"memberId": 10,
+			"rank": 1,
+			"choiceMemberId": 39
+		},
+		{
+			"memberId": 10,
+			"rank": 2,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 10,
+			"rank": 3,
+			"choiceMemberId": 47
+		},
+		{
+			"memberId": 11,
+			"rank": 1,
+			"choiceMemberId": 43
+		},
+		{
+			"memberId": 11,
+			"rank": 2,
+			"choiceMemberId": 45
+		},
+		{
+			"memberId": 11,
+			"rank": 3,
+			"choiceMemberId": 46
+		},
+		{
+			"memberId": 12,
+			"rank": 1,
+			"choiceMemberId": 46
+		},
+		{
+			"memberId": 12,
+			"rank": 2,
+			"choiceMemberId": 45
+		},
+		{
+			"memberId": 12,
+			"rank": 3,
+			"choiceMemberId": 49
+		},
+		{
+			"memberId": 13,
+			"rank": 1,
+			"choiceMemberId": 48
+		},
+		{
+			"memberId": 13,
+			"rank": 2,
+			"choiceMemberId": 42
+		},
+		{
+			"memberId": 13,
+			"rank": 3,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 14,
+			"rank": 1,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 14,
+			"rank": 2,
+			"choiceMemberId": 44
+		},
+		{
+			"memberId": 14,
+			"rank": 3,
+			"choiceMemberId": 42
+		},
+		{
+			"memberId": 15,
+			"rank": 1,
+			"choiceMemberId": 50
+		},
+		{
+			"memberId": 15,
+			"rank": 2,
+			"choiceMemberId": 51
+		},
+		{
+			"memberId": 15,
+			"rank": 3,
+			"choiceMemberId": 50
+		},
+		{
+			"memberId": 16,
+			"rank": 1,
+			"choiceMemberId": 51
+		},
+		{
+			"memberId": 16,
+			"rank": 2,
+			"choiceMemberId": 50
+		},
+		{
+			"memberId": 16,
+			"rank": 3,
+			"choiceMemberId": 62
+		},
+		{
+			"memberId": 17,
+			"rank": 1,
+			"choiceMemberId": 56
+		},
+		{
+			"memberId": 17,
+			"rank": 2,
+			"choiceMemberId": 53
+		},
+		{
+			"memberId": 17,
+			"rank": 3,
+			"choiceMemberId": 55
+		},
+		{
+			"memberId": 18,
+			"rank": 1,
+			"choiceMemberId": 55
+		},
+		{
+			"memberId": 18,
+			"rank": 2,
+			"choiceMemberId": 53
+		},
+		{
+			"memberId": 18,
+			"rank": 3,
+			"choiceMemberId": 54
+		},
+		{
+			"memberId": 19,
+			"rank": 1,
+			"choiceMemberId": 55
+		},
+		{
+			"memberId": 19,
+			"rank": 2,
+			"choiceMemberId": 53
+		},
+		{
+			"memberId": 19,
+			"rank": 3,
+			"choiceMemberId": 56
+		},
+		{
+			"memberId": 20,
+			"rank": 1,
+			"choiceMemberId": 52
+		},
+		{
+			"memberId": 20,
+			"rank": 2,
+			"choiceMemberId": 55
+		},
+		{
+			"memberId": 20,
+			"rank": 3,
+			"choiceMemberId": 54
+		},
+		{
+			"memberId": 21,
+			"rank": 1,
+			"choiceMemberId": 54
+		},
+		{
+			"memberId": 21,
+			"rank": 2,
+			"choiceMemberId": 52
+		},
+		{
+			"memberId": 21,
+			"rank": 3,
+			"choiceMemberId": 53
+		},
+		{
+			"memberId": 22,
+			"rank": 1,
+			"choiceMemberId": 57
+		},
+		{
+			"memberId": 22,
+			"rank": 2,
+			"choiceMemberId": 61
+		},
+		{
+			"memberId": 22,
+			"rank": 3,
+			"choiceMemberId": 41
+		},
+		{
+			"memberId": 23,
+			"rank": 1,
+			"choiceMemberId": 60
+		},
+		{
+			"memberId": 23,
+			"rank": 2,
+			"choiceMemberId": 61
+		},
+		{
+			"memberId": 23,
+			"rank": 3,
+			"choiceMemberId": 47
+		},
+		{
+			"memberId": 24,
+			"rank": 1,
+			"choiceMemberId": 53
+		},
+		{
+			"memberId": 24,
+			"rank": 2,
+			"choiceMemberId": 57
+		},
+		{
+			"memberId": 24,
+			"rank": 3,
+			"choiceMemberId": 59
+		},
+		{
+			"memberId": 25,
+			"rank": 1,
+			"choiceMemberId": 58
+		},
+		{
+			"memberId": 25,
+			"rank": 2,
+			"choiceMemberId": 67
+		},
+		{
+			"memberId": 25,
+			"rank": 3,
+			"choiceMemberId": 59
+		},
+		{
+			"memberId": 26,
+			"rank": 1,
+			"choiceMemberId": 59
+		},
+		{
+			"memberId": 26,
+			"rank": 2,
+			"choiceMemberId": 61
+		},
+		{
+			"memberId": 26,
+			"rank": 3,
+			"choiceMemberId": 58
+		},
+		{
+			"memberId": 27,
+			"rank": 1,
+			"choiceMemberId": 62
+		},
+		{
+			"memberId": 27,
+			"rank": 2,
+			"choiceMemberId": 48
+		},
+		{
+			"memberId": 27,
+			"rank": 3,
+			"choiceMemberId": 63
+		},
+		{
+			"memberId": 28,
+			"rank": 1,
+			"choiceMemberId": 61
+		},
+		{
+			"memberId": 28,
+			"rank": 2,
+			"choiceMemberId": 70
+		},
+		{
+			"memberId": 28,
+			"rank": 3,
+			"choiceMemberId": 63
+		},
+		{
+			"memberId": 29,
+			"rank": 1,
+			"choiceMemberId": 65
+		},
+		{
+			"memberId": 29,
+			"rank": 2,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 29,
+			"rank": 3,
+			"choiceMemberId": 63
+		},
+		{
+			"memberId": 30,
+			"rank": 1,
+			"choiceMemberId": 70
+		},
+		{
+			"memberId": 30,
+			"rank": 2,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 30,
+			"rank": 3,
+			"choiceMemberId": 66
+		},
+		{
+			"memberId": 31,
+			"rank": 1,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 31,
+			"rank": 2,
+			"choiceMemberId": 67
+		},
+		{
+			"memberId": 31,
+			"rank": 3,
+			"choiceMemberId": 66
+		},
+		{
+			"memberId": 32,
+			"rank": 1,
+			"choiceMemberId": 64
+		},
+		{
+			"memberId": 32,
+			"rank": 2,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 32,
+			"rank": 3,
+			"choiceMemberId": 65
+		},
+		{
+			"memberId": 33,
+			"rank": 1,
+			"choiceMemberId": 67
+		},
+		{
+			"memberId": 33,
+			"rank": 2,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 33,
+			"rank": 3,
+			"choiceMemberId": 66
+		},
+		{
+			"memberId": 34,
+			"rank": 1,
+			"choiceMemberId": 68
+		},
+		{
+			"memberId": 34,
+			"rank": 2,
+			"choiceMemberId": 65
+		},
+		{
+			"memberId": 34,
+			"rank": 3,
+			"choiceMemberId": 60
+		},
+		{
+			"memberId": 35,
+			"rank": 1,
+			"choiceMemberId": 69
+		},
+		{
+			"memberId": 35,
+			"rank": 2,
+			"choiceMemberId": 65
+		},
+		{
+			"memberId": 35,
+			"rank": 3,
+			"choiceMemberId": 70
+		},
+		{
+			"memberId": 36,
+			"rank": 1,
+			"choiceMemberId": 5
+		},
+		{
+			"memberId": 36,
+			"rank": 2,
+			"choiceMemberId": 4
+		},
+		{
+			"memberId": 36,
+			"rank": 3,
+			"choiceMemberId": 2
+		},
+		{
+			"memberId": 37,
+			"rank": 1,
+			"choiceMemberId": 4
+		},
+		{
+			"memberId": 37,
+			"rank": 2,
+			"choiceMemberId": 5
+		},
+		{
+			"memberId": 37,
+			"rank": 3,
+			"choiceMemberId": 2
+		},
+		{
+			"memberId": 38,
+			"rank": 1,
+			"choiceMemberId": 1
+		},
+		{
+			"memberId": 38,
+			"rank": 2,
+			"choiceMemberId": 2
+		},
+		{
+			"memberId": 38,
+			"rank": 3,
+			"choiceMemberId": 4
+		},
+		{
+			"memberId": 39,
+			"rank": 1,
+			"choiceMemberId": 10
+		},
+		{
+			"memberId": 39,
+			"rank": 2,
+			"choiceMemberId": 25
+		},
+		{
+			"memberId": 39,
+			"rank": 3,
+			"choiceMemberId": 2
+		},
+		{
+			"memberId": 40,
+			"rank": 1,
+			"choiceMemberId": 5
+		},
+		{
+			"memberId": 40,
+			"rank": 2,
+			"choiceMemberId": 3
+		},
+		{
+			"memberId": 40,
+			"rank": 3,
+			"choiceMemberId": 4
+		},
+		{
+			"memberId": 41,
+			"rank": 1,
+			"choiceMemberId": 14
+		},
+		{
+			"memberId": 41,
+			"rank": 2,
+			"choiceMemberId": 13
+		},
+		{
+			"memberId": 41,
+			"rank": 3,
+			"choiceMemberId": 10
+		},
+		{
+			"memberId": 42,
+			"rank": 1,
+			"choiceMemberId": 8
+		},
+		{
+			"memberId": 42,
+			"rank": 2,
+			"choiceMemberId": 13
+		},
+		{
+			"memberId": 42,
+			"rank": 3,
+			"choiceMemberId": 14
+		},
+		{
+			"memberId": 43,
+			"rank": 1,
+			"choiceMemberId": 11
+		},
+		{
+			"memberId": 43,
+			"rank": 2,
+			"choiceMemberId": 8
+		},
+		{
+			"memberId": 43,
+			"rank": 3,
+			"choiceMemberId": 10
+		},
+		{
+			"memberId": 44,
+			"rank": 1,
+			"choiceMemberId": 6
+		},
+		{
+			"memberId": 44,
+			"rank": 2,
+			"choiceMemberId": 14
+		},
+		{
+			"memberId": 44,
+			"rank": 3,
+			"choiceMemberId": 9
+		},
+		{
+			"memberId": 45,
+			"rank": 1,
+			"choiceMemberId": 10
+		},
+		{
+			"memberId": 45,
+			"rank": 2,
+			"choiceMemberId": 12
+		},
+		{
+			"memberId": 45,
+			"rank": 3,
+			"choiceMemberId": 11
+		},
+		{
+			"memberId": 46,
+			"rank": 1,
+			"choiceMemberId": 12
+		},
+		{
+			"memberId": 46,
+			"rank": 2,
+			"choiceMemberId": 11
+		},
+		{
+			"memberId": 46,
+			"rank": 3,
+			"choiceMemberId": 10
+		},
+		{
+			"memberId": 48,
+			"rank": 1,
+			"choiceMemberId": 13
+		},
+		{
+			"memberId": 48,
+			"rank": 2,
+			"choiceMemberId": 27
+		},
+		{
+			"memberId": 48,
+			"rank": 3,
+			"choiceMemberId": 12
+		},
+		{
+			"memberId": 49,
+			"rank": 1,
+			"choiceMemberId": 1
+		},
+		{
+			"memberId": 49,
+			"rank": 2,
+			"choiceMemberId": 6
+		},
+		{
+			"memberId": 49,
+			"rank": 3,
+			"choiceMemberId": 9
+		},
+		{
+			"memberId": 50,
+			"rank": 1,
+			"choiceMemberId": 15
+		},
+		{
+			"memberId": 50,
+			"rank": 2,
+			"choiceMemberId": 16
+		},
+		{
+			"memberId": 50,
+			"rank": 3,
+			"choiceMemberId": 21
+		},
+		{
+			"memberId": 51,
+			"rank": 1,
+			"choiceMemberId": 16
+		},
+		{
+			"memberId": 51,
+			"rank": 2,
+			"choiceMemberId": 15
+		},
+		{
+			"memberId": 51,
+			"rank": 3,
+			"choiceMemberId": 28
+		},
+		{
+			"memberId": 52,
+			"rank": 1,
+			"choiceMemberId": 20
+		},
+		{
+			"memberId": 52,
+			"rank": 2,
+			"choiceMemberId": 24
+		},
+		{
+			"memberId": 52,
+			"rank": 3,
+			"choiceMemberId": 21
+		},
+		{
+			"memberId": 53,
+			"rank": 1,
+			"choiceMemberId": 24
+		},
+		{
+			"memberId": 53,
+			"rank": 2,
+			"choiceMemberId": 18
+		},
+		{
+			"memberId": 53,
+			"rank": 3,
+			"choiceMemberId": 21
+		},
+		{
+			"memberId": 54,
+			"rank": 1,
+			"choiceMemberId": 21
+		},
+		{
+			"memberId": 54,
+			"rank": 2,
+			"choiceMemberId": 20
+		},
+		{
+			"memberId": 54,
+			"rank": 3,
+			"choiceMemberId": 18
+		},
+		{
+			"memberId": 55,
+			"rank": 1,
+			"choiceMemberId": 18
+		},
+		{
+			"memberId": 55,
+			"rank": 2,
+			"choiceMemberId": 21
+		},
+		{
+			"memberId": 55,
+			"rank": 3,
+			"choiceMemberId": 20
+		},
+		{
+			"memberId": 56,
+			"rank": 1,
+			"choiceMemberId": 18
+		},
+		{
+			"memberId": 56,
+			"rank": 2,
+			"choiceMemberId": 17
+		},
+		{
+			"memberId": 56,
+			"rank": 3,
+			"choiceMemberId": 20
+		},
+		{
+			"memberId": 57,
+			"rank": 1,
+			"choiceMemberId": 22
+		},
+		{
+			"memberId": 57,
+			"rank": 2,
+			"choiceMemberId": 24
+		},
+		{
+			"memberId": 57,
+			"rank": 3,
+			"choiceMemberId": 25
+		},
+		{
+			"memberId": 58,
+			"rank": 1,
+			"choiceMemberId": 25
+		},
+		{
+			"memberId": 58,
+			"rank": 2,
+			"choiceMemberId": 24
+		},
+		{
+			"memberId": 58,
+			"rank": 3,
+			"choiceMemberId": 22
+		},
+		{
+			"memberId": 59,
+			"rank": 1,
+			"choiceMemberId": 25
+		},
+		{
+			"memberId": 59,
+			"rank": 2,
+			"choiceMemberId": 24
+		},
+		{
+			"memberId": 59,
+			"rank": 3,
+			"choiceMemberId": 26
+		},
+		{
+			"memberId": 60,
+			"rank": 1,
+			"choiceMemberId": 23
+		},
+		{
+			"memberId": 60,
+			"rank": 2,
+			"choiceMemberId": 34
+		},
+		{
+			"memberId": 60,
+			"rank": 3,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 61,
+			"rank": 1,
+			"choiceMemberId": 28
+		},
+		{
+			"memberId": 61,
+			"rank": 2,
+			"choiceMemberId": 22
+		},
+		{
+			"memberId": 61,
+			"rank": 3,
+			"choiceMemberId": 23
+		},
+		{
+			"memberId": 62,
+			"rank": 1,
+			"choiceMemberId": 27
+		},
+		{
+			"memberId": 62,
+			"rank": 2,
+			"choiceMemberId": 5
+		},
+		{
+			"memberId": 62,
+			"rank": 3,
+			"choiceMemberId": 28
+		},
+		{
+			"memberId": 63,
+			"rank": 1,
+			"choiceMemberId": 27
+		},
+		{
+			"memberId": 63,
+			"rank": 2,
+			"choiceMemberId": 25
+		},
+		{
+			"memberId": 63,
+			"rank": 3,
+			"choiceMemberId": 28
+		},
+		{
+			"memberId": 64,
+			"rank": 1,
+			"choiceMemberId": 32
+		},
+		{
+			"memberId": 64,
+			"rank": 2,
+			"choiceMemberId": 33
+		},
+		{
+			"memberId": 64,
+			"rank": 3,
+			"choiceMemberId": 34
+		},
+		{
+			"memberId": 65,
+			"rank": 1,
+			"choiceMemberId": 29
+		},
+		{
+			"memberId": 65,
+			"rank": 2,
+			"choiceMemberId": 32
+		},
+		{
+			"memberId": 65,
+			"rank": 3,
+			"choiceMemberId": 34
+		},
+		{
+			"memberId": 66,
+			"rank": 1,
+			"choiceMemberId": 35
+		},
+		{
+			"memberId": 66,
+			"rank": 2,
+			"choiceMemberId": 31
+		},
+		{
+			"memberId": 66,
+			"rank": 3,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 67,
+			"rank": 1,
+			"choiceMemberId": 33
+		},
+		{
+			"memberId": 67,
+			"rank": 2,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 67,
+			"rank": 3,
+			"choiceMemberId": 35
+		},
+		{
+			"memberId": 68,
+			"rank": 1,
+			"choiceMemberId": 34
+		},
+		{
+			"memberId": 68,
+			"rank": 2,
+			"choiceMemberId": 32
+		},
+		{
+			"memberId": 68,
+			"rank": 3,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 69,
+			"rank": 1,
+			"choiceMemberId": 31
+		},
+		{
+			"memberId": 69,
+			"rank": 2,
+			"choiceMemberId": 35
+		},
+		{
+			"memberId": 69,
+			"rank": 3,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 70,
+			"rank": 1,
+			"choiceMemberId": 30
+		},
+		{
+			"memberId": 70,
+			"rank": 2,
+			"choiceMemberId": 35
+		},
+		{
+			"memberId": 70,
+			"rank": 3,
+			"choiceMemberId": 28
+		}
+	],
+	"final": [
+		{
+			"mentorId": 1,
+			"menteeId": 49
+		},
+		{
+			"mentorId": 2,
+			"menteeId": 38
+		},
+		{
+			"mentorId": 3,
+			"menteeId": 63
+		},
+		{
+			"mentorId": 4,
+			"menteeId": 37
+		},
+		{
+			"mentorId": 5,
+			"menteeId": 36
+		},
+		{
+			"mentorId": 6,
+			"menteeId": 44
+		},
+		{
+			"mentorId": 7,
+			"menteeId": 40
+		},
+		{
+			"mentorId": 8,
+			"menteeId": 42
+		},
+		{
+			"mentorId": 9,
+			"menteeId": 47
+		},
+		{
+			"mentorId": 10,
+			"menteeId": 39
+		},
+		{
+			"mentorId": 11,
+			"menteeId": 43
+		},
+		{
+			"mentorId": 12,
+			"menteeId": 46
+		},
+		{
+			"mentorId": 13,
+			"menteeId": 48
+		},
+		{
+			"mentorId": 14,
+			"menteeId": 41
+		},
+		{
+			"mentorId": 15,
+			"menteeId": 50
+		},
+		{
+			"mentorId": 16,
+			"menteeId": 51
+		},
+		{
+			"mentorId": 17,
+			"menteeId": 56
+		},
+		{
+			"mentorId": 18,
+			"menteeId": 55
+		},
+		{
+			"mentorId": 19,
+			"menteeId": 45
+		},
+		{
+			"mentorId": 20,
+			"menteeId": 52
+		},
+		{
+			"mentorId": 21,
+			"menteeId": 54
+		},
+		{
+			"mentorId": 22,
+			"menteeId": 57
+		},
+		{
+			"mentorId": 23,
+			"menteeId": 60
+		},
+		{
+			"mentorId": 24,
+			"menteeId": 53
+		},
+		{
+			"mentorId": 25,
+			"menteeId": 58
+		},
+		{
+			"mentorId": 26,
+			"menteeId": 59
+		},
+		{
+			"mentorId": 27,
+			"menteeId": 62
+		},
+		{
+			"mentorId": 28,
+			"menteeId": 61
+		},
+		{
+			"mentorId": 29,
+			"menteeId": 65
+		},
+		{
+			"mentorId": 30,
+			"menteeId": 70
+		},
+		{
+			"mentorId": 31,
+			"menteeId": 69
+		},
+		{
+			"mentorId": 32,
+			"menteeId": 64
+		},
+		{
+			"mentorId": 33,
+			"menteeId": 67
+		},
+		{
+			"mentorId": 34,
+			"menteeId": 68
+		},
+		{
+			"mentorId": 35,
+			"menteeId": 66
+		}
+	],
+	"handResolved": [
+		3,
+		7,
+		9,
+		19,
+		35,
+		40,
+		45,
+		47,
+		63,
+		66
+	],
+	"expected": {
+		"note": "Figures observed when the fixture was built. Written from this script's output, never invented.",
+		"members": 70,
+		"submissions": 69,
+		"finalPairs": 35,
+		"unjoinable": 0
+	}
+}

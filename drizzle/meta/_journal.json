@@ -8,6 +8,13 @@
       "when": 1787621062605,
       "tag": "0000_odd_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789231218400,
+      "tag": "0001_stale_wolfsbane",
+      "breakpoints": true
     }
   ]
 }
