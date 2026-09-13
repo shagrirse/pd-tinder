@@ -7,10 +7,10 @@ import { parseCsv } from '$lib/server/import/parse';
 import { validateImport, type ValidationReport } from '$lib/server/import/validate';
 import { commitImport } from '$lib/server/import/commit';
 import {
-	discardStagedImport,
-	readStagedImport,
-	stageImport
-} from '$lib/server/import/staging';
+	discardStagedUpload,
+	readStagedUpload,
+	stageUpload
+} from '$lib/server/upload/staging';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -71,7 +71,7 @@ export const actions: Actions = {
 			fileName: file.name,
 			// Nothing unusable is held in memory: a blocking report cannot be committed,
 			// so it is not staged and the admin simply uploads a corrected file.
-			token: report.blocking.length === 0 ? stageImport(csvText, cycleId) : null
+			token: report.blocking.length === 0 ? stageUpload('applicants', { csvText, cycleId }) : null
 		} satisfies ActionResult;
 	},
 
@@ -81,7 +81,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 
 		const token = String(form.get('token') ?? '');
-		const stagedFile = readStagedImport(token);
+		const stagedFile = readStagedUpload<{ csvText: string; cycleId: number }>('applicants', token);
 		if (!stagedFile) {
 			return fail(
 				400,
@@ -91,23 +91,23 @@ export const actions: Actions = {
 
 		const cycle = listCycles(db).find((c) => c.id === stagedFile.cycleId);
 		if (!cycle) {
-			discardStagedImport(token);
+			discardStagedUpload(token);
 			return fail(400, problem('That cycle no longer exists.'));
 		}
 		if (cycle.status === 'closed') {
-			discardStagedImport(token);
+			discardStagedUpload(token);
 			return fail(400, problem('That cycle was closed. Reopen it before importing.'));
 		}
 
 		const parsed = parseCsv(stagedFile.csvText);
 		const report = validateImport(parsed, DEFAULT_COLUMN_MAPPING);
 		if (report.blocking.length > 0) {
-			discardStagedImport(token);
+			discardStagedUpload(token);
 			return fail(400, problem('That file no longer validates. Upload it again.'));
 		}
 
 		const committed = commitImport(db, stagedFile.cycleId, parsed, DEFAULT_COLUMN_MAPPING);
-		discardStagedImport(token);
+		discardStagedUpload(token);
 
 		return { ...EMPTY, committed, cycleId: stagedFile.cycleId } satisfies ActionResult;
 	}
