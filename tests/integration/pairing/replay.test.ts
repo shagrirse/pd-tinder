@@ -22,8 +22,9 @@ const fixture: Fixture = JSON.parse(
 const roster: MemberRef[] = fixture.members.map((m) => ({ id: m.id, role: m.role }));
 const result = reconcile(roster, fixture.preferences);
 
-/** mentorId -> menteeId, as PD actually shipped it. */
-const shipped = new Map(fixture.final.map((p) => [p.mentorId, p.menteeId]));
+/** mentorId -> menteeId and menteeId -> mentorId, as PD actually shipped it. */
+const shippedByMentor = new Map(fixture.final.map((p) => [p.mentorId, p.menteeId]));
+const shippedByMentee = new Map(fixture.final.map((p) => [p.menteeId, p.mentorId]));
 
 describe('the 9th Circle fixture', () => {
 	it('matches the figures recorded when it was built', () => {
@@ -32,6 +33,8 @@ describe('the 9th Circle fixture', () => {
 		expect(new Set(fixture.preferences.map((p) => p.memberId)).size).toBe(
 			fixture.expected.submissions
 		);
+		// Spec §7.1: nothing remains unresolvable.
+		expect(fixture.expected.unjoinable).toBe(0);
 	});
 
 	it('carries no names, emails or reasons', () => {
@@ -47,10 +50,14 @@ describe('replaying reconciliation over the 9th Circle', () => {
 	it('contradicts none of the pairs PD shipped', () => {
 		// Acceptance, spec §7.1: a produced pair may be absent from FINAL (PD
 		// hand-resolved it differently), but it may never CONTRADICT FINAL by
-		// pairing a mentor with someone other than the mentee they ended up with.
+		// pairing a mentor or a mentee with someone other than the person they
+		// ended up with. Both sides of FINAL are checked, so a pair whose mentor
+		// is absent from FINAL still contradicts if its mentee shipped elsewhere.
 		const contradictions = result.pairs.filter((pair) => {
-			const actual = shipped.get(pair.mentorId);
-			return actual !== undefined && actual !== pair.menteeId;
+			const mentorActual = shippedByMentor.get(pair.mentorId);
+			if (mentorActual !== undefined && mentorActual !== pair.menteeId) return true;
+			const menteeActual = shippedByMentee.get(pair.menteeId);
+			return menteeActual !== undefined && menteeActual !== pair.mentorId;
 		});
 		expect(contradictions).toEqual([]);
 	});
@@ -68,7 +75,7 @@ describe('replaying reconciliation over the 9th Circle', () => {
 		const mutual = result.pairs.filter(
 			(p) => p.method === 'mutual_first' || p.method === 'mutual_any'
 		);
-		const reproduced = result.pairs.filter((p) => shipped.get(p.mentorId) === p.menteeId);
+		const reproduced = result.pairs.filter((p) => shippedByMentor.get(p.mentorId) === p.menteeId);
 		expect(mutual.length).toBeGreaterThan(result.pairs.length / 2);
 		expect(reproduced.length).toBeGreaterThan(fixture.final.length / 2);
 	});
@@ -78,6 +85,7 @@ describe('replaying reconciliation over the 9th Circle', () => {
 		// either in the hand-labelled block, or in a FINAL pair the preferences
 		// cannot explain.
 		const explainable = new Set<number>(fixture.handResolved);
+		const unresolvable: number[] = [];
 		for (const pair of fixture.final) {
 			const namedEachOther = fixture.preferences.some(
 				(p) =>
@@ -87,10 +95,17 @@ describe('replaying reconciliation over the 9th Circle', () => {
 			if (!namedEachOther) {
 				explainable.add(pair.mentorId);
 				explainable.add(pair.menteeId);
+				unresolvable.push(pair.mentorId, pair.menteeId);
 			}
 		}
 		const unexplained = result.unpaired.filter((id) => !explainable.has(id));
 		expect(unexplained).toEqual([]);
+		// Converse: no preference supports these pairs in either direction, so no
+		// pass can produce them — every member of such a pair must sit in the
+		// residual (spec §7.1: the residual is the four hand-labelled FINAL pairs).
+		for (const id of unresolvable) {
+			expect(result.unpaired).toContain(id);
+		}
 	});
 
 	it('is deterministic', () => {

@@ -112,8 +112,21 @@ describe('setPreferences', () => {
 		);
 	});
 
+	it('rejects a choice naming an unknown member', () => {
+		expect(
+			codeOf(() => setPreferences(db, mentor, threeChoices([mentees[0], mentees[1], 9999])))
+		).toBe('not_found');
+	});
+
 	it('rejects an inactive member', () => {
 		db.update(members).set({ active: false }).where(eq(members.id, mentor)).run();
+		expect(codeOf(() => setPreferences(db, mentor, threeChoices(mentees.slice(0, 3))))).toBe(
+			'inactive'
+		);
+	});
+
+	it('rejects an inactive choice member', () => {
+		db.update(members).set({ active: false }).where(eq(members.id, mentees[0])).run();
 		expect(codeOf(() => setPreferences(db, mentor, threeChoices(mentees.slice(0, 3))))).toBe(
 			'inactive'
 		);

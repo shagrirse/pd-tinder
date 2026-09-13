@@ -26,7 +26,7 @@ describe('normalizeName', () => {
 	});
 
 	it('normalises a non-breaking space', () => {
-		expect(normalizeName('Ada Fictional').key).toBe('ada fictional');
+		expect(normalizeName('Ada Fictional').key).toBe('ada fictional');
 	});
 
 	it('leaves an unrecognised parenthetical out of the industry', () => {

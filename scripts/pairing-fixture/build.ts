@@ -172,6 +172,7 @@ for (const row of sheet(responsesPath, 'Form responses 1')) {
 	const targetRole = ownRole === 'mentor' ? 'mentee' : ownRole === 'mentee' ? 'mentor' : null;
 	if (targetRole === null) continue;
 	submissions += 1;
+	// Source anomaly kept faithful: member 15 names member 50 at ranks 1 and 3 (a duplicate choice setPreferences would reject on a live cycle).
 	for (const rank of [1, 2, 3]) {
 		const choiceRaw = text(row, `${ORDINALS[rank - 1]} choice for ${targetRole}`);
 		const choice = resolve(choiceRaw);

@@ -46,6 +46,9 @@ export function setPreferences(db: AppDb, memberId: number, choices: ChoiceInput
 		throw new PreferenceError('not_found', 'One or more choices name an unknown member');
 	}
 	for (const c of chosen) {
+		if (!c.active) {
+			throw new PreferenceError('inactive', `Member ${c.id} is inactive`);
+		}
 		if (c.cycleId !== member.cycleId) {
 			throw new PreferenceError('wrong_cycle', `Member ${c.id} belongs to another cycle`);
 		}
