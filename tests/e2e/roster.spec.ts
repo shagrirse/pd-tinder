@@ -58,4 +58,23 @@ test.describe('roster import', () => {
 		await expect(page.getByText('99999999')).toBeVisible();
 		await expect(page.getByRole('button', { name: /Import \d+ mentees/ })).toHaveCount(0);
 	});
+
+	test('shows an error when the commit token is invalid', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		await page.getByLabel('Mentee roster CSV file').setInputFiles(MENTEES);
+		await page.getByRole('button', { name: 'Validate mentees' }).click();
+		await expect(page.getByRole('button', { name: /Import 2 mentees/ })).toBeVisible();
+
+		// Playwright refuses to fill a type="hidden" input, so set the value directly.
+		await page
+			.locator('form[action="?/commitMentees"] input[name="token"]')
+			.evaluate((el) => ((el as HTMLInputElement).value = 'bogus'));
+		await page.getByRole('button', { name: /Import 2 mentees/ }).click();
+
+		await expect(
+			page.getByText('That upload expired or was already used. Upload the file again.')
+		).toBeVisible();
+	});
 });

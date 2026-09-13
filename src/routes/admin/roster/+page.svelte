@@ -38,14 +38,13 @@
 			No recruitment cycle exists yet. Create one before importing a roster.
 		</p>
 	{:else}
+		{#if form?.error}<p class="form-error" role="alert">{form.error}</p>{/if}
+
 		<div class="panel">
 			<div class="panel-head">
 				<span>Mentors</span>
 				<span class="file-name">Selected mentors — full_name, email, industry, student_id</span>
 			</div>
-
-			{#if mentors?.error}<p class="form-error" role="alert">{mentors.error}</p>{/if}
-			{#if mentorCommit?.error}<p class="form-error" role="alert">{mentorCommit.error}</p>{/if}
 
 			{#if mentorDone}
 				<p class="done-title">Roster updated</p>
@@ -104,9 +103,6 @@
 				<span>Mentees</span>
 				<span class="file-name">Selected mentees — student_id, industry</span>
 			</div>
-
-			{#if mentees?.error}<p class="form-error" role="alert">{mentees.error}</p>{/if}
-			{#if menteeCommit?.error}<p class="form-error" role="alert">{menteeCommit.error}</p>{/if}
 
 			{#if menteeDone}
 				<p class="done-title">Roster updated</p>
