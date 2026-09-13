@@ -15,6 +15,13 @@
       "when": 1789231218400,
       "tag": "0001_stale_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789306537173,
+      "tag": "0002_dry_maria_hill",
+      "breakpoints": true
     }
   ]
 }
