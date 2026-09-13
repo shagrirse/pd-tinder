@@ -4,6 +4,13 @@ import { applicantPii, applicants, members } from '../db/schema';
 
 export type MemberRole = 'mentor' | 'mentee';
 
+/**
+ * What the write helpers accept: the plain connection or a transaction handle
+ * of the same shape. commitRoster runs its outer transaction and passes the
+ * handle down; the nested `transaction` calls here then become savepoints.
+ */
+type MemberDb = AppDb | Parameters<Parameters<AppDb['transaction']>[0]>[0];
+
 export type MemberInput = {
 	role: MemberRole;
 	fullName: string;
@@ -23,7 +30,7 @@ export type MemberInput = {
  * spec §7: one email belongs to one member of a cycle, whichever role.
  */
 export function upsertMember(
-	db: AppDb,
+	db: MemberDb,
 	cycleId: number,
 	input: MemberInput
 ): { id: number; inserted: boolean } {
@@ -71,7 +78,7 @@ export function upsertMember(
  * this, supplying the industry it confirmed the applicant into.
  */
 export function promoteApplicant(
-	db: AppDb,
+	db: MemberDb,
 	cycleId: number,
 	applicantId: number,
 	role: MemberRole,

@@ -1,3 +1,6 @@
+import { and, eq } from 'drizzle-orm';
+import type { AppDb } from '../db';
+import { applicantPii, applicants, members } from '../db/schema';
 import { normalizeHeader } from '../import/columns';
 import { normalizeIndustry } from '../import/normalize';
 import type { ParsedCsv } from '../import/parse';
@@ -88,6 +91,125 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 		unknownIndustries,
 		duplicateStudentIds,
 		duplicateEmails,
+		blocking
+	};
+}
+
+export type RosterReport = RosterFileReport & {
+	role: MemberRole;
+	industryCounts: Record<string, number>;
+	/** Mentee rows whose student id matches no applicant in the cycle. Blocking. */
+	unresolvedStudentIds: string[];
+	/** Confirmed industry differs from the registered first choice. Informational. */
+	industryMismatches: { studentId: string; registered: string; confirmed: string }[];
+	/** Student id already held by a different member of the cycle. Blocking. */
+	studentIdConflicts: { studentId: string; memberName: string }[];
+	/** Email already held by a member of the other role. Blocking. */
+	emailConflicts: { email: string; memberName: string }[];
+};
+
+/**
+ * The full picture the wizard shows before staging: file-level problems plus
+ * what only the database knows. Resolution never reaches across cycles.
+ */
+export function previewRoster(
+	db: AppDb,
+	cycleId: number,
+	role: MemberRole,
+	parsed: ParsedCsv
+): RosterReport {
+	const file = validateRosterFile(role, parsed);
+
+	const industryCounts: Record<string, number> = {};
+	const unresolvedStudentIds: string[] = [];
+	const industryMismatches: RosterReport['industryMismatches'] = [];
+	const studentIdConflicts: RosterReport['studentIdConflicts'] = [];
+	const emailConflicts: RosterReport['emailConflicts'] = [];
+
+	const existing = db
+		.select({
+			role: members.role,
+			fullName: members.fullName,
+			email: members.email,
+			studentId: members.studentId
+		})
+		.from(members)
+		.where(eq(members.cycleId, cycleId))
+		.all();
+
+	const emailOwners = new Map(existing.map((m) => [m.email, m]));
+	const studentOwners = new Map(
+		existing.filter((m) => m.studentId !== null).map((m) => [m.studentId as string, m])
+	);
+
+	for (const row of parsed.rows) {
+		const studentId = (row['student_id'] ?? '').trim();
+		if (studentId === '') continue;
+
+		const industry = normalizeIndustry(row['industry'] ?? '');
+		if (industry) industryCounts[industry] = (industryCounts[industry] ?? 0) + 1;
+
+		let email: string | null = null;
+
+		if (role === 'mentee') {
+			const applicant = db
+				.select({
+					email: applicantPii.email,
+					industry1: applicants.industry1
+				})
+				.from(applicants)
+				.innerJoin(applicantPii, eq(applicantPii.applicantId, applicants.id))
+				.where(and(eq(applicants.cycleId, cycleId), eq(applicantPii.studentId, studentId)))
+				.get();
+
+			if (!applicant) {
+				unresolvedStudentIds.push(studentId);
+				continue;
+			}
+
+			email = applicant.email;
+			if (industry && industry !== applicant.industry1) {
+				industryMismatches.push({ studentId, registered: applicant.industry1, confirmed: industry });
+			}
+		} else {
+			email = (row['email'] ?? '').trim();
+		}
+
+		const studentOwner = studentOwners.get(studentId);
+		if (studentOwner && studentOwner.email !== email) {
+			studentIdConflicts.push({ studentId, memberName: studentOwner.fullName });
+		}
+
+		if (email) {
+			const emailOwner = emailOwners.get(email);
+			// Same role + same email is a re-import update; the other role is a collision.
+			if (emailOwner && emailOwner.role !== role) {
+				emailConflicts.push({ email, memberName: emailOwner.fullName });
+			}
+		}
+	}
+
+	const blocking = [...file.blocking];
+	if (unresolvedStudentIds.length > 0) {
+		blocking.push(
+			`${unresolvedStudentIds.length} student ID(s) do not match any applicant in this cycle: ${unresolvedStudentIds.join(', ')}.`
+		);
+	}
+	for (const { studentId, memberName } of studentIdConflicts) {
+		blocking.push(`Student ID ${studentId} already belongs to ${memberName} in this cycle.`);
+	}
+	for (const { email, memberName } of emailConflicts) {
+		blocking.push(`Email ${email} already belongs to ${memberName} in this cycle.`);
+	}
+
+	return {
+		...file,
+		role,
+		industryCounts,
+		unresolvedStudentIds,
+		industryMismatches,
+		studentIdConflicts,
+		emailConflicts,
 		blocking
 	};
 }
