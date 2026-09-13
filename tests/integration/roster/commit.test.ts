@@ -63,6 +63,22 @@ describe('commitRoster — mentees', () => {
 		expect(() => commitRoster(db, 1, 'mentee', parseCsv(csv))).toThrow();
 		expect(db.select().from(members).all()).toHaveLength(0);
 	});
+
+	it('throws and writes nothing when two rows resolve to one email', () => {
+		seedApplicant(db, {
+			cycleId: 1,
+			publicRef: 3,
+			industry1: 'Finance',
+			fullName: 'Cy Fictional',
+			email: 'ada@example.com',
+			studentId: '01000003'
+		});
+		const csv = 'student_id,industry\n01000003,Finance\n01000001,Finance\n';
+		expect(() => commitRoster(db, 1, 'mentee', parseCsv(csv))).toThrow(
+			'Student IDs 01000001 and 01000003 both resolve to email ada@example.com — one row is a duplicate.'
+		);
+		expect(db.select().from(members).all()).toHaveLength(0);
+	});
 });
 
 describe('commitRoster — mentors', () => {

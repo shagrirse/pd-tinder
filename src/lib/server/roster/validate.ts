@@ -125,6 +125,9 @@ export function previewRoster(
 	const industryMismatches: RosterReport['industryMismatches'] = [];
 	const studentIdConflicts: RosterReport['studentIdConflicts'] = [];
 	const emailConflicts: RosterReport['emailConflicts'] = [];
+	/** Email -> student id of the first row that resolved to it. */
+	const resolvedEmails = new Map<string, string>();
+	const identityClashes: string[] = [];
 
 	const existing = db
 		.select({
@@ -168,6 +171,17 @@ export function previewRoster(
 			}
 
 			email = applicant.email;
+			if (email) {
+				const seenStudentId = resolvedEmails.get(email);
+				if (seenStudentId !== undefined && seenStudentId !== studentId) {
+					const [first, second] = [seenStudentId, studentId].sort();
+					identityClashes.push(
+						`Student IDs ${first} and ${second} both resolve to email ${email} — one row is a duplicate.`
+					);
+				} else if (seenStudentId === undefined) {
+					resolvedEmails.set(email, studentId);
+				}
+			}
 			if (industry && industry !== applicant.industry1) {
 				industryMismatches.push({ studentId, registered: applicant.industry1, confirmed: industry });
 			}
@@ -182,9 +196,20 @@ export function previewRoster(
 
 		if (email) {
 			const emailOwner = emailOwners.get(email);
-			// Same role + same email is a re-import update; the other role is a collision.
+			// Same role + same email + same student id is a re-import update; the
+			// other role is a collision, and the same role under a different
+			// student id is an identity clash.
 			if (emailOwner && emailOwner.role !== role) {
 				emailConflicts.push({ email, memberName: emailOwner.fullName });
+			} else if (
+				emailOwner &&
+				role === 'mentee' &&
+				emailOwner.studentId !== null &&
+				emailOwner.studentId !== studentId
+			) {
+				identityClashes.push(
+					`Email ${email} already belongs to a mentee with student ID ${emailOwner.studentId} in this cycle.`
+				);
 			}
 		}
 	}
@@ -200,6 +225,9 @@ export function previewRoster(
 	}
 	for (const { email, memberName } of emailConflicts) {
 		blocking.push(`Email ${email} already belongs to ${memberName} in this cycle.`);
+	}
+	for (const message of identityClashes) {
+		blocking.push(message);
 	}
 
 	return {

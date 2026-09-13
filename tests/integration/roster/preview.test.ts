@@ -104,6 +104,39 @@ describe('previewRoster — mentees', () => {
 			'Email ada@example.com already belongs to Mentor A in this cycle.'
 		);
 	});
+
+	it('blocks when two rows resolve to the same email under different student ids', () => {
+		seedApplicant(db, {
+			cycleId: 1,
+			publicRef: 3,
+			industry1: 'Finance',
+			fullName: 'Cy Fictional',
+			email: 'ada@example.com',
+			studentId: '01000003'
+		});
+		const csv = 'student_id,industry\n01000003,Finance\n01000001,Finance\n';
+		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(report.blocking).toContain(
+			'Student IDs 01000001 and 01000003 both resolve to email ada@example.com — one row is a duplicate.'
+		);
+	});
+
+	it('blocks when a mentee member already holds the email under a different student id', () => {
+		db.insert(members)
+			.values({
+				cycleId: 1,
+				role: 'mentee',
+				fullName: 'Other Mentee',
+				email: 'ada@example.com',
+				studentId: '01000005'
+			})
+			.run();
+		const csv = 'student_id,industry\n01000001,Finance\n';
+		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(report.blocking).toContain(
+			'Email ada@example.com already belongs to a mentee with student ID 01000005 in this cycle.'
+		);
+	});
 });
 
 describe('previewRoster — mentors', () => {
