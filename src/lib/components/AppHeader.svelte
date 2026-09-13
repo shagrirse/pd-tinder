@@ -15,6 +15,7 @@
 			<a href="/results">Results</a>
 			<a href="/admin/people">People</a>
 			<a href="/admin/import">Import</a>
+			<a href="/admin/roster">Roster</a>
 		{/if}
 	</nav>
 
@@ -37,6 +38,11 @@
 		padding: 0.8rem 1.25rem;
 		border-bottom: 1px solid var(--line);
 		background: var(--bg-raised);
+		/* Four admin links overflow a 412px screen as a single row, and the
+		   overflow triggers Chrome's mobile shrink-to-fit, which resizes the
+		   whole page mid-interaction. Wrapping keeps the header within the
+		   viewport instead. */
+		flex-wrap: wrap;
 	}
 	.wordmark {
 		display: inline-flex;
