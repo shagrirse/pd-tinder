@@ -12,7 +12,9 @@ const PAIRING_DIR = 'src/lib/server/pairing';
 
 describe('the pairing module never touches the selection domain', () => {
 	it('references neither applicantPii nor applicant_pii in any source file', () => {
-		const files = readdirSync(PAIRING_DIR).filter((f) => f.endsWith('.ts'));
+		const files = readdirSync(PAIRING_DIR, { recursive: true }).filter(
+			(f): f is string => typeof f === 'string' && f.endsWith('.ts')
+		);
 		expect(files.length).toBeGreaterThan(0);
 		for (const file of files) {
 			const source = readFileSync(join(PAIRING_DIR, file), 'utf8');
