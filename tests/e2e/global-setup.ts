@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { applyMigrations, createDb } from '../../src/lib/server/db';
 import { assignments, cycles, members, users } from '../../src/lib/server/db/schema';
+import { seedApplicant } from '../helpers/applicants';
 import { hashPassword } from '../../src/lib/server/auth/password';
 import { DEFAULT_COLUMN_MAPPING } from '../../src/lib/server/import/columns';
 import { parseCsv } from '../../src/lib/server/import/parse';
@@ -27,6 +28,21 @@ export default async function globalSetup(): Promise<void> {
 		parseCsv(readFileSync('tests/fixtures/applicants-sample.csv', 'utf8')),
 		DEFAULT_COLUMN_MAPPING
 	);
+
+	// A closed cycle, so the roster e2e can prove mentee imports ignore the
+	// closed gate while mentor imports still respect it. Seeded after
+	// commitImport so the fixture applicants keep the ids admin.spec's
+	// seedVerdict relies on.
+	db.insert(cycles).values({ name: 'Mentor Recruitment 2025', year: 2025, status: 'closed' }).run();
+
+	seedApplicant(db, {
+		cycleId: 2,
+		publicRef: 1,
+		industry1: 'Finance',
+		fullName: 'Cy Closed',
+		email: 'cy-closed@example.com',
+		studentId: '01000003'
+	});
 
 	db.insert(users)
 		.values([
