@@ -26,7 +26,8 @@
 
 	const MENTOR_EXAMPLE_CSV =
 		'full_name,email,industry,student_id\nAda Mentor,ada.mentor@example.com,Tech,02000001\n';
-	const MENTEE_EXAMPLE_CSV = 'student_id,industry,full_name\n01000001,Finance,Bo Mentee\n';
+	const MENTEE_EXAMPLE_CSV =
+		'student_id,industry,full_name,email\n01000001,Finance,Bo Mentee,bo.mentee@example.com\n';
 	const mentorExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTOR_EXAMPLE_CSV)}`;
 	const menteeExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTEE_EXAMPLE_CSV)}`;
 </script>
@@ -134,9 +135,12 @@
 				<p class="chip-row">
 					<span class="chip">student_id</span>
 					<span class="chip">industry</span>
+					<span class="chip">full_name</span>
+					<span class="chip">email</span>
 				</p>
 				<p class="csv-note">
-					full_name is optional — ignored on import, useful only so the file is readable.
+					full_name and email are required. Rows matching an application keep the application's
+					identity; rows without a match create a new mentee from the CSV.
 				</p>
 			</div>
 
@@ -191,6 +195,12 @@
 						<p class="warn-inline">
 							{report.industryMismatches.length} of the mentees is confirmed into a different industry
 							than their registered first choice. The roster wins.
+						</p>
+					{/if}
+					{#if report.newMentees.length > 0}
+						<p class="warn-inline">
+							{report.newMentees.length} mentee{report.newMentees.length === 1 ? '' : 's'} will be created
+							— no prior application found.
 						</p>
 					{/if}
 					<form method="POST" action="?/commitMentees" class="upload-form">
