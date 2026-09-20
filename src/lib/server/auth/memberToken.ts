@@ -20,12 +20,6 @@ function hashToken(token: string): string {
 }
 
 export function createMemberToken(db: AppDb, memberId: number, now: Date = new Date()): string {
-	// Retire any live tokens for this member before issuing a new one
-	db.update(memberTokens)
-		.set({ expiresAt: now })
-		.where(and(eq(memberTokens.memberId, memberId), gt(memberTokens.expiresAt, now)))
-		.run();
-
 	const token = randomBytes(32).toString('base64url');
 	db.insert(memberTokens)
 		.values({

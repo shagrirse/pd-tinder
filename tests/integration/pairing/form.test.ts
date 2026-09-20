@@ -59,17 +59,26 @@ describe('closeForm / reopenForm', () => {
 		expect(resolveMemberToken(db, token)).not.toBeNull();
 	});
 
-	it('only touches each member\'s most recently issued token', () => {
-		const retired = createMemberToken(db, mentor);
+	it("only touches each member's most recently issued token", () => {
+		// An already-expired earlier token, inserted directly — mirroring what
+		// a real regeneration via generateMemberTokens leaves behind — rather
+		// than relying on createMemberToken to retire it. createMemberToken
+		// itself never touches other rows; only its caller does that.
+		const past = new Date(Math.floor(Date.now() / 1000) * 1000 - 1000);
+		db.insert(memberTokens)
+			.values({ memberId: mentor, tokenHash: 'already-retired-hash', expiresAt: past })
+			.run();
+
 		const current = createMemberToken(db, mentor);
 		closeForm(db, 1);
 
 		expect(resolveMemberToken(db, current)).toBeNull();
-		// The retired token was already expired before close ran, and close
-		// must not resurrect it by touching the wrong row.
-		expect(resolveMemberToken(db, retired)).toBeNull();
 		const rows = db.select().from(memberTokens).where(eq(memberTokens.memberId, mentor)).all();
 		expect(rows).toHaveLength(2);
+		// The already-expired row's expiresAt must be untouched by close —
+		// proving closeForm only touches the newest row per member, not every row.
+		const oldest = rows.find((r) => r.tokenHash === 'already-retired-hash')!;
+		expect(oldest.expiresAt.getTime()).toBe(past.getTime());
 	});
 
 	it('does nothing when no member has ever had a token', () => {
