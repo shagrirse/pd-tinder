@@ -23,7 +23,12 @@ export function generateMemberTokens(
 	now: Date = new Date()
 ): MemberTokenRow[] {
 	const roster = db
-		.select({ id: members.id, role: members.role, fullName: members.fullName, email: members.email })
+		.select({
+			id: members.id,
+			role: members.role,
+			fullName: members.fullName,
+			email: members.email
+		})
 		.from(members)
 		.where(and(eq(members.cycleId, cycleId), eq(members.active, true)))
 		.all();

@@ -71,7 +71,14 @@ export function submitVerdict(
 
 		if (input.ratings.length > 0) {
 			tx.insert(ratings)
-				.values(input.ratings.map((r) => ({ userId, applicantId, questionId: r.questionId, value: r.value })))
+				.values(
+					input.ratings.map((r) => ({
+						userId,
+						applicantId,
+						questionId: r.questionId,
+						value: r.value
+					}))
+				)
 				.run();
 		}
 

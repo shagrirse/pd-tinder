@@ -68,7 +68,13 @@ describe('previewRoster — mentees', () => {
 			studentId: '02000001'
 		});
 		db.insert(members)
-			.values({ cycleId: 1, role: 'mentor', fullName: 'Mentor A', email: 'ma@example.com', studentId: '02000001' })
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Mentor A',
+				email: 'ma@example.com',
+				studentId: '02000001'
+			})
 			.run();
 		const csv = 'student_id,industry\n02000001,Finance\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
@@ -95,7 +101,13 @@ describe('previewRoster — mentees', () => {
 
 	it('blocks when a mentee resolves to an email a mentor already holds', () => {
 		db.insert(members)
-			.values({ cycleId: 1, role: 'mentor', fullName: 'Mentor A', email: 'ada@example.com', studentId: '02000001' })
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Mentor A',
+				email: 'ada@example.com',
+				studentId: '02000001'
+			})
 			.run();
 		const csv = 'student_id,industry\n01000001,Finance\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
@@ -148,7 +160,8 @@ describe('previewRoster — mentors', () => {
 	});
 
 	it('blocks on a non-canonical industry', () => {
-		const csv = 'full_name,email,industry,student_id\nMentor A,ma@example.com,Rocket Science,02000001\n';
+		const csv =
+			'full_name,email,industry,student_id\nMentor A,ma@example.com,Rocket Science,02000001\n';
 		const report = previewRoster(db, 1, 'mentor', parseCsv(csv));
 		expect(report.blocking.length).toBeGreaterThan(0);
 	});

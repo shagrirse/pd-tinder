@@ -41,7 +41,11 @@ describe('upsertMember', () => {
 
 	it('updates an existing member instead of duplicating, on re-import', () => {
 		const first = upsertMember(db, 1, MENTOR);
-		const second = upsertMember(db, 1, { ...MENTOR, industry: 'Consulting', fullName: 'Renamed Mentor' });
+		const second = upsertMember(db, 1, {
+			...MENTOR,
+			industry: 'Consulting',
+			fullName: 'Renamed Mentor'
+		});
 
 		expect(second.id).toBe(first.id);
 		expect(second.inserted).toBe(false);
@@ -64,9 +68,9 @@ describe('upsertMember', () => {
 
 	it('rejects a mentor and a mentee sharing an email in one cycle', () => {
 		upsertMember(db, 1, MENTOR);
-		expect(() =>
-			upsertMember(db, 1, { ...MENTOR, role: 'mentee', studentId: '01000001' })
-		).toThrow(/already belongs to a mentor in this cycle/);
+		expect(() => upsertMember(db, 1, { ...MENTOR, role: 'mentee', studentId: '01000001' })).toThrow(
+			/already belongs to a mentor in this cycle/
+		);
 	});
 });
 

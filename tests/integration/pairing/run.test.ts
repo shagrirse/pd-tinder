@@ -50,9 +50,7 @@ describe('runReconciliation', () => {
 		runReconciliation(db, 1);
 		const rows = db.select().from(pairings).all();
 		expect(rows).toHaveLength(3);
-		expect(
-			rows.map((r) => [r.mentorMemberId, r.menteeMemberId, r.method]).sort()
-		).toEqual(
+		expect(rows.map((r) => [r.mentorMemberId, r.menteeMemberId, r.method]).sort()).toEqual(
 			[
 				[mentors[0], mentees[0], 'mutual_first'],
 				[mentors[1], mentees[1], 'mutual_any'],
@@ -76,8 +74,7 @@ describe('runReconciliation', () => {
 	});
 
 	it('never overwrites a manual pair', () => {
-		db
-			.insert(pairings)
+		db.insert(pairings)
 			.values({
 				cycleId: 1,
 				mentorMemberId: mentors[0],
@@ -89,19 +86,14 @@ describe('runReconciliation', () => {
 
 		runReconciliation(db, 1);
 
-		const manual = db
-			.select()
-			.from(pairings)
-			.where(eq(pairings.method, 'manual'))
-			.all();
+		const manual = db.select().from(pairings).where(eq(pairings.method, 'manual')).all();
 		expect(manual).toHaveLength(1);
 		expect(manual[0].menteeMemberId).toBe(mentees[2]);
 		expect(manual[0].overrideReason).toBe('agreed at the mixer');
 	});
 
 	it('keeps a manually paired member out of the residual', () => {
-		db
-			.insert(pairings)
+		db.insert(pairings)
 			.values({
 				cycleId: 1,
 				mentorMemberId: mentors[0],

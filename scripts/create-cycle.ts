@@ -24,9 +24,7 @@ const name = argValue('--name');
 const yearArg = argValue('--year');
 
 if (!name || !yearArg) {
-	console.error(
-		'Usage: tsx scripts/create-cycle.ts --name "Mentee Recruitment 2026" --year 2026'
-	);
+	console.error('Usage: tsx scripts/create-cycle.ts --name "Mentee Recruitment 2026" --year 2026');
 	process.exit(1);
 }
 

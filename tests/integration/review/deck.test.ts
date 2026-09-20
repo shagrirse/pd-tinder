@@ -16,7 +16,9 @@ let db: AppDb;
 
 beforeEach(() => {
 	db = makeTestDb();
-	db.insert(cycles).values({ name: 'Mentee Recruitment 2026', year: 2026, status: 'reviewing' }).run();
+	db.insert(cycles)
+		.values({ name: 'Mentee Recruitment 2026', year: 2026, status: 'reviewing' })
+		.run();
 	commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
 	db.insert(users).values({ name: 'One', email: 'one@example.com' }).run();
 });

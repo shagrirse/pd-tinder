@@ -16,21 +16,25 @@ describe('listCycles', () => {
 	});
 
 	it('lists every cycle regardless of status', () => {
-		db.insert(cycles).values([
-			{ name: 'Draft', year: 2027, status: 'draft' },
-			{ name: 'Open', year: 2026, status: 'reviewing' },
-			{ name: 'Done', year: 2025, status: 'closed' }
-		]).run();
+		db.insert(cycles)
+			.values([
+				{ name: 'Draft', year: 2027, status: 'draft' },
+				{ name: 'Open', year: 2026, status: 'reviewing' },
+				{ name: 'Done', year: 2025, status: 'closed' }
+			])
+			.run();
 
 		expect(listCycles(db).map((c) => c.status)).toEqual(['draft', 'reviewing', 'closed']);
 	});
 
 	it('orders newest year first', () => {
-		db.insert(cycles).values([
-			{ name: 'Older', year: 2024 },
-			{ name: 'Newest', year: 2027 },
-			{ name: 'Middle', year: 2025 }
-		]).run();
+		db.insert(cycles)
+			.values([
+				{ name: 'Older', year: 2024 },
+				{ name: 'Newest', year: 2027 },
+				{ name: 'Middle', year: 2025 }
+			])
+			.run();
 
 		expect(listCycles(db).map((c) => c.name)).toEqual(['Newest', 'Middle', 'Older']);
 	});
@@ -48,10 +52,12 @@ describe('listCycles', () => {
 
 describe('getActiveCycle is unchanged', () => {
 	it('still returns only a reviewing cycle', () => {
-		db.insert(cycles).values([
-			{ name: 'Draft', year: 2027, status: 'draft' },
-			{ name: 'Open', year: 2026, status: 'reviewing' }
-		]).run();
+		db.insert(cycles)
+			.values([
+				{ name: 'Draft', year: 2027, status: 'draft' },
+				{ name: 'Open', year: 2026, status: 'reviewing' }
+			])
+			.run();
 
 		expect(getActiveCycle(db)?.name).toBe('Open');
 	});

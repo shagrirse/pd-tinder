@@ -37,7 +37,11 @@ describe('members', () => {
 
 	it('defaults applicantId to null when no application is given', () => {
 		const id = addMember('mentor', 'a@example.com');
-		const row = db.select().from(members).all().find((m) => m.id === id)!;
+		const row = db
+			.select()
+			.from(members)
+			.all()
+			.find((m) => m.id === id)!;
 		expect(row.applicantId).toBeNull();
 		expect(row.active).toBe(true);
 	});
@@ -69,8 +73,7 @@ describe('pairings', () => {
 		const mentor = addMember('mentor', 'm@example.com');
 		const a = addMember('mentee', 'a@example.com');
 		const b = addMember('mentee', 'b@example.com');
-		db
-			.insert(pairings)
+		db.insert(pairings)
 			.values({ cycleId: 1, mentorMemberId: mentor, menteeMemberId: a, method: 'mutual_first' })
 			.run();
 		expect(() =>
@@ -85,8 +88,7 @@ describe('pairings', () => {
 		const m1 = addMember('mentor', 'm1@example.com');
 		const m2 = addMember('mentor', 'm2@example.com');
 		const mentee = addMember('mentee', 'a@example.com');
-		db
-			.insert(pairings)
+		db.insert(pairings)
 			.values({ cycleId: 1, mentorMemberId: m1, menteeMemberId: mentee, method: 'mutual_any' })
 			.run();
 		expect(() =>

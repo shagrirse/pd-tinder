@@ -139,11 +139,26 @@
 				<section class="block">
 					<h3>Contact</h3>
 					<dl>
-						<div><dt>Email</dt><dd>{detail.email}</dd></div>
-						<div><dt>SMU email</dt><dd>{detail.smuEmail ?? '—'}</dd></div>
-						<div><dt>Student ID</dt><dd>{detail.studentId}</dd></div>
-						<div><dt>Phone</dt><dd>{detail.contactNumber ?? '—'}</dd></div>
-						<div><dt>Telegram</dt><dd>{detail.telegram ?? '—'}</dd></div>
+						<div>
+							<dt>Email</dt>
+							<dd>{detail.email}</dd>
+						</div>
+						<div>
+							<dt>SMU email</dt>
+							<dd>{detail.smuEmail ?? '—'}</dd>
+						</div>
+						<div>
+							<dt>Student ID</dt>
+							<dd>{detail.studentId}</dd>
+						</div>
+						<div>
+							<dt>Phone</dt>
+							<dd>{detail.contactNumber ?? '—'}</dd>
+						</div>
+						<div>
+							<dt>Telegram</dt>
+							<dd>{detail.telegram ?? '—'}</dd>
+						</div>
 						<div>
 							<dt>LinkedIn</dt>
 							<dd>
@@ -154,9 +169,18 @@
 								{/if}
 							</dd>
 						</div>
-						<div><dt>Faculty</dt><dd>{detail.faculty ?? '—'}</dd></div>
-						<div><dt>2nd faculty</dt><dd>{detail.faculty2 ?? '—'}</dd></div>
-						<div><dt>Submitted</dt><dd>{formatDate(detail.submittedAt)}</dd></div>
+						<div>
+							<dt>Faculty</dt>
+							<dd>{detail.faculty ?? '—'}</dd>
+						</div>
+						<div>
+							<dt>2nd faculty</dt>
+							<dd>{detail.faculty2 ?? '—'}</dd>
+						</div>
+						<div>
+							<dt>Submitted</dt>
+							<dd>{formatDate(detail.submittedAt)}</dd>
+						</div>
 					</dl>
 				</section>
 
@@ -166,8 +190,14 @@
 						<p class="muted">Not yet reviewed.</p>
 					{:else}
 						<dl>
-							<div><dt>Score</dt><dd>{formatScore(detail.score)}</dd></div>
-							<div><dt>Coverage</dt><dd>{detail.rated}/{detail.total}</dd></div>
+							<div>
+								<dt>Score</dt>
+								<dd>{formatScore(detail.score)}</dd>
+							</div>
+							<div>
+								<dt>Coverage</dt>
+								<dd>{detail.rated}/{detail.total}</dd>
+							</div>
 							<div>
 								<dt>Verdict</dt>
 								<dd>
@@ -180,7 +210,10 @@
 									{/if}
 								</dd>
 							</div>
-							<div><dt>Reviewer</dt><dd>{detail.reviewerName}</dd></div>
+							<div>
+								<dt>Reviewer</dt>
+								<dd>{detail.reviewerName}</dd>
+							</div>
 						</dl>
 						{#if detail.redFlagReason}
 							<p class="reason"><strong>Red flag reason:</strong> {detail.redFlagReason}</p>

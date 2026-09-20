@@ -87,7 +87,12 @@
 			<div class="rank-block">
 				<div class="field">
 					<label class="field-label" for="choice1">First choice</label>
-					<select id="choice1" name="choice1" value={choice1} onchange={(e) => pick(1, Number(e.currentTarget.value))}>
+					<select
+						id="choice1"
+						name="choice1"
+						value={choice1}
+						onchange={(e) => pick(1, Number(e.currentTarget.value))}
+					>
 						<option value={0} disabled>Choose one</option>
 						{#each groups as [industry, people]}
 							<optgroup label={industry}>
@@ -107,7 +112,12 @@
 			<div class="rank-block">
 				<div class="field">
 					<label class="field-label" for="choice2">Second choice</label>
-					<select id="choice2" name="choice2" value={choice2} onchange={(e) => pick(2, Number(e.currentTarget.value))}>
+					<select
+						id="choice2"
+						name="choice2"
+						value={choice2}
+						onchange={(e) => pick(2, Number(e.currentTarget.value))}
+					>
 						<option value={0} disabled>Choose one</option>
 						{#each groups as [industry, people]}
 							<optgroup label={industry}>
@@ -127,7 +137,12 @@
 			<div class="rank-block">
 				<div class="field">
 					<label class="field-label" for="choice3">Third choice</label>
-					<select id="choice3" name="choice3" value={choice3} onchange={(e) => pick(3, Number(e.currentTarget.value))}>
+					<select
+						id="choice3"
+						name="choice3"
+						value={choice3}
+						onchange={(e) => pick(3, Number(e.currentTarget.value))}
+					>
 						<option value={0} disabled>Choose one</option>
 						{#each groups as [industry, people]}
 							<optgroup label={industry}>

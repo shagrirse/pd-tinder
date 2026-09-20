@@ -14,7 +14,10 @@ beforeEach(() => resetStagingForTesting());
 describe('upload staging', () => {
 	it('round-trips a staged payload by token and kind', () => {
 		const token = stageUpload('applicants', { csvText: 'a,b\n1,2\n', cycleId: 7 });
-		expect(readStagedUpload<Payload>('applicants', token)).toEqual({ csvText: 'a,b\n1,2\n', cycleId: 7 });
+		expect(readStagedUpload<Payload>('applicants', token)).toEqual({
+			csvText: 'a,b\n1,2\n',
+			cycleId: 7
+		});
 	});
 
 	it('returns null when the kind does not match the staged payload', () => {
@@ -48,7 +51,9 @@ describe('upload staging', () => {
 	it('still returns a stage inside its TTL', () => {
 		const start = 1_000_000;
 		const token = stageUpload('applicants', { csvText: 'x', cycleId: 1 }, start);
-		expect(readStagedUpload<Payload>('applicants', token, start + STAGING_TTL_MS - 1)).not.toBeNull();
+		expect(
+			readStagedUpload<Payload>('applicants', token, start + STAGING_TTL_MS - 1)
+		).not.toBeNull();
 	});
 
 	it('discards a stage', () => {

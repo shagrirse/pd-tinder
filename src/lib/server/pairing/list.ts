@@ -8,8 +8,14 @@ export type MemberSummary = RosterRow & { role: 'mentor' | 'mentee' };
 
 /** Both roles' active roster, tagged with role, for views that mix mentors and mentees in one list. */
 export function activeRosterWithRole(db: AppDb, cycleId: number): MemberSummary[] {
-	const mentors = listActiveRoster(db, cycleId, 'mentor').map((m) => ({ ...m, role: 'mentor' as const }));
-	const mentees = listActiveRoster(db, cycleId, 'mentee').map((m) => ({ ...m, role: 'mentee' as const }));
+	const mentors = listActiveRoster(db, cycleId, 'mentor').map((m) => ({
+		...m,
+		role: 'mentor' as const
+	}));
+	const mentees = listActiveRoster(db, cycleId, 'mentee').map((m) => ({
+		...m,
+		role: 'mentee' as const
+	}));
 	return [...mentors, ...mentees];
 }
 
@@ -38,7 +44,9 @@ export type PairingRow = {
  */
 export function listPairings(db: AppDb, cycleId: number): PairingRow[] {
 	const roster = listRoster(db, cycleId);
-	const byId = new Map<number, RosterRow>([...roster.mentors, ...roster.mentees].map((m) => [m.id, m]));
+	const byId = new Map<number, RosterRow>(
+		[...roster.mentors, ...roster.mentees].map((m) => [m.id, m])
+	);
 
 	return db
 		.select({

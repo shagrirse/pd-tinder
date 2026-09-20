@@ -16,12 +16,20 @@ export type FormStatus = 'not_opened' | 'open' | 'closed';
  * so a link already distributed keeps working across either operation.
  */
 function latestTokenRows(db: AppDb, cycleId: number) {
-	const roster = db.select({ id: members.id }).from(members).where(eq(members.cycleId, cycleId)).all();
+	const roster = db
+		.select({ id: members.id })
+		.from(members)
+		.where(eq(members.cycleId, cycleId))
+		.all();
 	const rosterIds = roster.map((m) => m.id);
 	if (rosterIds.length === 0) return [];
 
 	const rows = db
-		.select({ id: memberTokens.id, memberId: memberTokens.memberId, expiresAt: memberTokens.expiresAt })
+		.select({
+			id: memberTokens.id,
+			memberId: memberTokens.memberId,
+			expiresAt: memberTokens.expiresAt
+		})
 		.from(memberTokens)
 		.where(inArray(memberTokens.memberId, rosterIds))
 		.orderBy(desc(memberTokens.id))
@@ -54,13 +62,23 @@ export function reopenForm(db: AppDb, cycleId: number, now: Date = new Date()): 
 	db.update(memberTokens).set({ expiresAt }).where(inArray(memberTokens.id, ids)).run();
 }
 
-export type SubmissionRow = { id: number; role: 'mentor' | 'mentee'; fullName: string; email: string };
+export type SubmissionRow = {
+	id: number;
+	role: 'mentor' | 'mentee';
+	fullName: string;
+	email: string;
+};
 export type SubmissionStatus = { submitted: SubmissionRow[]; notSubmitted: SubmissionRow[] };
 
 /** Active roster split by whether a preferences row exists for them. */
 export function submissionStatus(db: AppDb, cycleId: number): SubmissionStatus {
 	const roster = db
-		.select({ id: members.id, role: members.role, fullName: members.fullName, email: members.email })
+		.select({
+			id: members.id,
+			role: members.role,
+			fullName: members.fullName,
+			email: members.email
+		})
 		.from(members)
 		.where(and(eq(members.cycleId, cycleId), eq(members.active, true)))
 		.all();

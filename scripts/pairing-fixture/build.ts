@@ -82,9 +82,12 @@ function gridSheet(path: string, name: string): unknown[][] {
 
 function aliasesFromCsv(path: string): Record<string, string> {
 	const book = XLSX.readFile(path);
-	const rows = XLSX.utils.sheet_to_json<{ raw: string; roster: string }>(book.Sheets[book.SheetNames[0]], {
-		defval: ''
-	});
+	const rows = XLSX.utils.sheet_to_json<{ raw: string; roster: string }>(
+		book.Sheets[book.SheetNames[0]],
+		{
+			defval: ''
+		}
+	);
 	const aliases: Record<string, string> = {};
 	for (const row of rows) {
 		const raw = String(row.raw ?? '').trim();
@@ -114,7 +117,10 @@ function text(row: Row, ...candidates: string[]): string {
 // workbook's "Mentors" / "Mentees" sheets are the real roster (35 rows each,
 // with a clean Industry/Name/Email shape) and are used instead.
 
-const roster = new Map<string, { id: number; role: 'mentor' | 'mentee'; industry: string | null }>();
+const roster = new Map<
+	string,
+	{ id: number; role: 'mentor' | 'mentee'; industry: string | null }
+>();
 let nextId = 1;
 
 function addToRoster(rawName: string, role: 'mentor' | 'mentee', industry: string | null): void {

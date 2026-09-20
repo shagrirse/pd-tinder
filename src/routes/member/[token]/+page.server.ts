@@ -2,7 +2,12 @@ import { error, fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db/instance';
 import { resolveMemberToken } from '$lib/server/auth/memberToken';
 import { listActiveRoster } from '$lib/server/roster/list';
-import { getPreferences, setPreferences, PreferenceError, type ChoiceInput } from '$lib/server/pairing/preferences';
+import {
+	getPreferences,
+	setPreferences,
+	PreferenceError,
+	type ChoiceInput
+} from '$lib/server/pairing/preferences';
 import type { Actions, PageServerLoad } from './$types';
 
 const OPPOSITE_ROLE = { mentor: 'mentee', mentee: 'mentor' } as const;

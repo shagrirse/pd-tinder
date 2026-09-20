@@ -39,7 +39,12 @@ describe('a reconciliation result', () => {
 			(n) =>
 				db
 					.insert(members)
-					.values({ cycleId: 1, role: 'mentee', fullName: `Mentee ${n}`, email: `e${n}@example.com` })
+					.values({
+						cycleId: 1,
+						role: 'mentee',
+						fullName: `Mentee ${n}`,
+						email: `e${n}@example.com`
+					})
 					.returning({ id: members.id })
 					.get().id
 		);
@@ -58,7 +63,9 @@ describe('a reconciliation result', () => {
 		const result = runReconciliation(db, 1);
 		const serialised = JSON.stringify(result);
 		for (const field of PII_FIELD_NAMES) {
-			expect(serialised, `${field} must not appear in a reconciliation result`).not.toContain(field);
+			expect(serialised, `${field} must not appear in a reconciliation result`).not.toContain(
+				field
+			);
 		}
 		expect(result.pairs.length).toBeGreaterThan(0);
 	});

@@ -1,5 +1,9 @@
 <script lang="ts">
-	let { open = false, onconfirm, oncancel }: {
+	let {
+		open = false,
+		onconfirm,
+		oncancel
+	}: {
 		open: boolean;
 		onconfirm: (reason: string) => void;
 		oncancel: () => void;
@@ -32,8 +36,7 @@
 				class="reason-field"
 				bind:value={reason}
 				rows="4"
-				placeholder="What is disqualifying?"
-			></textarea>
+				placeholder="What is disqualifying?"></textarea>
 			<div class="actions">
 				<button type="button" class="btn btn-ghost" onclick={oncancel}>Cancel</button>
 				<button

@@ -2,7 +2,14 @@ import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { and, eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
-import { claims, cycles, questions, ratings, users, verdicts } from '../../../src/lib/server/db/schema';
+import {
+	claims,
+	cycles,
+	questions,
+	ratings,
+	users,
+	verdicts
+} from '../../../src/lib/server/db/schema';
 import { DEFAULT_COLUMN_MAPPING } from '../../../src/lib/server/import/columns';
 import { parseCsv } from '../../../src/lib/server/import/parse';
 import { commitImport } from '../../../src/lib/server/import/commit';
@@ -18,10 +25,12 @@ beforeEach(() => {
 	db = makeTestDb();
 	db.insert(cycles).values({ name: 'C', year: 2026 }).run();
 	commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
-	db.insert(users).values([
-		{ name: 'One', email: 'one@example.com' },
-		{ name: 'Two', email: 'two@example.com' }
-	]).run();
+	db.insert(users)
+		.values([
+			{ name: 'One', email: 'one@example.com' },
+			{ name: 'Two', email: 'two@example.com' }
+		])
+		.run();
 	ratedQuestionIds = db
 		.select({ id: questions.id })
 		.from(questions)
@@ -107,16 +116,28 @@ describe('submitVerdict', () => {
 	it('allows the owner to revisit and replace their ratings', () => {
 		claimNext(db, 1, 1, ['Finance']);
 		const first = new Date('2026-08-25T00:00:00Z');
-		submitVerdict(db, 1, 1, {
-			overall: 'like',
-			ratings: [{ questionId: ratedQuestionIds[0], value: 'like' }]
-		}, first);
+		submitVerdict(
+			db,
+			1,
+			1,
+			{
+				overall: 'like',
+				ratings: [{ questionId: ratedQuestionIds[0], value: 'like' }]
+			},
+			first
+		);
 
 		const second = new Date('2026-08-26T00:00:00Z');
-		submitVerdict(db, 1, 1, {
-			overall: 'skip',
-			ratings: [{ questionId: ratedQuestionIds[0], value: 'skip' }]
-		}, second);
+		submitVerdict(
+			db,
+			1,
+			1,
+			{
+				overall: 'skip',
+				ratings: [{ questionId: ratedQuestionIds[0], value: 'skip' }]
+			},
+			second
+		);
 
 		expect(db.select().from(verdicts).all()).toHaveLength(1);
 		const verdict = db.select().from(verdicts).get()!;

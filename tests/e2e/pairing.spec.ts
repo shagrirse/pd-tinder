@@ -46,7 +46,9 @@ function seedMutualFirstChoice() {
 }
 
 test.describe('pairing admin surface', () => {
-	test('shows submission status and runs reconciliation into pairs and residual', async ({ page }) => {
+	test('shows submission status and runs reconciliation into pairs and residual', async ({
+		page
+	}) => {
 		seedMutualFirstChoice();
 		await signIn(page);
 		await page.goto('/admin/pairing');
@@ -94,7 +96,9 @@ test.describe('pairing admin surface', () => {
 		await expect(residualPanel.getByText('Priya Mentor (mentor)')).toBeVisible();
 	});
 
-	test('closes and reopens the form without invalidating the distributed link', async ({ page }) => {
+	test('closes and reopens the form without invalidating the distributed link', async ({
+		page
+	}) => {
 		await signIn(page);
 		await page.goto('/admin/pairing');
 

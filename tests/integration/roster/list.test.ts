@@ -8,7 +8,13 @@ let db: AppDb;
 
 function addMember(
 	role: 'mentor' | 'mentee',
-	overrides: Partial<{ cycleId: number; fullName: string; email: string; industry: string | null; active: boolean }> = {}
+	overrides: Partial<{
+		cycleId: number;
+		fullName: string;
+		email: string;
+		industry: string | null;
+		active: boolean;
+	}> = {}
 ) {
 	return db
 		.insert(members)

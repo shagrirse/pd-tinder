@@ -12,8 +12,22 @@ const PAIR: PairingRow = {
 	method: 'mutual_first',
 	overrideReason: null,
 	createdAt: new Date('2026-10-12T00:00:00Z'),
-	mentor: { id: 1, fullName: 'Priya Mentor', email: 'priya@example.com', industry: 'Finance', studentId: '01000001', applicantId: null },
-	mentee: { id: 2, fullName: 'Jordan Mentee', email: 'jordan@example.com', industry: 'Finance', studentId: '01000002', applicantId: null }
+	mentor: {
+		id: 1,
+		fullName: 'Priya Mentor',
+		email: 'priya@example.com',
+		industry: 'Finance',
+		studentId: '01000001',
+		applicantId: null
+	},
+	mentee: {
+		id: 2,
+		fullName: 'Jordan Mentee',
+		email: 'jordan@example.com',
+		industry: 'Finance',
+		studentId: '01000002',
+		applicantId: null
+	}
 };
 
 describe('pairingsCsv', () => {
@@ -33,7 +47,11 @@ describe('pairingsCsv', () => {
 	});
 
 	it('carries an override reason when there is one', () => {
-		const overridden: PairingRow = { ...PAIR, method: 'manual', overrideReason: 'switched at the mixer' };
+		const overridden: PairingRow = {
+			...PAIR,
+			method: 'manual',
+			overrideReason: 'switched at the mixer'
+		};
 		const rows = rowsOf(pairingsCsv([overridden]));
 		expect(rows[0].override_reason).toBe('switched at the mixer');
 	});

@@ -61,7 +61,9 @@ describe('drafts', () => {
 	});
 
 	it('never throws when storage is unavailable', () => {
-		expect(() => saveDraft({ applicantId: 1, ratings: {}, note: '', updatedAt: 1 }, throwingStorage)).not.toThrow();
+		expect(() =>
+			saveDraft({ applicantId: 1, ratings: {}, note: '', updatedAt: 1 }, throwingStorage)
+		).not.toThrow();
 		expect(loadDraft(1, throwingStorage)).toBeNull();
 		expect(() => clearDraft(1, throwingStorage)).not.toThrow();
 	});

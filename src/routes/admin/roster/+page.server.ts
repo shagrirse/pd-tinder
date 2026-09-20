@@ -89,10 +89,7 @@ function commitAction(role: MemberRole, kind: 'mentees' | 'mentors') {
 		const token = String(form.get('token') ?? '');
 		const stagedFile = readStagedUpload<StagedRoster>(kind, token);
 		if (!stagedFile) {
-			return fail(
-				400,
-				problem('That upload expired or was already used. Upload the file again.')
-			);
+			return fail(400, problem('That upload expired or was already used. Upload the file again.'));
 		}
 
 		const cycle = listCycles(db).find((c) => c.id === stagedFile.cycleId);

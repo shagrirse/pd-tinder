@@ -96,9 +96,7 @@ describe('getApplicantDetail', () => {
 		claimNext(db, 1, 1, ['Finance']);
 		submitVerdict(db, 1, 1, {
 			overall: 'like',
-			ratings: [
-				{ questionId: ratedIds[0], value: 'like' }
-			],
+			ratings: [{ questionId: ratedIds[0], value: 'like' }],
 			note: 'good candidate'
 		});
 

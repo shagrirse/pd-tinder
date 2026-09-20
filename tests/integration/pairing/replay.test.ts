@@ -15,9 +15,7 @@ type Fixture = {
 	expected: { members: number; submissions: number; finalPairs: number; unjoinable: number };
 };
 
-const fixture: Fixture = JSON.parse(
-	readFileSync('tests/fixtures/pairing-9th-circle.json', 'utf8')
-);
+const fixture: Fixture = JSON.parse(readFileSync('tests/fixtures/pairing-9th-circle.json', 'utf8'));
 
 const roster: MemberRef[] = fixture.members.map((m) => ({ id: m.id, role: m.role }));
 const result = reconcile(roster, fixture.preferences);

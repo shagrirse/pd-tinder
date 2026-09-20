@@ -54,7 +54,10 @@ export function validateImport(
 		else studentIdCounts.set(studentId, (studentIdCounts.get(studentId) ?? 0) + 1);
 	}
 
-	const unknownIndustries = [...unknownCounts.entries()].map(([value, count]) => ({ value, count }));
+	const unknownIndustries = [...unknownCounts.entries()].map(([value, count]) => ({
+		value,
+		count
+	}));
 	const duplicateStudentIds = [...studentIdCounts.entries()]
 		.filter(([, count]) => count > 1)
 		.map(([studentId, count]) => ({ studentId, count }));

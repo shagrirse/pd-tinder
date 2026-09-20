@@ -27,7 +27,9 @@ test.describe('preference submission page', () => {
 		await expect(page.getByText('This link is invalid or has expired.')).toBeVisible();
 	});
 
-	test('a member ranks their choices, grouped by industry, and can revise them', async ({ page }) => {
+	test('a member ranks their choices, grouped by industry, and can revise them', async ({
+		page
+	}) => {
 		await page.goto(`/member/${tokenFor('Jordan Mentee')}`);
 
 		await expect(page.getByRole('heading', { name: 'Rank your top three mentors' })).toBeVisible();
@@ -37,8 +39,12 @@ test.describe('preference submission page', () => {
 		const second = page.getByLabel('Second choice', { exact: true });
 		const third = page.getByLabel('Third choice', { exact: true });
 
-		await expect(first.locator('optgroup[label="Finance"] option', { hasText: 'Priya Mentor' })).toHaveCount(1);
-		await expect(first.locator('optgroup[label="Tech"] option', { hasText: 'Alex Mentor' })).toHaveCount(1);
+		await expect(
+			first.locator('optgroup[label="Finance"] option', { hasText: 'Priya Mentor' })
+		).toHaveCount(1);
+		await expect(
+			first.locator('optgroup[label="Tech"] option', { hasText: 'Alex Mentor' })
+		).toHaveCount(1);
 
 		await first.selectOption({ value: idFor('Priya Mentor') });
 		// Priya is now taken by the first choice: the second choice still offers
@@ -61,7 +67,9 @@ test.describe('preference submission page', () => {
 		await expect(first.locator('option:checked')).toHaveText('Priya Mentor');
 		await expect(second.locator('option:checked')).toHaveText('Sam Mentor');
 		await expect(third.locator('option:checked')).toHaveText('Alex Mentor');
-		await expect(page.getByLabel('First choice reason')).toHaveValue('Worked together at the mixer');
+		await expect(page.getByLabel('First choice reason')).toHaveValue(
+			'Worked together at the mixer'
+		);
 
 		// Revise: pick Sam (currently the second choice) into the first choice.
 		// That should swap the two rather than being blocked as a duplicate.
@@ -75,15 +83,23 @@ test.describe('preference submission page', () => {
 		await expect(first.locator('option:checked')).toHaveText('Sam Mentor');
 		await expect(second.locator('option:checked')).toHaveText('Priya Mentor');
 		await expect(third.locator('option:checked')).toHaveText('Alex Mentor');
-		await expect(page.getByLabel('First choice reason')).toHaveValue('Changed my mind after the mixer');
+		await expect(page.getByLabel('First choice reason')).toHaveValue(
+			'Changed my mind after the mixer'
+		);
 	});
 
 	test('rejects a submission missing a reason', async ({ page }) => {
 		await page.goto(`/member/${tokenFor('Jordan Mentee')}`);
 
-		await page.getByLabel('First choice', { exact: true }).selectOption({ value: idFor('Priya Mentor') });
-		await page.getByLabel('Second choice', { exact: true }).selectOption({ value: idFor('Sam Mentor') });
-		await page.getByLabel('Third choice', { exact: true }).selectOption({ value: idFor('Alex Mentor') });
+		await page
+			.getByLabel('First choice', { exact: true })
+			.selectOption({ value: idFor('Priya Mentor') });
+		await page
+			.getByLabel('Second choice', { exact: true })
+			.selectOption({ value: idFor('Sam Mentor') });
+		await page
+			.getByLabel('Third choice', { exact: true })
+			.selectOption({ value: idFor('Alex Mentor') });
 		// Explicitly blank, rather than assumed blank: an earlier test in this
 		// file may already have saved a submission for this same member, which
 		// would otherwise pre-fill these from the database.

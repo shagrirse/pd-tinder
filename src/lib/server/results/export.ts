@@ -78,7 +78,9 @@ export function exportCycleCsv(db: AppDb, cycleId: number): string {
 		.where(eq(applicants.cycleId, cycleId))
 		.all();
 
-	const answerAt = new Map(answerRows.map((r) => [`${r.applicantId}:${r.questionId}`, r.answerText]));
+	const answerAt = new Map(
+		answerRows.map((r) => [`${r.applicantId}:${r.questionId}`, r.answerText])
+	);
 	const ratingAt = new Map(ratingRows.map((r) => [`${r.applicantId}:${r.questionId}`, r.value]));
 
 	const records = applicantRows.map((row) => {
