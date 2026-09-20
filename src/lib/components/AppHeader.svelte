@@ -16,6 +16,7 @@
 			<a href="/admin/people">People</a>
 			<a href="/admin/import">Import</a>
 			<a href="/admin/roster">Roster</a>
+			<a href="/admin/pairing">Pairing</a>
 		{/if}
 	</nav>
 
