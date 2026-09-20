@@ -5,6 +5,11 @@ import { MEMBER_TOKEN_TTL_MS } from '../auth/memberToken';
 
 export type FormStatus = 'not_opened' | 'open' | 'closed';
 
+// The close/reopen guarantee (Spec §8.1: same token, only its expiry moves) doesn't extend
+// across a roster token regeneration — generateMemberTokens in ../roster/tokens.ts retires and
+// reissues every active member's token, invalidating previously distributed links and flipping
+// status back to 'open'.
+
 /**
  * Each member's newest token row (by id), one per member who has ever had
  * one. Close and reopen both act on this row — never a new token value —

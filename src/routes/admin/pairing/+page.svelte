@@ -1,4 +1,3 @@
-<!-- src/routes/admin/pairing/+page.svelte -->
 <script lang="ts">
 	let { data, form } = $props();
 

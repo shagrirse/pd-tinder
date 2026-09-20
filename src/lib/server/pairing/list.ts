@@ -78,7 +78,6 @@ export type ResidualStatus = {
  */
 export function computeResidual(db: AppDb, cycleId: number): ResidualStatus {
 	const roster = activeRosterWithRole(db, cycleId);
-	const byId = new Map(roster.map((m) => [m.id, m]));
 
 	const pairingRows = db
 		.select({ mentorMemberId: pairings.mentorMemberId, menteeMemberId: pairings.menteeMemberId })
@@ -111,6 +110,9 @@ export function computeResidual(db: AppDb, cycleId: number): ResidualStatus {
 	const fullRoster = fullRosterWithRole(db, cycleId);
 	const fullById = new Map(fullRoster.map((m) => [m.id, m]));
 
+	// A paired member who submitted no preferences at all is included here too (choicesOf.get
+	// returns undefined for them), not just one whose submitted choices excluded their partner —
+	// deliberate, since a non-submitter needs PD's attention just as much. Spec §7.1.
 	const gotNoChoice: MemberSummary[] = [];
 	for (const row of pairingRows) {
 		if (!choicesOf.get(row.mentorMemberId)?.has(row.menteeMemberId)) {
