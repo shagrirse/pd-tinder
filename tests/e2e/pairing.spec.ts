@@ -112,4 +112,22 @@ test.describe('pairing admin surface', () => {
 		await page.goto(`/member/${jordanToken}`);
 		await expect(page.getByRole('heading', { name: 'Rank your top three mentors' })).toBeVisible();
 	});
+
+	test('exports the pairing record as CSV', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('link', { name: 'Export CSV' }).click();
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toMatch(/pairings\.csv$/);
+		const path = await download.path();
+		const csv = path ? readFileSync(path, 'utf8') : '';
+		expect(csv).toContain(
+			'mentor_name,mentor_email,mentor_student_id,mentee_name,mentee_email,mentee_student_id,method,override_reason'
+		);
+		expect(csv).toContain('Sam Mentor');
+		expect(csv).toContain('Jordan asked to switch at the mixer');
+	});
 });
