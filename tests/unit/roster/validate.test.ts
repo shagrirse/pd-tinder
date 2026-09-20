@@ -8,21 +8,27 @@ function validate(role: 'mentor' | 'mentee', csv: string) {
 
 describe('validateRosterFile — mentees', () => {
 	it('accepts a clean file with a legibility column alongside', () => {
-		const report = validate('mentee', 'student_id,industry,full_name\n01000001,Finance,Ada\n');
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email,note\n01000001,Finance,Ada Fictional,ada@example.com,hi\n'
+		);
 		expect(report.blocking).toEqual([]);
 		expect(report.rowCount).toBe(1);
 		// The legibility column is not part of the roster format; reported, ignored.
-		expect(report.unmappedHeaders).toEqual(['full_name']);
+		expect(report.unmappedHeaders).toEqual(['note']);
 	});
 
 	it('blocks on a missing required column', () => {
-		const report = validate('mentee', 'student_id\n01000001\n');
-		expect(report.missingColumns).toEqual(['industry']);
-		expect(report.blocking).toContain('No column is mapped to the required field "industry".');
+		const report = validate('mentee', 'student_id,industry\n01000001,Finance\n');
+		expect(report.missingColumns).toEqual(['full_name', 'email']);
+		expect(report.blocking).toContain('No column is mapped to the required field "full_name".');
 	});
 
 	it('blocks on blank required cells', () => {
-		const report = validate('mentee', 'student_id,industry\n,Finance\n01000001,\n');
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email\n,Finance,Ada Fictional,ada@example.com\n01000001,,Bo Fictional,bo@example.com\n'
+		);
 		expect(report.blankRequiredCells).toEqual([
 			{ column: 'student_id', count: 1 },
 			{ column: 'industry', count: 1 }
@@ -31,25 +37,38 @@ describe('validateRosterFile — mentees', () => {
 	});
 
 	it('blocks on a non-canonical industry', () => {
-		const report = validate('mentee', 'student_id,industry\n01000001,Rocket Science\n');
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email\n01000001,Rocket Science,Ada Fictional,ada@example.com\n'
+		);
 		expect(report.unknownIndustries).toEqual([{ value: 'Rocket Science', count: 1 }]);
 		expect(report.blocking).toContain('Unrecognised industry "Rocket Science" in 1 row(s).');
 	});
 
 	it('accepts an industry that needs normalisation', () => {
-		const report = validate('mentee', 'student_id,industry\n01000001,human resource / ops\n');
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email\n01000001,human resource / ops,Ada Fictional,ada@example.com\n'
+		);
 		expect(report.blocking).toEqual([]);
 	});
 
 	it('blocks on a student id repeated within the file', () => {
-		const report = validate('mentee', 'student_id,industry\n01000001,Finance\n01000001,Tech\n');
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada@example.com\n01000001,Tech,Ada Again,ada.again@example.com\n'
+		);
 		expect(report.duplicateStudentIds).toEqual([{ studentId: '01000001', count: 2 }]);
 		expect(report.blocking).toContain('Student ID 01000001 appears 2 times in the file.');
 	});
 
-	it('does not check emails for mentees — the column does not exist', () => {
-		const report = validate('mentee', 'student_id,industry\n01000001,Finance\n');
-		expect(report.duplicateEmails).toEqual([]);
+	it('blocks on an email repeated within the file', () => {
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,shared@example.com\n01000002,Tech,Bo Fictional,shared@example.com\n'
+		);
+		expect(report.duplicateEmails).toEqual([{ email: 'shared@example.com', count: 2 }]);
+		expect(report.blocking).toContain('Email shared@example.com appears 2 times in the file.');
 	});
 });
 

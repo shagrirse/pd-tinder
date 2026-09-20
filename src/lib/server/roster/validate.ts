@@ -7,7 +7,7 @@ import type { ParsedCsv } from '../import/parse';
 import type { MemberRole } from './members';
 
 const REQUIRED_COLUMNS: Record<MemberRole, string[]> = {
-	mentee: ['student_id', 'industry'],
+	mentee: ['student_id', 'industry', 'full_name', 'email'],
 	mentor: ['full_name', 'email', 'industry', 'student_id']
 };
 
@@ -51,10 +51,8 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 		const studentId = (row['student_id'] ?? '').trim();
 		if (studentId !== '') studentIdCounts.set(studentId, (studentIdCounts.get(studentId) ?? 0) + 1);
 
-		if (role === 'mentor') {
-			const email = (row['email'] ?? '').trim();
-			if (email !== '') emailCounts.set(email, (emailCounts.get(email) ?? 0) + 1);
-		}
+		const email = (row['email'] ?? '').trim();
+		if (email !== '') emailCounts.set(email, (emailCounts.get(email) ?? 0) + 1);
 	}
 
 	const blankRequiredCells = Object.entries(blank).map(([column, count]) => ({ column, count }));
