@@ -12,7 +12,15 @@
 {:else if kind === 'meh'}
 	<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 		<circle cx="12" cy="12" r="9.1" fill="none" stroke="currentColor" stroke-width="1.8" />
-		<line x1="7.7" y1="14.6" x2="16.3" y2="14.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		<line
+			x1="7.7"
+			y1="14.6"
+			x2="16.3"
+			y2="14.6"
+			stroke="currentColor"
+			stroke-width="1.8"
+			stroke-linecap="round"
+		/>
 		<circle cx="8.6" cy="9.6" r="1.05" fill="currentColor" />
 		<circle cx="15.4" cy="9.6" r="1.05" fill="currentColor" />
 	</svg>

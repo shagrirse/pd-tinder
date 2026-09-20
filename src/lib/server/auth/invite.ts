@@ -36,7 +36,11 @@ export async function redeemInvite(
 		.select()
 		.from(invites)
 		.where(
-			and(eq(invites.tokenHash, hashToken(token)), isNull(invites.usedAt), gt(invites.expiresAt, now))
+			and(
+				eq(invites.tokenHash, hashToken(token)),
+				isNull(invites.usedAt),
+				gt(invites.expiresAt, now)
+			)
 		)
 		.get();
 

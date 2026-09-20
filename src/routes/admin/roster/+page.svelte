@@ -15,9 +15,7 @@
 	};
 
 	let selectedCycle = $derived(data.cycles.find((c) => c.id === Number(selectedCycleId)) ?? null);
-	let roster = $derived(
-		selectedCycleId === null ? null : (data.rosters[selectedCycleId] ?? null)
-	);
+	let roster = $derived(selectedCycleId === null ? null : (data.rosters[selectedCycleId] ?? null));
 
 	let mentees = $derived(form && form.stage === 'validateMentees' ? form : null);
 	let mentors = $derived(form && form.stage === 'validateMentors' ? form : null);
@@ -34,9 +32,7 @@
 	</header>
 
 	{#if data.cycles.length === 0}
-		<p class="notice">
-			No recruitment cycle exists yet. Create one before importing a roster.
-		</p>
+		<p class="notice">No recruitment cycle exists yet. Create one before importing a roster.</p>
 	{:else}
 		{#if form?.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 
@@ -54,7 +50,12 @@
 				</p>
 			{/if}
 
-			<form method="POST" action="?/validateMentors" enctype="multipart/form-data" class="upload-form">
+			<form
+				method="POST"
+				action="?/validateMentors"
+				enctype="multipart/form-data"
+				class="upload-form"
+			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
 					<select name="cycleId" bind:value={selectedCycleId} disabled={!!mentors?.token}>
@@ -112,7 +113,12 @@
 				</p>
 			{/if}
 
-			<form method="POST" action="?/validateMentees" enctype="multipart/form-data" class="upload-form">
+			<form
+				method="POST"
+				action="?/validateMentees"
+				enctype="multipart/form-data"
+				class="upload-form"
+			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
 					<select name="cycleId" bind:value={selectedCycleId} disabled={!!mentees?.token}>
@@ -148,8 +154,8 @@
 					</ul>
 					{#if report.industryMismatches.length > 0}
 						<p class="warn-inline">
-							{report.industryMismatches.length} of the mentees is confirmed into a
-							different industry than their registered first choice. The roster wins.
+							{report.industryMismatches.length} of the mentees is confirmed into a different industry
+							than their registered first choice. The roster wins.
 						</p>
 					{/if}
 					<form method="POST" action="?/commitMentees" class="upload-form">
@@ -176,7 +182,8 @@
 
 					<form method="POST" action="/admin/roster/tokens" class="upload-form">
 						<input type="hidden" name="cycleId" value={selectedCycleId} />
-						<button type="submit" class="btn btn-primary">Generate &amp; export member links</button>
+						<button type="submit" class="btn btn-primary">Generate &amp; export member links</button
+						>
 					</form>
 					<p class="warn-inline">
 						Regenerating replaces every member's link — anyone with an old one loses access.
@@ -205,7 +212,8 @@
 								<li>
 									{member.fullName} — {member.email} — {member.industry ?? 'No industry'} —
 									{member.studentId ?? 'No student ID'}
-									{#if member.applicantId === null} — not linked to an application{/if}
+									{#if member.applicantId === null}
+										— not linked to an application{/if}
 								</li>
 							{/each}
 						</ul>

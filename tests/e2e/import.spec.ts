@@ -92,7 +92,10 @@ test.describe('import wizard', () => {
 		await signIn(page, ADMIN);
 		await page.goto('/admin/import');
 
-		const text = readFileSync(FIXTURE, 'utf8').replace('Finance,Consulting', 'Aerospace,Consulting');
+		const text = readFileSync(FIXTURE, 'utf8').replace(
+			'Finance,Consulting',
+			'Aerospace,Consulting'
+		);
 		await page.getByLabel('CSV file').setInputFiles({
 			name: 'broken.csv',
 			mimeType: 'text/csv',

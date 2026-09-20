@@ -15,7 +15,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	default: async ({ request, cookies, getClientAddress }) => {
 		const form = await request.formData();
-		const email = String(form.get('email') ?? '').trim().toLowerCase();
+		const email = String(form.get('email') ?? '')
+			.trim()
+			.toLowerCase();
 		const password = String(form.get('password') ?? '');
 		const key = `${getClientAddress()}:${email}`;
 		const db = getDb();
@@ -26,9 +28,7 @@ export const actions: Actions = {
 
 		const user = db.select().from(users).where(eq(users.email, email)).get();
 		const ok =
-			user?.active && user.passwordHash
-				? await verifyPassword(password, user.passwordHash)
-				: false;
+			user?.active && user.passwordHash ? await verifyPassword(password, user.passwordHash) : false;
 
 		if (!ok || !user) {
 			recordFailure(key);

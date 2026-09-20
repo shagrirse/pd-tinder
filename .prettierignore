@@ -1,0 +1,16 @@
+build/
+.svelte-kit/
+drizzle/
+node_modules/
+test-results/
+.worktrees/
+.claude/
+*.csv
+*.xlsx
+package-lock.json
+
+# Prose and deploy config keep their own conventions; Prettier here targets
+# app code (JS/TS/Svelte/CSS/JSON), not docs or YAML.
+*.md
+*.yml
+*.yaml

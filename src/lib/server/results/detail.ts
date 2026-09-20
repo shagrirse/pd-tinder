@@ -127,9 +127,7 @@ export function getApplicantDetail(db: AppDb, applicantId: number): ApplicantDet
 	}));
 
 	const ratedQuestions = answers.filter((a) => a.isRated);
-	const values = ratedQuestions
-		.map((a) => a.rating)
-		.filter((v): v is RatingValue => v !== null);
+	const values = ratedQuestions.map((a) => a.rating).filter((v): v is RatingValue => v !== null);
 	const { score, rated, total } = scoreRatings(values, ratedQuestions.length);
 
 	return {

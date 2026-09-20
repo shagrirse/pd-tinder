@@ -18,7 +18,9 @@ describe('parseCsv', () => {
 	it('preserves newlines inside quoted answers', () => {
 		const { rows } = parseCsv(fixture);
 		expect(
-			rows[0]['can you share 1-2 of your short-term and long-term goals respectively, and your current progress on them thus far?']
+			rows[0][
+				'can you share 1-2 of your short-term and long-term goals respectively, and your current progress on them thus far?'
+			]
 		).toContain('\n');
 	});
 

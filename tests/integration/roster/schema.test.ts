@@ -39,13 +39,25 @@ describe('members.student_id', () => {
 		const cycleId = seedCycle(db, '10th Circle', 2026);
 
 		db.insert(members)
-			.values({ cycleId, role: 'mentor', fullName: 'M', email: 'm@example.com', studentId: '02000001' })
+			.values({
+				cycleId,
+				role: 'mentor',
+				fullName: 'M',
+				email: 'm@example.com',
+				studentId: '02000001'
+			})
 			.run();
 
 		expect(() =>
 			db
 				.insert(members)
-				.values({ cycleId, role: 'mentee', fullName: 'E', email: 'e@example.com', studentId: '02000001' })
+				.values({
+					cycleId,
+					role: 'mentee',
+					fullName: 'E',
+					email: 'e@example.com',
+					studentId: '02000001'
+				})
 				.run()
 		).toThrow(/UNIQUE/i);
 	});
@@ -56,12 +68,24 @@ describe('members.student_id', () => {
 		const b = seedCycle(db, '11th Circle', 2027);
 
 		db.insert(members)
-			.values({ cycleId: a, role: 'mentor', fullName: 'M', email: 'm@example.com', studentId: '02000001' })
+			.values({
+				cycleId: a,
+				role: 'mentor',
+				fullName: 'M',
+				email: 'm@example.com',
+				studentId: '02000001'
+			})
 			.run();
 		expect(() =>
 			db
 				.insert(members)
-				.values({ cycleId: b, role: 'mentor', fullName: 'M', email: 'm@example.com', studentId: '02000001' })
+				.values({
+					cycleId: b,
+					role: 'mentor',
+					fullName: 'M',
+					email: 'm@example.com',
+					studentId: '02000001'
+				})
 				.run()
 		).not.toThrow();
 	});

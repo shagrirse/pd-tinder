@@ -52,5 +52,7 @@ export function resolveSession(
 }
 
 export function destroySession(db: AppDb, token: string): void {
-	db.delete(sessions).where(eq(sessions.id, hashToken(token))).run();
+	db.delete(sessions)
+		.where(eq(sessions.id, hashToken(token)))
+		.run();
 }

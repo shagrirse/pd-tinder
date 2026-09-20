@@ -16,10 +16,24 @@ describe('schema', () => {
 		const db = makeTestDb();
 		db.insert(cycles).values({ name: 'C', year: 2026 }).run();
 		db.insert(applicants)
-			.values({ cycleId: 1, publicRef: 1, industry1: 'Finance', industry2: 'Tech', faculty: 'LKCSB', gender: 'Male', priorMentee: false, linkedinStatus: 'valid' })
+			.values({
+				cycleId: 1,
+				publicRef: 1,
+				industry1: 'Finance',
+				industry2: 'Tech',
+				faculty: 'LKCSB',
+				gender: 'Male',
+				priorMentee: false,
+				linkedinStatus: 'valid'
+			})
 			.run();
 		db.insert(applicantPii)
-			.values({ applicantId: 1, fullName: 'Test Person', email: 't@example.com', studentId: '01234856' })
+			.values({
+				applicantId: 1,
+				fullName: 'Test Person',
+				email: 't@example.com',
+				studentId: '01234856'
+			})
 			.run();
 
 		const applicantColumns = Object.keys(db.select().from(applicants).all()[0]);

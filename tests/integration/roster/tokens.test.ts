@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members } from '../../../src/lib/server/db/schema';
 import { generateMemberTokens } from '../../../src/lib/server/roster/tokens';
@@ -16,7 +15,13 @@ function addMember(
 ) {
 	return db
 		.insert(members)
-		.values({ cycleId, role, fullName: `Fixture ${email}`, email, active: overrides.active ?? true })
+		.values({
+			cycleId,
+			role,
+			fullName: `Fixture ${email}`,
+			email,
+			active: overrides.active ?? true
+		})
 		.returning({ id: members.id })
 		.get().id;
 }

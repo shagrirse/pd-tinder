@@ -21,7 +21,9 @@
 <section class="wrap">
 	<header class="page-head">
 		<p class="eyebrow">Admin</p>
-		<h1>People{#if data.cycleName}<span class="cycle-name"> · {data.cycleName}</span>{/if}</h1>
+		<h1>
+			People{#if data.cycleName}<span class="cycle-name"> · {data.cycleName}</span>{/if}
+		</h1>
 	</header>
 
 	{#if form?.inviteUrl}
@@ -139,7 +141,8 @@
 									{person.summary.total}
 									{#if person.summary.total > 0}
 										<span class="breakdown">
-											({person.summary.like}/{person.summary.meh}/{person.summary.skip}{#if person.summary.redFlags}
+											({person.summary.like}/{person.summary.meh}/{person.summary
+												.skip}{#if person.summary.redFlags}
 												· {person.summary.redFlags} flagged{/if})
 										</span>
 									{/if}

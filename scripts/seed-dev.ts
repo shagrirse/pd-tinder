@@ -28,7 +28,11 @@ const dbPath = argValue('--db', process.env.DATABASE_URL ?? 'data/pd-tinder.db')
 const csvPath = argValue('--csv', 'tests/fixtures/applicants-sample.csv');
 
 const ADMIN = { name: 'Admin', email: 'admin@example.com', password: 'admin-password-1' };
-const REVIEWER = { name: 'Reviewer', email: 'reviewer@example.com', password: 'reviewer-password-1' };
+const REVIEWER = {
+	name: 'Reviewer',
+	email: 'reviewer@example.com',
+	password: 'reviewer-password-1'
+};
 
 async function main() {
 	mkdirSync(dirname(dbPath), { recursive: true });
@@ -56,16 +60,14 @@ async function main() {
 
 	const { inserted, updated } = commitImport(db, cycleId, parsed, DEFAULT_COLUMN_MAPPING);
 
-	const adminId = db
-		.insert(users)
+	db.insert(users)
 		.values({
 			name: ADMIN.name,
 			email: ADMIN.email,
 			passwordHash: await hashPassword(ADMIN.password),
 			role: 'admin'
 		})
-		.returning({ id: users.id })
-		.get().id;
+		.run();
 
 	const reviewerId = db
 		.insert(users)
@@ -87,7 +89,9 @@ async function main() {
 	console.log(`  Cycle: "Local Dev Cycle" (${inserted} inserted, ${updated} updated)`);
 	console.log(`  Industry counts: ${JSON.stringify(report.industryCounts)}`);
 	if (report.duplicateStudentIds.length > 0) {
-		console.log(`  Warning: ${report.duplicateStudentIds.length} duplicate student ID(s), later row won`);
+		console.log(
+			`  Warning: ${report.duplicateStudentIds.length} duplicate student ID(s), later row won`
+		);
 	}
 	console.log('');
 	console.log('Login credentials:');

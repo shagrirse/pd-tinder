@@ -109,7 +109,10 @@ test.describe('admin people management', () => {
 		await page.getByRole('checkbox', { name: 'Finance' }).check();
 		await page.getByRole('button', { name: 'Create and issue invite' }).click();
 
-		const inviteUrl = await page.getByText(/\/invite\//).first().innerText();
+		const inviteUrl = await page
+			.getByText(/\/invite\//)
+			.first()
+			.innerText();
 		expect(inviteUrl).toContain('/invite/');
 
 		await expect(page.getByText(email)).toBeVisible();
@@ -156,7 +159,10 @@ test.describe('admin people management', () => {
 		await page.getByRole('checkbox', { name: 'Finance' }).check();
 		await page.getByRole('button', { name: 'Create and issue invite' }).click();
 
-		const inviteUrl = await page.getByText(/\/invite\//).first().innerText();
+		const inviteUrl = await page
+			.getByText(/\/invite\//)
+			.first()
+			.innerText();
 
 		// Set a password so this is a working account before it is revoked.
 		const before = await context.browser()!.newContext();

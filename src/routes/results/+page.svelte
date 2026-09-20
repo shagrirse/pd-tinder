@@ -18,7 +18,9 @@
 <section class="wrap">
 	<header class="page-head">
 		<p class="eyebrow">Admin</p>
-		<h1>Results{#if data.cycleName}<span class="cycle-name"> · {data.cycleName}</span>{/if}</h1>
+		<h1>
+			Results{#if data.cycleName}<span class="cycle-name"> · {data.cycleName}</span>{/if}
+		</h1>
 	</header>
 
 	{#if !data.cycleName}
@@ -96,7 +98,8 @@
 											<td class="mono score">{formatScore(applicant.score)}</td>
 											<td class="mono">{applicant.rated}/{applicant.total}</td>
 											<td
-												><span class="verdict-tag verdict-{applicant.overall}">{applicant.overall}</span
+												><span class="verdict-tag verdict-{applicant.overall}"
+													>{applicant.overall}</span
 												></td
 											>
 											<td class="muted">{applicant.reviewerName ?? ''}</td>
@@ -132,7 +135,6 @@
 						</ul>
 					</div>
 				{/if}
-
 			</section>
 		{/each}
 	{/if}

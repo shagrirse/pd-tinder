@@ -58,10 +58,34 @@ export default async function globalSetup(): Promise<void> {
 	// preference page.
 	db.insert(members)
 		.values([
-			{ cycleId: 1, role: 'mentor', fullName: 'Priya Mentor', email: 'priya-mentor@example.com', industry: 'Finance' },
-			{ cycleId: 1, role: 'mentor', fullName: 'Sam Mentor', email: 'sam-mentor@example.com', industry: 'Finance' },
-			{ cycleId: 1, role: 'mentor', fullName: 'Alex Mentor', email: 'alex-mentor@example.com', industry: 'Tech' },
-			{ cycleId: 1, role: 'mentee', fullName: 'Jordan Mentee', email: 'jordan-mentee@example.com', industry: 'Finance' }
+			{
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Priya Mentor',
+				email: 'priya-mentor@example.com',
+				industry: 'Finance'
+			},
+			{
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Sam Mentor',
+				email: 'sam-mentor@example.com',
+				industry: 'Finance'
+			},
+			{
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Alex Mentor',
+				email: 'alex-mentor@example.com',
+				industry: 'Tech'
+			},
+			{
+				cycleId: 1,
+				role: 'mentee',
+				fullName: 'Jordan Mentee',
+				email: 'jordan-mentee@example.com',
+				industry: 'Finance'
+			}
 		])
 		.run();
 

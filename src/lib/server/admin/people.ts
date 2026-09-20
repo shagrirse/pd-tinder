@@ -6,9 +6,7 @@ import { CANONICAL_INDUSTRIES } from '../import/normalize';
 import { getMySummary, type MySummary } from '../review/reviewed';
 
 export type InviteState =
-	| { kind: 'active' }
-	| { kind: 'invited'; expiresAt: Date }
-	| { kind: 'needs-invite' };
+	{ kind: 'active' } | { kind: 'invited'; expiresAt: Date } | { kind: 'needs-invite' };
 
 export type Person = {
 	id: number;
@@ -23,11 +21,7 @@ export type Person = {
 
 const EMPTY_SUMMARY: MySummary = { total: 0, like: 0, meh: 0, skip: 0, redFlags: 0 };
 
-export function listPeople(
-	db: AppDb,
-	cycleId: number | null,
-	now: Date = new Date()
-): Person[] {
+export function listPeople(db: AppDb, cycleId: number | null, now: Date = new Date()): Person[] {
 	const userRows = db
 		.select({
 			id: users.id,
@@ -199,11 +193,7 @@ export function setPersonActive(
 	targetUserId: number,
 	active: boolean
 ): void {
-	const target = db
-		.select({ id: users.id })
-		.from(users)
-		.where(eq(users.id, targetUserId))
-		.get();
+	const target = db.select({ id: users.id }).from(users).where(eq(users.id, targetUserId)).get();
 
 	if (!target) throw new PeopleError('No such person.');
 

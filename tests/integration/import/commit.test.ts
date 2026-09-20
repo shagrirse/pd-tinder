@@ -53,7 +53,13 @@ describe('commitImport', () => {
 
 	it('assigns sequential public refs starting at 1', () => {
 		commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
-		expect(db.select().from(applicants).all().map((r) => r.publicRef)).toEqual([1, 2]);
+		expect(
+			db
+				.select()
+				.from(applicants)
+				.all()
+				.map((r) => r.publicRef)
+		).toEqual([1, 2]);
 	});
 
 	it('stores PII separately from the applicant row', () => {
@@ -78,9 +84,19 @@ describe('commitImport', () => {
 
 	it('keeps public refs stable across a re-import', () => {
 		commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
-		const before = db.select().from(applicants).all().map((r) => r.publicRef);
+		const before = db
+			.select()
+			.from(applicants)
+			.all()
+			.map((r) => r.publicRef);
 		commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
-		expect(db.select().from(applicants).all().map((r) => r.publicRef)).toEqual(before);
+		expect(
+			db
+				.select()
+				.from(applicants)
+				.all()
+				.map((r) => r.publicRef)
+		).toEqual(before);
 	});
 
 	it('applies corrected answers on re-import', () => {

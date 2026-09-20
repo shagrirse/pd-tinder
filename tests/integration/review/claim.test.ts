@@ -21,10 +21,12 @@ beforeEach(() => {
 	db = makeTestDb();
 	db.insert(cycles).values({ name: 'C', year: 2026 }).run();
 	commitImport(db, 1, parsed, DEFAULT_COLUMN_MAPPING);
-	db.insert(users).values([
-		{ name: 'One', email: 'one@example.com' },
-		{ name: 'Two', email: 'two@example.com' }
-	]).run();
+	db.insert(users)
+		.values([
+			{ name: 'One', email: 'one@example.com' },
+			{ name: 'Two', email: 'two@example.com' }
+		])
+		.run();
 });
 
 describe('claimNext', () => {

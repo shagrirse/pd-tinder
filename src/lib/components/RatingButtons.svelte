@@ -2,7 +2,11 @@
 	import type { RatingValue } from '$lib/draft';
 	import VerdictIcon from './VerdictIcon.svelte';
 
-	let { value = null, onchange, label }: {
+	let {
+		value = null,
+		onchange,
+		label
+	}: {
 		value: RatingValue | null;
 		onchange: (v: RatingValue) => void;
 		label: string;

@@ -9,7 +9,15 @@ function rowsOf(csv: string): Record<string, string>[] {
 describe('memberTokensCsv', () => {
 	it('includes one row per member with role, name, email, and a full link', () => {
 		const csv = memberTokensCsv(
-			[{ id: 1, role: 'mentor', fullName: 'Ada Fictional', email: 'ada@example.com', token: 'abc123' }],
+			[
+				{
+					id: 1,
+					role: 'mentor',
+					fullName: 'Ada Fictional',
+					email: 'ada@example.com',
+					token: 'abc123'
+				}
+			],
 			'https://pdtinder.example.com'
 		);
 

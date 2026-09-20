@@ -17,9 +17,10 @@ export const QUESTION_KEYS = [
 export type QuestionKey = (typeof QUESTION_KEYS)[number];
 
 /** Every question except the key-events answer, which is shown as context but never rated. */
-export const RATED_QUESTION_KEYS = QUESTION_KEYS.filter(
-	(k) => k !== 'q_key_events'
-) as Exclude<QuestionKey, 'q_key_events'>[];
+export const RATED_QUESTION_KEYS = QUESTION_KEYS.filter((k) => k !== 'q_key_events') as Exclude<
+	QuestionKey,
+	'q_key_events'
+>[];
 
 export const QUESTION_PROMPTS: Record<QuestionKey, string> = {
 	q_why_tmc: 'Why would you like to join TMC as a mentee?',

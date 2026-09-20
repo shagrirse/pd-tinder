@@ -13,7 +13,10 @@ test.beforeEach(() => {
 const REVIEWER = { email: 'reviewer@example.com', password: 'reviewer-password-1' };
 const ADMIN = { email: 'admin@example.com', password: 'admin-password-1' };
 
-async function signIn(page: import('@playwright/test').Page, who: { email: string; password: string }) {
+async function signIn(
+	page: import('@playwright/test').Page,
+	who: { email: string; password: string }
+) {
 	await page.goto('/login');
 	await page.getByLabel('Email').fill(who.email);
 	await page.getByLabel('Password').fill(who.password);
@@ -56,7 +59,9 @@ test.describe('reviewer journey', () => {
 		const confirm = page.getByRole('button', { name: 'Confirm red flag' });
 		await expect(confirm).toBeDisabled();
 
-		await page.getByPlaceholder('What is disqualifying?').fill('Disclosed intent to misuse the network.');
+		await page
+			.getByPlaceholder('What is disqualifying?')
+			.fill('Disclosed intent to misuse the network.');
 		await expect(confirm).toBeEnabled();
 		await confirm.click();
 		await page.getByRole('button', { name: 'Submit red flag' }).click();

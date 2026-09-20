@@ -5,7 +5,10 @@ import { members, pairings } from '../db/schema';
 export type OverrideErrorCode = 'not_found' | 'reason_required' | 'role_mismatch' | 'wrong_cycle';
 
 export class OverrideError extends Error {
-	constructor(readonly code: OverrideErrorCode, message: string) {
+	constructor(
+		readonly code: OverrideErrorCode,
+		message: string
+	) {
 		super(message);
 		this.name = 'OverrideError';
 	}
@@ -48,18 +51,13 @@ export function overridePair(
 	}
 
 	db.transaction((tx) => {
-		tx
-			.delete(pairings)
+		tx.delete(pairings)
 			.where(
-				or(
-					eq(pairings.mentorMemberId, mentorMemberId),
-					eq(pairings.menteeMemberId, menteeMemberId)
-				)
+				or(eq(pairings.mentorMemberId, mentorMemberId), eq(pairings.menteeMemberId, menteeMemberId))
 			)
 			.run();
 
-		tx
-			.insert(pairings)
+		tx.insert(pairings)
 			.values({
 				cycleId,
 				mentorMemberId,

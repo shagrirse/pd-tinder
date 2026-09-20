@@ -58,7 +58,10 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 	}
 
 	const blankRequiredCells = Object.entries(blank).map(([column, count]) => ({ column, count }));
-	const unknownIndustries = [...unknownCounts.entries()].map(([value, count]) => ({ value, count }));
+	const unknownIndustries = [...unknownCounts.entries()].map(([value, count]) => ({
+		value,
+		count
+	}));
 	const duplicateStudentIds = [...studentIdCounts.entries()]
 		.filter(([, count]) => count > 1)
 		.map(([studentId, count]) => ({ studentId, count }));
@@ -152,7 +155,7 @@ export function previewRoster(
 		const industry = normalizeIndustry(row['industry'] ?? '');
 		if (industry) industryCounts[industry] = (industryCounts[industry] ?? 0) + 1;
 
-		let email: string | null = null;
+		let email: string | null;
 
 		if (role === 'mentee') {
 			const applicant = db
@@ -183,7 +186,11 @@ export function previewRoster(
 				}
 			}
 			if (industry && industry !== applicant.industry1) {
-				industryMismatches.push({ studentId, registered: applicant.industry1, confirmed: industry });
+				industryMismatches.push({
+					studentId,
+					registered: applicant.industry1,
+					confirmed: industry
+				});
 			}
 		} else {
 			email = (row['email'] ?? '').trim();

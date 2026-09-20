@@ -28,12 +28,18 @@
 		data.state === 'review' || data.state === 'empty'
 			? Math.min(
 					1,
-					data.progress.reviewedByMe / Math.max(1, data.progress.reviewedByMe + data.progress.remaining)
+					data.progress.reviewedByMe /
+						Math.max(1, data.progress.reviewedByMe + data.progress.remaining)
 				)
 			: 0
 	);
 
-	const stampLabel: Record<string, string> = { like: 'Good', meh: 'Maybe', skip: 'Pass', redFlag: 'Rejected' };
+	const stampLabel: Record<string, string> = {
+		like: 'Good',
+		meh: 'Maybe',
+		skip: 'Pass',
+		redFlag: 'Rejected'
+	};
 
 	$effect(() => {
 		if (data.state !== 'review') return;
@@ -97,7 +103,8 @@
 	// guessing a fixed padding value, and expose it as a CSS var the scroll
 	// area reads for its bottom padding.
 	function measureBar(node: HTMLElement) {
-		const update = () => document.documentElement.style.setProperty('--verdict-h', `${node.offsetHeight}px`);
+		const update = () =>
+			document.documentElement.style.setProperty('--verdict-h', `${node.offsetHeight}px`);
 		update();
 		const ro = new ResizeObserver(update);
 		ro.observe(node);
@@ -114,7 +121,12 @@
 	}
 
 	const serialisedRatings = $derived(
-		JSON.stringify(Object.entries(ratings).map(([questionId, value]) => ({ questionId: Number(questionId), value })))
+		JSON.stringify(
+			Object.entries(ratings).map(([questionId, value]) => ({
+				questionId: Number(questionId),
+				value
+			}))
+		)
 	);
 </script>
 
@@ -135,7 +147,9 @@
 			<div class="summary-tile like"><strong>{data.summary.like}</strong><span>Good</span></div>
 			<div class="summary-tile meh"><strong>{data.summary.meh}</strong><span>Meh</span></div>
 			<div class="summary-tile skip"><strong>{data.summary.skip}</strong><span>Weak</span></div>
-			<div class="summary-tile danger"><strong>{data.summary.redFlags}</strong><span>Flagged</span></div>
+			<div class="summary-tile danger">
+				<strong>{data.summary.redFlags}</strong><span>Flagged</span>
+			</div>
 		</div>
 		<a class="btn btn-primary" href="/review/reviewed">Review what you submitted</a>
 	</section>
@@ -158,7 +172,9 @@
 					class:exit-flag={exiting === 'redFlag'}
 				>
 					{#if exiting}
-						<div class="stamp-overlay stamp-{exiting}" aria-hidden="true">{stampLabel[exiting]}</div>
+						<div class="stamp-overlay stamp-{exiting}" aria-hidden="true">
+							{stampLabel[exiting]}
+						</div>
 					{/if}
 
 					<header class="card-header">
@@ -186,7 +202,9 @@
 						</div>
 						<div class="chips">
 							<span class="chip chip-primary">{data.applicant.industry1}</span>
-							{#if data.applicant.industry2}<span class="chip">2nd · {data.applicant.industry2}</span>{/if}
+							{#if data.applicant.industry2}<span class="chip"
+									>2nd · {data.applicant.industry2}</span
+								>{/if}
 							{#if data.applicant.faculty}<span class="chip">{data.applicant.faculty}</span>{/if}
 							{#if data.applicant.gender}<span class="chip">{data.applicant.gender}</span>{/if}
 						</div>
@@ -237,8 +255,7 @@
 			oninput={persist}
 			rows="1"
 			placeholder="Note for the admin (optional)"
-			aria-label="Note for the admin"
-		></textarea>
+			aria-label="Note for the admin"></textarea>
 
 		<div class="verdict-row">
 			<span class="rated-count">{ratedCount}/{ratedQuestions.length} rated</span>
@@ -289,7 +306,11 @@
 		{/if}
 	</form>
 
-	<RedFlagSheet open={redFlagOpen} onconfirm={confirmRedFlag} oncancel={() => (redFlagOpen = false)} />
+	<RedFlagSheet
+		open={redFlagOpen}
+		onconfirm={confirmRedFlag}
+		oncancel={() => (redFlagOpen = false)}
+	/>
 {/if}
 
 <style>

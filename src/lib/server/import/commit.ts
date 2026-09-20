@@ -1,13 +1,13 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { AppDb } from '../db';
 import { applicantPii, applicants, questions, responses } from '../db/schema';
+import { QUESTION_KEYS, QUESTION_PROMPTS, RATED_QUESTION_KEYS, type QuestionKey } from './columns';
 import {
-	QUESTION_KEYS,
-	QUESTION_PROMPTS,
-	RATED_QUESTION_KEYS,
-	type QuestionKey
-} from './columns';
-import { classifyLinkedin, normalizeGender, normalizeIndustry, normalizePriorMentee } from './normalize';
+	classifyLinkedin,
+	normalizeGender,
+	normalizeIndustry,
+	normalizePriorMentee
+} from './normalize';
 import type { ParsedCsv } from './parse';
 
 export type CommitResult = { inserted: number; updated: number };

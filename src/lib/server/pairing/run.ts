@@ -46,8 +46,7 @@ export function runReconciliation(db: AppDb, cycleId: number): ReconcileResult {
 			.all()
 			.map((row) => ({ ...row, method: 'manual' as const, mentorRank: null, menteeRank: null }));
 
-		tx
-			.delete(pairings)
+		tx.delete(pairings)
 			.where(and(eq(pairings.cycleId, cycleId), ne(pairings.method, 'manual')))
 			.run();
 
@@ -55,8 +54,7 @@ export function runReconciliation(db: AppDb, cycleId: number): ReconcileResult {
 
 		const computed = result.pairs.filter((p) => p.method !== 'manual');
 		if (computed.length > 0) {
-			tx
-				.insert(pairings)
+			tx.insert(pairings)
 				.values(
 					computed.map((p) => ({
 						cycleId,

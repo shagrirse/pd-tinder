@@ -39,7 +39,12 @@ export function getMyVerdict(
 	db: AppDb,
 	userId: number,
 	applicantId: number
-): { ratings: Record<number, RatingValue>; note: string; overall: RatingValue | null; redFlag: boolean } | null {
+): {
+	ratings: Record<number, RatingValue>;
+	note: string;
+	overall: RatingValue | null;
+	redFlag: boolean;
+} | null {
 	const verdict = db
 		.select()
 		.from(verdicts)

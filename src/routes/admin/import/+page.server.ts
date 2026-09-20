@@ -6,11 +6,7 @@ import { DEFAULT_COLUMN_MAPPING } from '$lib/server/import/columns';
 import { parseCsv } from '$lib/server/import/parse';
 import { validateImport, type ValidationReport } from '$lib/server/import/validate';
 import { commitImport } from '$lib/server/import/commit';
-import {
-	discardStagedUpload,
-	readStagedUpload,
-	stageUpload
-} from '$lib/server/upload/staging';
+import { discardStagedUpload, readStagedUpload, stageUpload } from '$lib/server/upload/staging';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -83,10 +79,7 @@ export const actions: Actions = {
 		const token = String(form.get('token') ?? '');
 		const stagedFile = readStagedUpload<{ csvText: string; cycleId: number }>('applicants', token);
 		if (!stagedFile) {
-			return fail(
-				400,
-				problem('That upload expired or was already used. Upload the file again.')
-			);
+			return fail(400, problem('That upload expired or was already used. Upload the file again.'));
 		}
 
 		const cycle = listCycles(db).find((c) => c.id === stagedFile.cycleId);

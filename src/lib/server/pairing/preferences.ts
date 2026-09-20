@@ -5,15 +5,13 @@ import { members, preferences } from '../db/schema';
 export type ChoiceInput = { rank: 1 | 2 | 3; choiceMemberId: number; reason: string };
 
 export type PreferenceErrorCode =
-	| 'not_found'
-	| 'inactive'
-	| 'incomplete'
-	| 'duplicate_choice'
-	| 'same_role'
-	| 'wrong_cycle';
+	'not_found' | 'inactive' | 'incomplete' | 'duplicate_choice' | 'same_role' | 'wrong_cycle';
 
 export class PreferenceError extends Error {
-	constructor(readonly code: PreferenceErrorCode, message: string) {
+	constructor(
+		readonly code: PreferenceErrorCode,
+		message: string
+	) {
 		super(message);
 		this.name = 'PreferenceError';
 	}
@@ -33,7 +31,10 @@ export function setPreferences(db: AppDb, memberId: number, choices: ChoiceInput
 
 	const ranks = choices.map((c) => c.rank).sort((a, b) => a - b);
 	if (ranks.length !== 3 || !REQUIRED_RANKS.every((r, i) => ranks[i] === r)) {
-		throw new PreferenceError('incomplete', 'Exactly three choices, ranked 1, 2 and 3, are required');
+		throw new PreferenceError(
+			'incomplete',
+			'Exactly three choices, ranked 1, 2 and 3, are required'
+		);
 	}
 
 	const ids = choices.map((c) => c.choiceMemberId);

@@ -18,13 +18,17 @@
 		manual: 'Manual'
 	};
 
-	let totalRoster = $derived(data.submissions.submitted.length + data.submissions.notSubmitted.length);
+	let totalRoster = $derived(
+		data.submissions.submitted.length + data.submissions.notSubmitted.length
+	);
 </script>
 
 <section class="wrap">
 	<header class="page-head">
 		<p class="eyebrow">Admin</p>
-		<h1>Pairing{#if data.cycle}<span class="cycle-name"> · {data.cycle.name}</span>{/if}</h1>
+		<h1>
+			Pairing{#if data.cycle}<span class="cycle-name"> · {data.cycle.name}</span>{/if}
+		</h1>
 	</header>
 
 	{#if !data.cycle}

@@ -108,7 +108,7 @@ export function rankCycle(db: AppDb, cycleId: number): IndustryResults[] {
 		entry.rejected.sort((a, b) => a.publicRef - b.publicRef);
 	}
 
-	return CANONICAL_INDUSTRIES.filter((industry) => byIndustry.has(industry)).map(
-		(industry) => byIndustry.get(industry)!
+	return CANONICAL_INDUSTRIES.filter((industry) => byIndustry.has(industry)).map((industry) =>
+		byIndustry.get(industry)!
 	);
 }
