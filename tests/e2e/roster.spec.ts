@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
 const ADMIN = { email: 'admin@example.com', password: 'admin-password-1' };
@@ -76,5 +77,24 @@ test.describe('roster import', () => {
 		await expect(
 			page.getByText('That upload expired or was already used. Upload the file again.')
 		).toBeVisible();
+	});
+
+	test('generates and downloads member links for the current roster', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		// Runs after the earlier tests in this file, which already committed
+		// mentors and mentees into the shared e2e database — nothing to import here.
+		await expect(page.getByText('Ada Fictional')).toBeVisible();
+
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
+		const path = await download.path();
+		const csv = path ? readFileSync(path, 'utf8') : '';
+		expect(csv).toContain('role,full_name,email,link');
+		expect(csv).toContain('/member/');
 	});
 });

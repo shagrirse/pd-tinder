@@ -174,6 +174,14 @@
 						{roster.mentees.length} mentee{roster.mentees.length === 1 ? '' : 's'}
 					</p>
 
+					<form method="POST" action="/admin/roster/tokens" class="upload-form">
+						<input type="hidden" name="cycleId" value={selectedCycleId} />
+						<button type="submit" class="btn btn-primary">Generate &amp; export member links</button>
+					</form>
+					<p class="warn-inline">
+						Regenerating replaces every member's link — anyone with an old one loses access.
+					</p>
+
 					<h2 class="roster-role">Mentors</h2>
 					{#if roster.mentors.length === 0}
 						<p class="notice">None yet.</p>

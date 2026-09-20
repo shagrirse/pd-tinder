@@ -170,6 +170,16 @@ export const members = sqliteTable(
 	]
 );
 
+// Members are not users: no password, no session cookie. The token in a
+// member's link is itself the credential, checked fresh on every visit
+// rather than redeemed once into a session (contrast `invites`/`sessions`).
+export const memberTokens = sqliteTable('member_tokens', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	memberId: integer('member_id').notNull().references(() => members.id),
+	tokenHash: text('token_hash').notNull().unique(),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+});
+
 export const preferences = sqliteTable(
 	'preferences',
 	{
