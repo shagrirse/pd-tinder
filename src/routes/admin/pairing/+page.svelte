@@ -126,24 +126,26 @@
 		<div class="panel">
 			<div class="panel-head"><span>Override a pair</span></div>
 			<form method="POST" action="?/override" class="override-form">
-				<label class="field">
-					<span class="field-label">Mentor</span>
-					<select name="mentorMemberId" required>
-						<option value="">Choose a mentor</option>
-						{#each data.mentors as mentor (mentor.id)}
-							<option value={mentor.id}>{mentor.fullName}</option>
-						{/each}
-					</select>
-				</label>
-				<label class="field">
-					<span class="field-label">Mentee</span>
-					<select name="menteeMemberId" required>
-						<option value="">Choose a mentee</option>
-						{#each data.mentees as mentee (mentee.id)}
-							<option value={mentee.id}>{mentee.fullName}</option>
-						{/each}
-					</select>
-				</label>
+				<div class="override-pair">
+					<label class="field">
+						<span class="field-label">Mentor</span>
+						<select name="mentorMemberId" required>
+							<option value="">Choose a mentor</option>
+							{#each data.mentors as mentor (mentor.id)}
+								<option value={mentor.id}>{mentor.fullName}</option>
+							{/each}
+						</select>
+					</label>
+					<label class="field">
+						<span class="field-label">Mentee</span>
+						<select name="menteeMemberId" required>
+							<option value="">Choose a mentee</option>
+							{#each data.mentees as mentee (mentee.id)}
+								<option value={mentee.id}>{mentee.fullName}</option>
+							{/each}
+						</select>
+					</label>
+				</div>
 				<label class="field">
 					<span class="field-label">Reason</span>
 					<textarea name="reason"></textarea>
@@ -249,10 +251,14 @@
 	}
 
 	.override-form {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+		display: flex;
+		flex-direction: column;
 		gap: 1rem;
-		align-items: end;
+	}
+	.override-pair {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: 1rem;
 	}
 	.override-form select,
 	.override-form textarea {
@@ -265,8 +271,10 @@
 		min-height: 46px;
 	}
 	.override-form textarea {
-		grid-column: 1 / -1;
 		min-height: 5rem;
 		resize: vertical;
+	}
+	.override-form .btn {
+		align-self: flex-start;
 	}
 </style>

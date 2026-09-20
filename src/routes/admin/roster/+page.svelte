@@ -23,6 +23,12 @@
 	let menteeCommit = $derived(form && form.stage === 'commitMentees' ? form : null);
 	let mentorDone = $derived(mentorCommit?.committed ?? null);
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
+
+	const MENTOR_EXAMPLE_CSV =
+		'full_name,email,industry,student_id\nAda Mentor,ada.mentor@example.com,Tech,02000001\n';
+	const MENTEE_EXAMPLE_CSV = 'student_id,industry,full_name\n01000001,Finance,Bo Mentee\n';
+	const mentorExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTOR_EXAMPLE_CSV)}`;
+	const menteeExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTEE_EXAMPLE_CSV)}`;
 </script>
 
 <section class="wrap">
@@ -39,7 +45,21 @@
 		<div class="panel">
 			<div class="panel-head">
 				<span>Mentors</span>
-				<span class="file-name">Selected mentors — full_name, email, industry, student_id</span>
+			</div>
+
+			<div class="csv-spec">
+				<div class="csv-columns-head">
+					<span class="field-label">Required columns</span>
+					<a class="csv-example-link" href={mentorExampleHref} download="mentor-roster-example.csv">
+						Download example CSV
+					</a>
+				</div>
+				<p class="chip-row">
+					<span class="chip">full_name</span>
+					<span class="chip">email</span>
+					<span class="chip">industry</span>
+					<span class="chip">student_id</span>
+				</p>
 			</div>
 
 			{#if mentorDone}
@@ -102,7 +122,22 @@
 		<div class="panel">
 			<div class="panel-head">
 				<span>Mentees</span>
-				<span class="file-name">Selected mentees — student_id, industry</span>
+			</div>
+
+			<div class="csv-spec">
+				<div class="csv-columns-head">
+					<span class="field-label">Required columns</span>
+					<a class="csv-example-link" href={menteeExampleHref} download="mentee-roster-example.csv">
+						Download example CSV
+					</a>
+				</div>
+				<p class="chip-row">
+					<span class="chip">student_id</span>
+					<span class="chip">industry</span>
+				</p>
+				<p class="csv-note">
+					full_name is optional — ignored on import, useful only so the file is readable.
+				</p>
 			</div>
 
 			{#if menteeDone}
@@ -273,10 +308,37 @@
 		font-size: 0.9rem;
 		margin-bottom: 1rem;
 	}
-	.file-name {
-		font-family: var(--font-mono);
-		font-size: 0.72rem;
-		color: var(--text-faint);
+	.csv-spec {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		margin-bottom: 1rem;
+	}
+	.csv-columns-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.3rem 0.75rem;
+	}
+	.csv-example-link {
+		font-size: 0.78rem;
+		color: var(--text-dim);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.csv-example-link:hover {
+		color: var(--flame);
+	}
+	.chip-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 0;
+	}
+	.csv-note {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--text-dim);
 	}
 
 	.upload-form {
