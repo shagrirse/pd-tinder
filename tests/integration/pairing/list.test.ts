@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members, pairings, preferences } from '../../../src/lib/server/db/schema';
 import { computeResidual, listPairings } from '../../../src/lib/server/pairing/list';
@@ -101,5 +102,41 @@ describe('computeResidual', () => {
 		const ids = residual.gotNoChoice.map((m) => m.id);
 		expect(ids).toContain(mentors[0]);
 		expect(ids).toContain(mentees[0]);
+	});
+
+	it('resolves gotNoChoice members from full roster even if deactivated', () => {
+		// Create a pairing where mentor[0] is paired with mentee[0]
+		db.insert(pairings)
+			.values({
+				cycleId: 1,
+				mentorMemberId: mentors[0],
+				menteeMemberId: mentees[0],
+				method: 'manual',
+				overrideReason: 'forced'
+			})
+			.run();
+
+		// Add preferences so mentor[0] did NOT choose mentee[0] — this puts them in gotNoChoice
+		db.insert(preferences)
+			.values({ memberId: mentors[0], choiceMemberId: mentees[1], rank: 1, reason: 'x' })
+			.run();
+
+		// Deactivate mentor[0]
+		db.update(members).set({ active: false }).where(eq(members.id, mentors[0])).run();
+
+		// computeResidual should resolve members from full roster, not active-only
+		const residual = computeResidual(db, 1);
+
+		// The deactivated mentor should not appear in unpaired (only active members)
+		expect(residual.unpaired.map((m) => m.id)).not.toContain(mentors[0]);
+
+		// But mentor[0] SHOULD be in gotNoChoice because they're paired but didn't choose their partner
+		const gotNoChoiceIds = residual.gotNoChoice.map((m) => m.id);
+		expect(gotNoChoiceIds).toContain(mentors[0]);
+
+		// The key fix: fullName must be resolved (not undefined), proving the full roster lookup worked
+		const deactivatedMemberInGotNoChoice = residual.gotNoChoice.find((m) => m.id === mentors[0]);
+		expect(deactivatedMemberInGotNoChoice).toBeDefined();
+		expect(deactivatedMemberInGotNoChoice!.fullName).toBe('mentor 1');
 	});
 });

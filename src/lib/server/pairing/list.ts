@@ -13,6 +13,15 @@ export function activeRosterWithRole(db: AppDb, cycleId: number): MemberSummary[
 	return [...mentors, ...mentees];
 }
 
+/** Both roles' full roster (not just active), tagged with role — used where a lookup must resolve every persisted pairing, including one touching a since-deactivated member. */
+function fullRosterWithRole(db: AppDb, cycleId: number): MemberSummary[] {
+	const { mentors, mentees } = listRoster(db, cycleId);
+	return [
+		...mentors.map((m) => ({ ...m, role: 'mentor' as const })),
+		...mentees.map((m) => ({ ...m, role: 'mentee' as const }))
+	];
+}
+
 export type PairingRow = {
 	id: number;
 	method: PairMethod;
@@ -97,13 +106,18 @@ export function computeResidual(db: AppDb, cycleId: number): ResidualStatus {
 		choicesOf.get(row.memberId)!.add(row.choiceMemberId);
 	}
 
+	// Use full roster (including inactive members) for gotNoChoice lookups,
+	// since persisted pairings may include a since-deactivated member.
+	const fullRoster = fullRosterWithRole(db, cycleId);
+	const fullById = new Map(fullRoster.map((m) => [m.id, m]));
+
 	const gotNoChoice: MemberSummary[] = [];
 	for (const row of pairingRows) {
 		if (!choicesOf.get(row.mentorMemberId)?.has(row.menteeMemberId)) {
-			gotNoChoice.push(byId.get(row.mentorMemberId)!);
+			gotNoChoice.push(fullById.get(row.mentorMemberId)!);
 		}
 		if (!choicesOf.get(row.menteeMemberId)?.has(row.mentorMemberId)) {
-			gotNoChoice.push(byId.get(row.menteeMemberId)!);
+			gotNoChoice.push(fullById.get(row.menteeMemberId)!);
 		}
 	}
 
