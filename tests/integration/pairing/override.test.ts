@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members, pairings } from '../../../src/lib/server/db/schema';
 import { OverrideError, overridePair } from '../../../src/lib/server/pairing/override';
@@ -12,7 +11,12 @@ let mentees: number[];
 function addMember(cycleId: number, role: 'mentor' | 'mentee', n: number) {
 	return db
 		.insert(members)
-		.values({ cycleId, role, fullName: `${role} ${n}`, email: `${role}${n}-${cycleId}@example.com` })
+		.values({
+			cycleId,
+			role,
+			fullName: `${role} ${n}`,
+			email: `${role}${n}-${cycleId}@example.com`
+		})
 		.returning({ id: members.id })
 		.get().id;
 }
@@ -55,10 +59,14 @@ describe('overridePair', () => {
 	});
 
 	it('displaces both members from their existing pairs', () => {
-		db
-			.insert(pairings)
+		db.insert(pairings)
 			.values([
-				{ cycleId: 1, mentorMemberId: mentors[0], menteeMemberId: mentees[0], method: 'mutual_first' },
+				{
+					cycleId: 1,
+					mentorMemberId: mentors[0],
+					menteeMemberId: mentees[0],
+					method: 'mutual_first'
+				},
 				{ cycleId: 1, mentorMemberId: mentors[1], menteeMemberId: mentees[1], method: 'mutual_any' }
 			])
 			.run();
