@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members, preferences } from '../../../src/lib/server/db/schema';
-import { PreferenceError, setPreferences } from '../../../src/lib/server/pairing/preferences';
+import {
+	PreferenceError,
+	getPreferences,
+	setPreferences
+} from '../../../src/lib/server/pairing/preferences';
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
@@ -136,5 +140,25 @@ describe('setPreferences', () => {
 		setPreferences(db, mentor, threeChoices(mentees.slice(0, 3)));
 		expect(() => setPreferences(db, mentor, threeChoices(mentees.slice(0, 2)))).toThrow();
 		expect(db.select().from(preferences).all()).toHaveLength(3);
+	});
+});
+
+describe('getPreferences', () => {
+	it('returns nothing before a member has submitted', () => {
+		expect(getPreferences(db, mentor)).toEqual([]);
+	});
+
+	it('returns a submitted choice ordered by rank, regardless of write order', () => {
+		setPreferences(db, mentor, threeChoices(mentees.slice(0, 3)).reverse());
+		expect(getPreferences(db, mentor)).toEqual([
+			{ rank: 1, choiceMemberId: mentees[0], reason: 'reason 1' },
+			{ rank: 2, choiceMemberId: mentees[1], reason: 'reason 2' },
+			{ rank: 3, choiceMemberId: mentees[2], reason: 'reason 3' }
+		]);
+	});
+
+	it('does not return the choices of a different member', () => {
+		setPreferences(db, mentor, threeChoices(mentees.slice(0, 3)));
+		expect(getPreferences(db, mentees[0])).toEqual([]);
 	});
 });

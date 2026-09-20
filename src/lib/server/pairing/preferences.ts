@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 import type { AppDb } from '../db';
 import { members, preferences } from '../db/schema';
 
@@ -70,4 +70,18 @@ export function setPreferences(db: AppDb, memberId: number, choices: ChoiceInput
 			)
 			.run();
 	});
+}
+
+/** A member's current submission, ordered by rank, for pre-filling their form. */
+export function getPreferences(db: AppDb, memberId: number): ChoiceInput[] {
+	return db
+		.select({
+			rank: preferences.rank,
+			choiceMemberId: preferences.choiceMemberId,
+			reason: preferences.reason
+		})
+		.from(preferences)
+		.where(eq(preferences.memberId, memberId))
+		.orderBy(asc(preferences.rank))
+		.all() as ChoiceInput[];
 }

@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import type { AppDb } from '../db';
 import { members } from '../db/schema';
 
@@ -41,4 +41,30 @@ export function listRoster(db: AppDb, cycleId: number): RosterSummary {
 	}
 
 	return { cycleId, mentors, mentees };
+}
+
+/**
+ * The active roster of one role, grouped for display by industry then name.
+ * Used to offer choices on the preference form — inactive members are never
+ * a valid choice (`setPreferences` rejects them), so they are excluded here
+ * rather than shown and then bounced at submission.
+ */
+export function listActiveRoster(
+	db: AppDb,
+	cycleId: number,
+	role: 'mentor' | 'mentee'
+): RosterRow[] {
+	return db
+		.select({
+			id: members.id,
+			fullName: members.fullName,
+			email: members.email,
+			industry: members.industry,
+			studentId: members.studentId,
+			applicantId: members.applicantId
+		})
+		.from(members)
+		.where(and(eq(members.cycleId, cycleId), eq(members.role, role), eq(members.active, true)))
+		.orderBy(asc(members.industry), asc(members.fullName))
+		.all();
 }
