@@ -1,5 +1,7 @@
 export const CANONICAL_INDUSTRIES = [
 	'Finance',
+	'Finance A',
+	'Finance B',
 	'Tech',
 	'Consulting',
 	'Marketing',
@@ -11,6 +13,8 @@ export type Industry = (typeof CANONICAL_INDUSTRIES)[number];
 
 const INDUSTRY_ALIASES: Record<string, Industry> = {
 	finance: 'Finance',
+	'finance a': 'Finance A',
+	'finance b': 'Finance B',
 	tech: 'Tech',
 	technology: 'Tech',
 	consulting: 'Consulting',

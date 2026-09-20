@@ -15,6 +15,17 @@ describe('normalizeIndustry', () => {
 		expect(normalizeIndustry('Niche')).toBe('Niche');
 	});
 
+	it('passes through the split Finance values', () => {
+		expect(normalizeIndustry('Finance A')).toBe('Finance A');
+		expect(normalizeIndustry('Finance B')).toBe('Finance B');
+	});
+
+	it('normalises loose casing and spacing into the split values', () => {
+		expect(normalizeIndustry('finance a')).toBe('Finance A');
+		expect(normalizeIndustry('finance b')).toBe('Finance B');
+		expect(normalizeIndustry('Finance   B')).toBe('Finance B');
+	});
+
 	it('corrects the FInance capitalisation typo in the source data', () => {
 		expect(normalizeIndustry('FInance')).toBe('Finance');
 	});
