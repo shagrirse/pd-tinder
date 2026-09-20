@@ -148,17 +148,24 @@ export const members = sqliteTable(
 		role: text('role', { enum: ['mentor', 'mentee'] }).notNull(),
 		fullName: text('full_name').notNull(),
 		email: text('email').notNull(),
+		// Identity for programme operations (attendance being the driver):
+		// a member must be identifiable without joining applicant_pii. Nullable
+		// in the schema, populated by every import path in practice.
+		studentId: text('student_id'),
 		// Nullable: the mentor sign-up form does not collect industry, and the 9th
 		// Circle encoded it in the name as a suffix. Roster import decides how it
 		// gets populated for mentors.
 		industry: text('industry'),
-		// Nullable because mentors are never applicants. For a selected mentee this
-		// is the link back to their application.
+		// The application this member was promoted from, whichever role they
+		// hold. Nullable because a batch can adopt the tool mid-programme, when
+		// one role's applications predate the system — the 10th Circle's mentors
+		// being exactly that case.
 		applicantId: integer('applicant_id').references(() => applicants.id),
 		active: integer('active', { mode: 'boolean' }).notNull().default(true)
 	},
 	(t) => [
 		unique('members_cycle_email').on(t.cycleId, t.email),
+		unique('members_cycle_student').on(t.cycleId, t.studentId),
 		index('members_roster').on(t.cycleId, t.role)
 	]
 );

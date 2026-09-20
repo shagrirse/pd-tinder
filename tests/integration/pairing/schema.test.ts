@@ -35,7 +35,7 @@ describe('members', () => {
 		).not.toThrow();
 	});
 
-	it('defaults applicantId to null, because mentors are never applicants', () => {
+	it('defaults applicantId to null when no application is given', () => {
 		const id = addMember('mentor', 'a@example.com');
 		const row = db.select().from(members).all().find((m) => m.id === id)!;
 		expect(row.applicantId).toBeNull();
