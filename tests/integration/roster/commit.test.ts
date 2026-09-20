@@ -58,9 +58,29 @@ describe('commitRoster — mentees', () => {
 		expect(db.select().from(members).all()).toHaveLength(2);
 	});
 
-	it('commits nothing when a row stops resolving', () => {
-		const csv = 'student_id,industry\n01000001,Finance\n99999999,Finance\n';
-		expect(() => commitRoster(db, 1, 'mentee', parseCsv(csv))).toThrow();
+	it('creates a member from the CSV when a row has no matching applicant', () => {
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada@example.com\n99999999,Finance,New Mentee,new-mentee@example.com\n';
+		const result = commitRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(result).toEqual({ inserted: 2, updated: 0 });
+
+		const row = db.select().from(members).where(eq(members.email, 'new-mentee@example.com')).get();
+		expect(row).toMatchObject({
+			role: 'mentee',
+			fullName: 'New Mentee',
+			email: 'new-mentee@example.com',
+			industry: 'Finance',
+			studentId: '99999999',
+			applicantId: null
+		});
+	});
+
+	it('throws and writes nothing when a new mentee email duplicates a matched row email', () => {
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada.csv@example.com\n99999999,Finance,New Mentee,ada@example.com\n';
+		expect(() => commitRoster(db, 1, 'mentee', parseCsv(csv))).toThrow(
+			'Student IDs 01000001 and 99999999 both resolve to email ada@example.com — one row is a duplicate.'
+		);
 		expect(db.select().from(members).all()).toHaveLength(0);
 	});
 
@@ -73,7 +93,8 @@ describe('commitRoster — mentees', () => {
 			email: 'ada@example.com',
 			studentId: '01000003'
 		});
-		const csv = 'student_id,industry\n01000003,Finance\n01000001,Finance\n';
+		const csv =
+			'student_id,industry,full_name,email\n01000003,Finance,Cy Fictional,cy@example.com\n01000001,Finance,Ada Fictional,ada@example.com\n';
 		expect(() => commitRoster(db, 1, 'mentee', parseCsv(csv))).toThrow(
 			'Student IDs 01000001 and 01000003 both resolve to email ada@example.com — one row is a duplicate.'
 		);
