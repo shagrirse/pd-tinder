@@ -222,7 +222,7 @@ a {
 	color: #1c0d05;
 }
 .btn-primary:hover:not(:disabled) {
-	filter: brightness(1.08);
+	background-image: linear-gradient(#e3c48a, #ce9f4e);
 }
 .btn-ghost {
 	background: transparent;

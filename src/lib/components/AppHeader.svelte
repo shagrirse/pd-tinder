@@ -61,7 +61,7 @@
 		width: 0.5rem;
 		height: 0.5rem;
 		border-radius: 999px;
-		background: var(--flame);
+		background: linear-gradient(#e6cea2, #c88828);
 		box-shadow: 0 0 0 3px var(--flame-soft);
 	}
 	.slash {

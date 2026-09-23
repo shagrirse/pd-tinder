@@ -63,4 +63,14 @@ describe('TMC theme tokens', () => {
 		expect(redFlag).not.toContain('rgba(10, 6, 5');
 		expect(modal).not.toContain('rgba(244, 236, 224');
 	});
+
+	const header = readFileSync(
+		new URL('../../src/lib/components/AppHeader.svelte', import.meta.url),
+		'utf8'
+	);
+
+	it('carries the wax-seal gradient signature', () => {
+		expect(header).toContain('linear-gradient(#e6cea2, #c88828)');
+		expect(css).toContain('background-image: linear-gradient(#e3c48a, #ce9f4e)');
+	});
 });
