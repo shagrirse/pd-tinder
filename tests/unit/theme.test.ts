@@ -17,7 +17,7 @@ describe('TMC theme tokens', () => {
 		expect(token('--bg-raised-2')).toBe('#1b2d3a');
 		expect(token('--text')).toBe('#f1f2f3');
 		expect(token('--text-dim')).toBe('#9db0c0');
-		expect(token('--text-faint')).toBe('#6e8090');
+		expect(token('--text-faint')).toBe('#8495a5');
 		expect(token('--flame')).toBe('#d8ae5e');
 		expect(token('--flame-soft')).toBe('rgba(216, 174, 94, 0.16)');
 		expect(token('--paper')).toBe('#f4f6f8');

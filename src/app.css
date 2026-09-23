@@ -13,13 +13,13 @@
 	--paper: #f4f6f8;
 	--paper-dim: #e7eaee;
 	--ink-on-paper: #0e1a26;
-	--ink-on-paper-soft: #5c6e7e;
+	--ink-on-paper-soft: #53657a;
 	--line-on-paper: rgba(14, 26, 38, 0.14);
 
 	/* text on ink */
 	--text: #f1f2f3;
 	--text-dim: #9db0c0;
-	--text-faint: #6e8090;
+	--text-faint: #8495a5;
 
 	--line: rgba(241, 242, 243, 0.12);
 	--line-strong: rgba(241, 242, 243, 0.24);
@@ -204,7 +204,6 @@ a {
 	text-decoration: none;
 	transition:
 		transform 120ms ease,
-		filter 120ms ease,
 		background 120ms ease,
 		border-color 120ms ease,
 		color 120ms ease;
