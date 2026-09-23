@@ -472,7 +472,7 @@
 	.ref-badge h1 {
 		margin: 0;
 		font-size: 1.3rem;
-		font-weight: 800;
+		font-weight: 700;
 		font-style: italic;
 		color: var(--ink-on-paper);
 	}
@@ -662,7 +662,7 @@
 		text-align: center;
 	}
 	.empty-state h1 {
-		font-size: 2rem;
+		font-size: 2.1rem;
 		margin: 0 0 0.75rem;
 	}
 	.summary-grid {

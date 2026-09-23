@@ -279,7 +279,7 @@
 		margin-bottom: 1.75rem;
 	}
 	h1 {
-		font-size: 2rem;
+		font-size: 2.1rem;
 		margin: 0;
 	}
 	.notice {

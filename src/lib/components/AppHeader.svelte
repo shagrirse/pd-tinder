@@ -50,7 +50,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		font-family: var(--font-display);
-		font-weight: 800;
+		font-weight: 700;
 		font-style: italic;
 		font-size: 1.05rem;
 		color: var(--text);
