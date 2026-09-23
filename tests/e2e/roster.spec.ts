@@ -45,18 +45,45 @@ test.describe('roster import', () => {
 		await expect(page.getByText('Mentor Beta')).toBeVisible();
 	});
 
-	test('a mentee file that resolves nothing is blocked, not committed', async ({ page }) => {
+	test('a mentee file with no matching applicant creates a new mentee', async ({ page }) => {
 		await signIn(page);
 		await page.goto('/admin/roster');
 
 		await page.getByLabel('Mentee roster CSV file').setInputFiles({
-			name: 'roster-unknown.csv',
+			name: 'roster-new-mentee.csv',
 			mimeType: 'text/csv',
-			buffer: Buffer.from('student_id,industry\n99999999,Finance\n')
+			buffer: Buffer.from(
+				'student_id,industry,full_name,email\n99999999,Finance,New Mentee,new-mentee@example.com\n'
+			)
 		});
 		await page.getByRole('button', { name: 'Validate mentees' }).click();
 
-		await expect(page.getByText('99999999')).toBeVisible();
+		await expect(
+			page.getByText('1 mentee will be created — no prior application found')
+		).toBeVisible();
+		await expect(page.getByRole('button', { name: /Import 1 mentee/ })).toBeVisible();
+
+		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
+		await expect(page.getByText(/1 mentee added/)).toBeVisible();
+		// Scoped to the roster entry: "New Mentee" alone also matches the csv-note
+		// ("...create a new mentee from the CSV") and trips strict mode.
+		await expect(page.getByText('New Mentee — new-mentee@example.com')).toBeVisible();
+	});
+
+	test('a mentee file missing the email column is blocked', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		await page.getByLabel('Mentee roster CSV file').setInputFiles({
+			name: 'roster-no-email.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from('student_id,industry,full_name\n01000001,Finance,Ada Fictional\n')
+		});
+		await page.getByRole('button', { name: 'Validate mentees' }).click();
+
+		await expect(
+			page.getByText('No column is mapped to the required field "email".')
+		).toBeVisible();
 		await expect(page.getByRole('button', { name: /Import \d+ mentees/ })).toHaveCount(0);
 	});
 
@@ -96,5 +123,38 @@ test.describe('roster import', () => {
 		const csv = path ? readFileSync(path, 'utf8') : '';
 		expect(csv).toContain('role,full_name,email,link');
 		expect(csv).toContain('/member/');
+	});
+
+	test('mentee imports work against a closed cycle; mentor imports still do not', async ({
+		page
+	}) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		// Mentee panel: the closed cycle accepts matched and new-mentee rows.
+		const menteeForm = page.locator('form[action="?/validateMentees"]');
+		await menteeForm.locator('select[name="cycleId"]').selectOption('2');
+		await menteeForm.getByLabel('Mentee roster CSV file').setInputFiles({
+			name: 'roster-closed-cycle.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from(
+				'student_id,industry,full_name,email\n01000003,Finance,Cy Closed,cy-closed@example.com\n99999999,Tech,New Closed Mentee,new-closed@example.com\n'
+			)
+		});
+		await menteeForm.getByRole('button', { name: 'Validate mentees' }).click();
+
+		await expect(
+			page.getByText('1 mentee will be created — no prior application found')
+		).toBeVisible();
+		await page.getByRole('button', { name: /Import 2 mentees/ }).click();
+		await expect(page.getByText(/2 mentees added/)).toBeVisible();
+
+		// Mentor panel: the same closed cycle still rejects the import.
+		const mentorForm = page.locator('form[action="?/validateMentors"]');
+		await mentorForm.locator('select[name="cycleId"]').selectOption('2');
+		await mentorForm.getByLabel('Mentor roster CSV file').setInputFiles(MENTORS);
+		await mentorForm.getByRole('button', { name: 'Validate mentors' }).click();
+
+		await expect(page.getByText('That cycle is closed. Reopen it before importing.')).toBeVisible();
 	});
 });

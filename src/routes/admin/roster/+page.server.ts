@@ -56,7 +56,7 @@ function validateAction(role: MemberRole, kind: 'mentees' | 'mentors') {
 
 		const cycle = listCycles(db).find((c) => c.id === cycleId);
 		if (!cycle) return fail(400, problem('That cycle no longer exists.'));
-		if (cycle.status === 'closed') {
+		if (role === 'mentor' && cycle.status === 'closed') {
 			return fail(400, problem('That cycle is closed. Reopen it before importing.'));
 		}
 
@@ -97,7 +97,7 @@ function commitAction(role: MemberRole, kind: 'mentees' | 'mentors') {
 			discardStagedUpload(token);
 			return fail(400, problem('That cycle no longer exists.'));
 		}
-		if (cycle.status === 'closed') {
+		if (role === 'mentor' && cycle.status === 'closed') {
 			discardStagedUpload(token);
 			return fail(400, problem('That cycle was closed. Reopen it before importing.'));
 		}

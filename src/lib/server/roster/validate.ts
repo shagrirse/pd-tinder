@@ -7,7 +7,7 @@ import type { ParsedCsv } from '../import/parse';
 import type { MemberRole } from './members';
 
 const REQUIRED_COLUMNS: Record<MemberRole, string[]> = {
-	mentee: ['student_id', 'industry'],
+	mentee: ['student_id', 'industry', 'full_name', 'email'],
 	mentor: ['full_name', 'email', 'industry', 'student_id']
 };
 
@@ -51,10 +51,8 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 		const studentId = (row['student_id'] ?? '').trim();
 		if (studentId !== '') studentIdCounts.set(studentId, (studentIdCounts.get(studentId) ?? 0) + 1);
 
-		if (role === 'mentor') {
-			const email = (row['email'] ?? '').trim();
-			if (email !== '') emailCounts.set(email, (emailCounts.get(email) ?? 0) + 1);
-		}
+		const email = (row['email'] ?? '').trim();
+		if (email !== '') emailCounts.set(email, (emailCounts.get(email) ?? 0) + 1);
 	}
 
 	const blankRequiredCells = Object.entries(blank).map(([column, count]) => ({ column, count }));
@@ -101,8 +99,9 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 export type RosterReport = RosterFileReport & {
 	role: MemberRole;
 	industryCounts: Record<string, number>;
-	/** Mentee rows whose student id matches no applicant in the cycle. Blocking. */
-	unresolvedStudentIds: string[];
+	/** Mentee rows whose student id matches no applicant in the cycle. These
+	 * create a new member from the CSV, like mentor rows. Non-blocking. */
+	newMentees: { studentId: string; fullName: string; email: string; industry: string }[];
 	/** Confirmed industry differs from the registered first choice. Informational. */
 	industryMismatches: { studentId: string; registered: string; confirmed: string }[];
 	/** Student id already held by a different member of the cycle. Blocking. */
@@ -124,11 +123,11 @@ export function previewRoster(
 	const file = validateRosterFile(role, parsed);
 
 	const industryCounts: Record<string, number> = {};
-	const unresolvedStudentIds: string[] = [];
+	const newMentees: RosterReport['newMentees'] = [];
 	const industryMismatches: RosterReport['industryMismatches'] = [];
 	const studentIdConflicts: RosterReport['studentIdConflicts'] = [];
 	const emailConflicts: RosterReport['emailConflicts'] = [];
-	/** Email -> student id of the first row that resolved to it. */
+	/** Email -> student id of the first row that claims it. */
 	const resolvedEmails = new Map<string, string>();
 	const identityClashes: string[] = [];
 
@@ -169,11 +168,30 @@ export function previewRoster(
 				.get();
 
 			if (!applicant) {
-				unresolvedStudentIds.push(studentId);
-				continue;
+				// No application for this cycle: the member will be created from
+				// the CSV, the same way a mentor row would be.
+				if (industry) {
+					newMentees.push({
+						studentId,
+						fullName: (row['full_name'] ?? '').trim(),
+						email: (row['email'] ?? '').trim(),
+						industry
+					});
+				}
+				email = (row['email'] ?? '').trim();
+			} else {
+				email = applicant.email;
+				if (industry && industry !== applicant.industry1) {
+					industryMismatches.push({
+						studentId,
+						registered: applicant.industry1,
+						confirmed: industry
+					});
+				}
 			}
 
-			email = applicant.email;
+			// Two rows ending up on one email would silently merge into one
+			// member at commit, so track every claim — resolved or from the CSV.
 			if (email) {
 				const seenStudentId = resolvedEmails.get(email);
 				if (seenStudentId !== undefined && seenStudentId !== studentId) {
@@ -184,13 +202,6 @@ export function previewRoster(
 				} else if (seenStudentId === undefined) {
 					resolvedEmails.set(email, studentId);
 				}
-			}
-			if (industry && industry !== applicant.industry1) {
-				industryMismatches.push({
-					studentId,
-					registered: applicant.industry1,
-					confirmed: industry
-				});
 			}
 		} else {
 			email = (row['email'] ?? '').trim();
@@ -222,11 +233,6 @@ export function previewRoster(
 	}
 
 	const blocking = [...file.blocking];
-	if (unresolvedStudentIds.length > 0) {
-		blocking.push(
-			`${unresolvedStudentIds.length} student ID(s) do not match any applicant in this cycle: ${unresolvedStudentIds.join(', ')}.`
-		);
-	}
 	for (const { studentId, memberName } of studentIdConflicts) {
 		blocking.push(`Student ID ${studentId} already belongs to ${memberName} in this cycle.`);
 	}
@@ -241,7 +247,7 @@ export function previewRoster(
 		...file,
 		role,
 		industryCounts,
-		unresolvedStudentIds,
+		newMentees,
 		industryMismatches,
 		studentIdConflicts,
 		emailConflicts,

@@ -106,7 +106,7 @@ test.describe('admin people management', () => {
 
 		await page.getByLabel('Name').fill('Created Reviewer');
 		await page.getByLabel('Email').fill(email);
-		await page.getByRole('checkbox', { name: 'Finance' }).check();
+		await page.getByRole('checkbox', { name: 'Finance', exact: true }).check();
 		await page.getByRole('button', { name: 'Create and issue invite' }).click();
 
 		const inviteUrl = await page
@@ -156,7 +156,7 @@ test.describe('admin people management', () => {
 		await page.goto('/admin/people');
 		await page.getByLabel('Name').fill('Soon Deactivated');
 		await page.getByLabel('Email').fill(email);
-		await page.getByRole('checkbox', { name: 'Finance' }).check();
+		await page.getByRole('checkbox', { name: 'Finance', exact: true }).check();
 		await page.getByRole('button', { name: 'Create and issue invite' }).click();
 
 		const inviteUrl = await page

@@ -47,13 +47,20 @@ describe('previewRoster — mentees', () => {
 		expect(report.blocking).toEqual([]);
 	});
 
-	it('blocks on an unresolvable student id, listed individually', () => {
-		const csv = 'student_id,industry\n01000001,Finance\n99999999,Finance\n';
+	it('reports a row with no matching applicant as a mentee to create, without blocking', () => {
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada@example.com\n99999999,Finance,New Mentee,new-mentee@example.com\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
-		expect(report.unresolvedStudentIds).toEqual(['99999999']);
-		expect(report.blocking).toContain(
-			'1 student ID(s) do not match any applicant in this cycle: 99999999.'
-		);
+		expect(report.newMentees).toEqual([
+			{
+				studentId: '99999999',
+				fullName: 'New Mentee',
+				email: 'new-mentee@example.com',
+				industry: 'Finance'
+			}
+		]);
+		expect(report.industryCounts).toEqual({ Finance: 2 });
+		expect(report.blocking).toEqual([]);
 	});
 
 	it('blocks when the student id already belongs to a different member of the cycle', () => {
@@ -76,7 +83,8 @@ describe('previewRoster — mentees', () => {
 				studentId: '02000001'
 			})
 			.run();
-		const csv = 'student_id,industry\n02000001,Finance\n';
+		const csv =
+			'student_id,industry,full_name,email\n02000001,Finance,New Applicant,new@example.com\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
 		expect(report.studentIdConflicts).toEqual([{ studentId: '02000001', memberName: 'Mentor A' }]);
 		expect(report.blocking).toContain(
@@ -109,7 +117,8 @@ describe('previewRoster — mentees', () => {
 				studentId: '02000001'
 			})
 			.run();
-		const csv = 'student_id,industry\n01000001,Finance\n';
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada@example.com\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
 		expect(report.emailConflicts).toEqual([{ email: 'ada@example.com', memberName: 'Mentor A' }]);
 		expect(report.blocking).toContain(
@@ -126,7 +135,8 @@ describe('previewRoster — mentees', () => {
 			email: 'ada@example.com',
 			studentId: '01000003'
 		});
-		const csv = 'student_id,industry\n01000003,Finance\n01000001,Finance\n';
+		const csv =
+			'student_id,industry,full_name,email\n01000003,Finance,Cy Fictional,cy@example.com\n01000001,Finance,Ada Fictional,ada@example.com\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
 		expect(report.blocking).toContain(
 			'Student IDs 01000001 and 01000003 both resolve to email ada@example.com — one row is a duplicate.'
@@ -143,10 +153,60 @@ describe('previewRoster — mentees', () => {
 				studentId: '01000005'
 			})
 			.run();
-		const csv = 'student_id,industry\n01000001,Finance\n';
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada@example.com\n';
 		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
 		expect(report.blocking).toContain(
 			'Email ada@example.com already belongs to a mentee with student ID 01000005 in this cycle.'
+		);
+	});
+
+	it('blocks when a new mentee email collides with a matched row email', () => {
+		const csv =
+			'student_id,industry,full_name,email\n01000001,Finance,Ada Fictional,ada.csv@example.com\n99999999,Tech,New Mentee,ada@example.com\n';
+		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(report.blocking).toContain(
+			'Student IDs 01000001 and 99999999 both resolve to email ada@example.com — one row is a duplicate.'
+		);
+	});
+
+	it('blocks when a new mentee email is already held by a member of the other role', () => {
+		db.insert(members)
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Mentor A',
+				email: 'new-mentee@example.com',
+				studentId: '02000001'
+			})
+			.run();
+		const csv =
+			'student_id,industry,full_name,email\n99999999,Finance,New Mentee,new-mentee@example.com\n';
+		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(report.emailConflicts).toEqual([
+			{ email: 'new-mentee@example.com', memberName: 'Mentor A' }
+		]);
+		expect(report.blocking).toContain(
+			'Email new-mentee@example.com already belongs to Mentor A in this cycle.'
+		);
+	});
+
+	it('blocks when a new mentee student id is already held by a different member', () => {
+		db.insert(members)
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Mentor A',
+				email: 'ma@example.com',
+				studentId: '99999999'
+			})
+			.run();
+		const csv =
+			'student_id,industry,full_name,email\n99999999,Finance,New Mentee,new-mentee@example.com\n';
+		const report = previewRoster(db, 1, 'mentee', parseCsv(csv));
+		expect(report.studentIdConflicts).toEqual([{ studentId: '99999999', memberName: 'Mentor A' }]);
+		expect(report.blocking).toContain(
+			'Student ID 99999999 already belongs to Mentor A in this cycle.'
 		);
 	});
 });
