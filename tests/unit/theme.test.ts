@@ -40,4 +40,27 @@ describe('TMC theme tokens', () => {
 		expect(html).toContain('family=IBM+Plex+Mono');
 		expect(html).toContain('1,700');
 	});
+
+	const modal = readFileSync(
+		new URL('../../src/lib/components/ApplicantDetailModal.svelte', import.meta.url),
+		'utf8'
+	);
+	const redFlag = readFileSync(
+		new URL('../../src/lib/components/RedFlagSheet.svelte', import.meta.url),
+		'utf8'
+	);
+
+	it('dropped the grain and retinted the vignettes', () => {
+		expect(css).not.toContain('--grain');
+		expect(css).not.toContain('body::after');
+		expect(css).toContain('rgba(216, 174, 94, 0.1)');
+		expect(css).toContain('rgba(216, 174, 94, 0.07)');
+		expect(css).not.toContain('rgba(52, 163, 116, 0.08)');
+	});
+
+	it('neutralized warm stragglers in overlays', () => {
+		expect(modal).not.toContain('rgba(10, 6, 5');
+		expect(redFlag).not.toContain('rgba(10, 6, 5');
+		expect(modal).not.toContain('rgba(244, 236, 224');
+	});
 });

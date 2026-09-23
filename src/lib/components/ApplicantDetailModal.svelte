@@ -252,7 +252,7 @@
 		position: fixed;
 		inset: 0;
 		z-index: 30;
-		background: rgba(10, 6, 5, 0.72);
+		background: rgba(5, 10, 15, 0.72);
 		backdrop-filter: blur(3px);
 		display: flex;
 		align-items: center;
@@ -373,7 +373,7 @@
 		line-height: 1.6;
 	}
 	:global(.verdict-unrated) {
-		background: rgba(244, 236, 224, 0.08);
+		background: rgba(241, 242, 243, 0.08);
 		color: var(--text-faint);
 	}
 </style>
