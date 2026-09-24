@@ -121,7 +121,7 @@ test.describe('roster import', () => {
 		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
 		const path = await download.path();
 		const csv = path ? readFileSync(path, 'utf8') : '';
-		expect(csv).toContain('role,full_name,email,link');
+		expect(csv).toContain('role,full_name,email,telegram,linkedin,link');
 		expect(csv).toContain('/member/');
 	});
 
