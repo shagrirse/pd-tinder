@@ -4,6 +4,7 @@ import { applicantPii, applicants, members } from '../db/schema';
 import { normalizeHeader } from '../import/columns';
 import { normalizeIndustry } from '../import/normalize';
 import type { ParsedCsv } from '../import/parse';
+import { normalizeTelegram } from './contact';
 import type { MemberRole } from './members';
 
 const REQUIRED_COLUMNS: Record<MemberRole, string[]> = {
@@ -19,6 +20,7 @@ export type RosterFileReport = {
 	unknownIndustries: { value: string; count: number }[];
 	duplicateStudentIds: { studentId: string; count: number }[];
 	duplicateEmails: { email: string; count: number }[];
+	invalidTelegrams: number;
 	blocking: string[];
 };
 
@@ -37,10 +39,16 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 	const unknownCounts = new Map<string, number>();
 	const studentIdCounts = new Map<string, number>();
 	const emailCounts = new Map<string, number>();
+	let invalidTelegrams = 0;
 
 	for (const row of parsed.rows) {
 		for (const field of required) {
 			if ((row[field] ?? '').trim() === '') blank[field] = (blank[field] ?? 0) + 1;
+		}
+
+		const rawTelegram = row['telegram'] ?? '';
+		if (rawTelegram.trim() !== '' && normalizeTelegram(rawTelegram) === null) {
+			invalidTelegrams += 1;
 		}
 
 		const rawIndustry = row['industry'] ?? '';
@@ -92,6 +100,7 @@ export function validateRosterFile(role: MemberRole, parsed: ParsedCsv): RosterF
 		unknownIndustries,
 		duplicateStudentIds,
 		duplicateEmails,
+		invalidTelegrams,
 		blocking
 	};
 }

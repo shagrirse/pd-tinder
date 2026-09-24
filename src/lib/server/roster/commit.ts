@@ -3,6 +3,7 @@ import type { AppDb } from '../db';
 import { applicantPii, applicants } from '../db/schema';
 import { normalizeIndustry } from '../import/normalize';
 import type { ParsedCsv } from '../import/parse';
+import { normalizeLinkedin, normalizeTelegram } from './contact';
 import { promoteApplicant, upsertMember, type MemberRole } from './members';
 
 export type RosterCommitResult = { inserted: number; updated: number };
@@ -79,14 +80,19 @@ export function commitRoster(
 						email: (row['email'] ?? '').trim(),
 						industry,
 						studentId,
-						applicantId: null
+						applicantId: null,
+						telegram: normalizeTelegram(row['telegram'] ?? ''),
+						linkedin: normalizeLinkedin(row['linkedin'] ?? '')
 					});
 					if (result.inserted) inserted += 1;
 					else updated += 1;
 					continue;
 				}
 
-				const result = promoteApplicant(tx, cycleId, applicant.id, role, industry);
+				const result = promoteApplicant(tx, cycleId, applicant.id, role, industry, {
+					telegram: normalizeTelegram(row['telegram'] ?? ''),
+					linkedin: normalizeLinkedin(row['linkedin'] ?? '')
+				});
 				if (result.inserted) inserted += 1;
 				else updated += 1;
 			} else {
@@ -101,7 +107,9 @@ export function commitRoster(
 					email: (row['email'] ?? '').trim(),
 					industry,
 					studentId: (row['student_id'] ?? '').trim(),
-					applicantId: null
+					applicantId: null,
+					telegram: normalizeTelegram(row['telegram'] ?? ''),
+					linkedin: normalizeLinkedin(row['linkedin'] ?? '')
 				});
 				if (result.inserted) inserted += 1;
 				else updated += 1;
