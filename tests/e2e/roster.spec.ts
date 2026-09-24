@@ -65,9 +65,8 @@ test.describe('roster import', () => {
 
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText(/1 mentee added/)).toBeVisible();
-		// Scoped to the roster entry: "New Mentee" alone also matches the csv-note
-		// ("...create a new mentee from the CSV") and trips strict mode.
-		await expect(page.getByText('New Mentee — new-mentee@example.com')).toBeVisible();
+		// The roster list now shows names only; the button targets the row.
+		await expect(page.getByRole('button', { name: 'New Mentee' })).toBeVisible();
 	});
 
 	test('a mentee file missing the email column is blocked', async ({ page }) => {
@@ -232,9 +231,10 @@ test.describe('roster import', () => {
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText('Roster updated')).toBeVisible();
 
-		// Earlier tests and the global seed left other direct mentees in the
-		// shared e2e database, so scope the chip to this test's own row.
-		const chipRow = page.locator('li', { hasText: 'Chip Mentee' });
-		await expect(chipRow.getByText('No application')).toBeVisible();
+		// The chip lives in the member modal: open this test's own direct
+		// mentee and look inside the dialog.
+		await page.getByRole('button', { name: 'Chip Mentee' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Member detail' });
+		await expect(dialog.getByText('No application')).toBeVisible();
 	});
 });

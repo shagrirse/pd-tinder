@@ -278,8 +278,6 @@
 									>
 										{member.fullName}
 									</button>
-									— {member.email} — {member.industry ?? 'No industry'} —
-									{member.studentId ?? 'No student ID'}
 								</li>
 							{/each}
 						</ul>
@@ -301,11 +299,6 @@
 									>
 										{member.fullName}
 									</button>
-									— {member.email} — {member.industry ?? 'No industry'} —
-									{member.studentId ?? 'No student ID'}
-									{#if member.applicantId === null}
-										<span class="chip roster-chip">No application</span>
-									{/if}
 								</li>
 							{/each}
 						</ul>
@@ -458,8 +451,5 @@
 	}
 	.member-link:hover {
 		color: var(--flame);
-	}
-	.roster-chip {
-		margin-left: 0.4rem;
 	}
 </style>

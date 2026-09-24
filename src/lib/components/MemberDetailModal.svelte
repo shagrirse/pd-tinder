@@ -105,8 +105,56 @@
 			<div class="modal-head">
 				<h2>{member.fullName}</h2>
 				<div class="chips">
-					<span class="chip">{member.role === 'mentor' ? 'Mentor' : 'Mentee'}</span>
-					<span class="chip">{member.industry ?? 'No industry'}</span>
+					{#if member.role === 'mentor'}
+						<span class="chip chip-mentor">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path
+									d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"
+								/>
+								<path d="M22 10v6" />
+								<path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+							</svg>
+							Mentor
+						</span>
+					{:else}
+						<span class="chip chip-mentee">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+							</svg>
+							Mentee
+						</span>
+					{/if}
+					<span class="chip chip-industry">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+							<path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+						</svg>
+						{member.industry ?? 'No industry'}
+					</span>
 					{#if member.role === 'mentee' && member.applicantId === null}
 						<span class="chip">No application</span>
 					{/if}
@@ -117,7 +165,9 @@
 				<h3>Contact</h3>
 				<div class="contact-row">
 					<span class="contact-label">Email</span>
-					<a class="contact-value" href="mailto:{member.email}">{member.email}</a>
+					<a class="contact-value" href="mailto:{member.email}" title={member.email}
+						>{member.email}</a
+					>
 					<button type="button" class="copy-btn" onclick={() => copy('email', member.email)}>
 						{copiedField === 'email' ? 'Copied' : 'Copy'}
 					</button>
@@ -130,6 +180,7 @@
 							href="https://t.me/{member.telegram}"
 							target="_blank"
 							rel="noreferrer"
+							title={member.telegram}
 						>
 							{member.telegram}
 						</a>
@@ -152,6 +203,7 @@
 							href="https://www.linkedin.com/in/{member.linkedin}"
 							target="_blank"
 							rel="noreferrer"
+							title={member.linkedin}
 						>
 							{member.linkedin}
 						</a>
@@ -173,7 +225,7 @@
 				<div class="contact-row">
 					<span class="contact-label">Student ID</span>
 					{#if member.studentId}
-						<span class="contact-value">{member.studentId}</span>
+						<span class="contact-value" title={member.studentId}>{member.studentId}</span>
 						<button
 							type="button"
 							class="copy-btn"
@@ -271,6 +323,27 @@
 		flex-wrap: wrap;
 		gap: 0.4rem;
 	}
+	.chips svg {
+		width: 0.8rem;
+		height: 0.8rem;
+		margin-right: 0.35rem;
+		flex-shrink: 0;
+	}
+	.chip-mentor {
+		background: var(--flame-soft);
+		color: var(--flame);
+		border-color: transparent;
+	}
+	.chip-mentee {
+		background: var(--like-soft);
+		color: var(--like);
+		border-color: transparent;
+	}
+	.chip-industry {
+		background: var(--meh-soft);
+		color: var(--meh);
+		border-color: transparent;
+	}
 	.block {
 		margin-top: 1.75rem;
 	}
@@ -286,7 +359,7 @@
 	}
 	.contact-row {
 		display: grid;
-		grid-template-columns: 6.5rem 1fr auto;
+		grid-template-columns: 6.5rem minmax(0, 1fr) auto;
 		align-items: center;
 		gap: 0.5rem 0.75rem;
 		padding: 0.4rem 0;
@@ -302,7 +375,13 @@
 		color: var(--text);
 		text-decoration: underline;
 		text-underline-offset: 2px;
-		overflow-wrap: anywhere;
+		/* One line per row: long emails and slugs truncate rather than
+		 * wrap the row taller. The full value stays on the title and the
+		 * copy button. */
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	a.contact-value:hover {
 		color: var(--flame);
