@@ -134,4 +134,27 @@ test.describe('pairing admin surface', () => {
 		expect(csv).toContain('Sam Mentor');
 		expect(csv).toContain('Jordan asked to switch at the mixer');
 	});
+
+	test('opens the member modal from the form status list and the pairing table', async ({
+		page
+	}) => {
+		seedMutualFirstChoice();
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		const statusPanel = page.locator('.panel', { hasText: 'Form status' });
+		await statusPanel.getByRole('button', { name: 'Sam Mentor' }).click();
+		const modal = page.getByRole('dialog', { name: 'Member detail' });
+		await expect(modal).toBeVisible();
+		await expect(modal.getByRole('heading', { name: 'Sam Mentor' })).toBeVisible();
+		await expect(modal.getByText('Mentor', { exact: true })).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(modal).toBeHidden();
+
+		await page.getByRole('button', { name: 'Run reconciliation' }).click();
+		const recon = page.locator('.panel', { hasText: 'Reconciliation' });
+		await recon.getByRole('button', { name: 'Priya Mentor' }).click();
+		await expect(modal).toBeVisible();
+		await expect(modal.getByRole('heading', { name: 'Priya Mentor' })).toBeVisible();
+	});
 });

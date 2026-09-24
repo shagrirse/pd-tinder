@@ -7,6 +7,7 @@ import { computeResidual, listPairings } from '$lib/server/pairing/list';
 import { runReconciliation } from '$lib/server/pairing/run';
 import { OverrideError, overridePair } from '$lib/server/pairing/override';
 import { listActiveRoster } from '$lib/server/roster/list';
+import { updateMemberContact } from '$lib/server/roster/members';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -37,8 +38,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 };
 
-type ActionResult = { error: string | null };
-const problem = (message: string): ActionResult => ({ error: message });
+type ActionResult = { error: string | null; updateError: string | null };
+const problem = (message: string): ActionResult => ({ error: message, updateError: null });
 
 const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
 	not_found: 'Choose a mentor and a mentee from the lists above.',
@@ -54,7 +55,7 @@ export const actions: Actions = {
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
 		closeForm(db, cycle.id);
-		return { error: null } satisfies ActionResult;
+		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
 	reopen: async ({ locals }) => {
@@ -63,7 +64,7 @@ export const actions: Actions = {
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
 		reopenForm(db, cycle.id);
-		return { error: null } satisfies ActionResult;
+		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
 	reconcile: async ({ locals }) => {
@@ -72,7 +73,7 @@ export const actions: Actions = {
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
 		runReconciliation(db, cycle.id);
-		return { error: null } satisfies ActionResult;
+		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
 	override: async ({ request, locals }) => {
@@ -99,6 +100,31 @@ export const actions: Actions = {
 			throw cause;
 		}
 
-		return { error: null } satisfies ActionResult;
+		return { error: null, updateError: null } satisfies ActionResult;
+	},
+
+	updateMember: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const db = getDb();
+		const form = await request.formData();
+
+		const memberId = Number(form.get('memberId'));
+		if (!Number.isInteger(memberId)) {
+			return fail(400, { error: null, updateError: 'Choose a member first.' });
+		}
+
+		try {
+			updateMemberContact(db, memberId, {
+				telegram: String(form.get('telegram') ?? ''),
+				linkedin: String(form.get('linkedin') ?? '')
+			});
+		} catch (cause) {
+			if (cause instanceof Error) {
+				return fail(400, { error: null, updateError: cause.message });
+			}
+			throw cause;
+		}
+
+		return { error: null, updateError: null } satisfies ActionResult;
 	}
 };

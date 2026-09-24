@@ -1,4 +1,6 @@
 <script lang="ts">
+	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
+
 	let { data, form } = $props();
 
 	const STATUS_LABEL: Record<string, string> = {
@@ -21,6 +23,31 @@
 	let totalRoster = $derived(
 		data.submissions.submitted.length + data.submissions.notSubmitted.length
 	);
+
+	let detailMemberId = $state<number | null>(null);
+	// Every list on this page already knows each member's role.
+	let detailMember = $derived.by(() => {
+		if (detailMemberId === null || !data.cycle) return null;
+		const all = [
+			...data.submissions.notSubmitted,
+			...data.residual.unpaired,
+			...data.residual.gotNoChoice,
+			...data.pairings.flatMap((p) => [p.mentor, p.mentee])
+		];
+		const found = all.find((m) => m.id === detailMemberId);
+		if (!found) return null;
+		// Pairing table rows carry the role inside the pair; every other list
+		// row already has `role` on it. The cast is safe: the runtime `in`
+		// check guards the pairing rows, and the union's other members collapse
+		// structurally into RosterRow.
+		const role: 'mentor' | 'mentee' =
+			'role' in found
+				? (found.role as 'mentor' | 'mentee')
+				: data.pairings.some((p) => p.mentor.id === found.id)
+					? 'mentor'
+					: 'mentee';
+		return { ...found, role };
+	});
 </script>
 
 <section class="wrap">
@@ -47,7 +74,12 @@
 				<p class="field-label">Not submitted</p>
 				<ul class="roster-list">
 					{#each data.submissions.notSubmitted as member (member.id)}
-						<li>{member.fullName} ({member.role})</li>
+						<li>
+							<button class="member-link" onclick={() => (detailMemberId = member.id)}>
+								{member.fullName}
+							</button>
+							({member.role})
+						</li>
 					{/each}
 				</ul>
 			{/if}
@@ -85,8 +117,16 @@
 						<tbody>
 							{#each data.pairings as pair (pair.id)}
 								<tr>
-									<td>{pair.mentor.fullName}</td>
-									<td>{pair.mentee.fullName}</td>
+									<td>
+										<button class="member-link" onclick={() => (detailMemberId = pair.mentor.id)}>
+											{pair.mentor.fullName}
+										</button>
+									</td>
+									<td>
+										<button class="member-link" onclick={() => (detailMemberId = pair.mentee.id)}>
+											{pair.mentee.fullName}
+										</button>
+									</td>
 									<td><span class="chip">{METHOD_LABEL[pair.method]}</span></td>
 									<td>{pair.overrideReason ?? ''}</td>
 								</tr>
@@ -106,7 +146,12 @@
 			{:else}
 				<ul class="roster-list">
 					{#each data.residual.unpaired as member (member.id)}
-						<li>{member.fullName} ({member.role})</li>
+						<li>
+							<button class="member-link" onclick={() => (detailMemberId = member.id)}>
+								{member.fullName}
+							</button>
+							({member.role})
+						</li>
 					{/each}
 				</ul>
 			{/if}
@@ -117,7 +162,12 @@
 			{:else}
 				<ul class="roster-list">
 					{#each data.residual.gotNoChoice as member (member.id)}
-						<li>{member.fullName} ({member.role})</li>
+						<li>
+							<button class="member-link" onclick={() => (detailMemberId = member.id)}>
+								{member.fullName}
+							</button>
+							({member.role})
+						</li>
 					{/each}
 				</ul>
 			{/if}
@@ -159,6 +209,12 @@
 			<a href="/admin/pairing/export" class="btn btn-ghost">Export CSV</a>
 		</div>
 	{/if}
+
+	<MemberDetailModal
+		member={detailMember}
+		actionUrl="?/updateMember"
+		onclose={() => (detailMemberId = null)}
+	/>
 </section>
 
 <style>
@@ -276,5 +332,18 @@
 	}
 	.override-form .btn {
 		align-self: flex-start;
+	}
+	.member-link {
+		background: none;
+		border: none;
+		padding: 0;
+		color: var(--text);
+		font: inherit;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		cursor: pointer;
+	}
+	.member-link:hover {
+		color: var(--flame);
 	}
 </style>
