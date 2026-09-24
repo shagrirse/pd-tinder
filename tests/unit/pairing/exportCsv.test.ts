@@ -18,7 +18,9 @@ const PAIR: PairingRow = {
 		email: 'priya@example.com',
 		industry: 'Finance',
 		studentId: '01000001',
-		applicantId: null
+		applicantId: null,
+		telegram: null,
+		linkedin: null
 	},
 	mentee: {
 		id: 2,
@@ -26,7 +28,9 @@ const PAIR: PairingRow = {
 		email: 'jordan@example.com',
 		industry: 'Finance',
 		studentId: '01000002',
-		applicantId: null
+		applicantId: null,
+		telegram: null,
+		linkedin: null
 	}
 };
 
@@ -60,5 +64,23 @@ describe('pairingsCsv', () => {
 		const noStudentId: PairingRow = { ...PAIR, mentor: { ...PAIR.mentor, studentId: null } };
 		const rows = rowsOf(pairingsCsv([noStudentId]));
 		expect(rows[0].mentor_student_id).toBe('');
+	});
+
+	it('includes contact columns, empty when unknown', () => {
+		const rows = rowsOf(
+			pairingsCsv([
+				{
+					...PAIR,
+					mentor: { ...PAIR.mentor, telegram: 'priya', linkedin: 'priya-mentor' },
+					mentee: { ...PAIR.mentee, telegram: null, linkedin: 'jordan-mentor' }
+				}
+			])
+		);
+		expect(rows[0]).toMatchObject({
+			mentor_telegram: 'priya',
+			mentor_linkedin: 'priya-mentor',
+			mentee_telegram: '',
+			mentee_linkedin: 'jordan-mentor'
+		});
 	});
 });

@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import type { AppDb } from '../db';
 import { applicantPii, applicants, members } from '../db/schema';
+import { normalizeLinkedin, normalizeTelegram } from './contact';
 
 export type MemberRole = 'mentor' | 'mentee';
 
@@ -18,13 +19,19 @@ export type MemberInput = {
 	industry: string;
 	studentId: string;
 	applicantId: number | null;
+	/** Null means "not provided": inserts null, and updates keep the existing
+	 * value. Imports pass null for blank cells so a partial re-import never
+	 * wipes contact details; only `updateMemberContact` clears. */
+	telegram?: string | null;
+	linkedin?: string | null;
 };
 
 /**
- * The single write path into `members`. Upserts on (cycle_id, email); a
+ * The import write path into `members`. Upserts on (cycle_id, email); a
  * matching row has full_name, industry, student_id and applicant_id updated.
  * `role` and `active` are never touched by an import: deactivation is an
  * explicit admin action, never a side effect of uploading a partial file.
+ * `updateMemberContact` is the other, edit-form path.
  *
  * A matching email held by the other role is rejected, not overwritten —
  * spec §7: one email belongs to one member of a cycle, whichever role.
@@ -41,6 +48,9 @@ export function upsertMember(
 			.where(and(eq(members.cycleId, cycleId), eq(members.email, input.email)))
 			.get();
 
+		const telegram = input.telegram ?? null;
+		const linkedin = input.linkedin ?? null;
+
 		if (existing) {
 			if (existing.role !== input.role) {
 				throw new Error(
@@ -53,7 +63,9 @@ export function upsertMember(
 					fullName: input.fullName,
 					industry: input.industry,
 					studentId: input.studentId,
-					applicantId: input.applicantId
+					applicantId: input.applicantId,
+					...(telegram !== null ? { telegram } : {}),
+					...(linkedin !== null ? { linkedin } : {})
 				})
 				.where(eq(members.id, existing.id))
 				.run();
@@ -62,7 +74,7 @@ export function upsertMember(
 
 		const created = tx
 			.insert(members)
-			.values({ cycleId, ...input })
+			.values({ cycleId, ...input, telegram, linkedin })
 			.returning({ id: members.id })
 			.get();
 
@@ -82,13 +94,18 @@ export function promoteApplicant(
 	cycleId: number,
 	applicantId: number,
 	role: MemberRole,
-	industry: string
+	industry: string,
+	/** CSV values win over the application's; nulls fall back to inheriting.
+	 * Omit entirely (other call sites) to inherit both values. */
+	contact?: { telegram: string | null; linkedin: string | null }
 ): { id: number; inserted: boolean } {
 	const applicant = db
 		.select({
 			fullName: applicantPii.fullName,
 			email: applicantPii.email,
-			studentId: applicantPii.studentId
+			studentId: applicantPii.studentId,
+			telegram: applicantPii.telegram,
+			linkedinUrl: applicantPii.linkedinUrl
 		})
 		.from(applicants)
 		.innerJoin(applicantPii, eq(applicantPii.applicantId, applicants.id))
@@ -105,6 +122,33 @@ export function promoteApplicant(
 		email: applicant.email,
 		industry,
 		studentId: applicant.studentId,
-		applicantId
+		applicantId,
+		telegram: contact?.telegram ?? normalizeTelegram(applicant.telegram ?? ''),
+		linkedin: contact?.linkedin ?? normalizeLinkedin(applicant.linkedinUrl ?? '')
 	});
+}
+
+/**
+ * The deliberate second write path into `members` (alongside upsertMember):
+ * an admin correcting contact details. The only place that clears values —
+ * blank means clear here, unlike imports, where blank means "not provided".
+ * Throws user-facing messages the page actions pass through as-is.
+ */
+export function updateMemberContact(
+	db: MemberDb,
+	memberId: number,
+	input: { telegram: string; linkedin: string }
+): void {
+	const member = db.select({ id: members.id }).from(members).where(eq(members.id, memberId)).get();
+	if (!member) throw new Error('That member no longer exists.');
+
+	const telegram = normalizeTelegram(input.telegram);
+	if (input.telegram.trim() !== '' && telegram === null) {
+		throw new Error(
+			'That Telegram handle is not valid. Use the handle without "@", e.g. "adamentor".'
+		);
+	}
+	const linkedin = normalizeLinkedin(input.linkedin);
+
+	db.update(members).set({ telegram, linkedin }).where(eq(members.id, memberId)).run();
 }

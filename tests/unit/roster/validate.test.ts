@@ -70,6 +70,15 @@ describe('validateRosterFile — mentees', () => {
 		expect(report.duplicateEmails).toEqual([{ email: 'shared@example.com', count: 2 }]);
 		expect(report.blocking).toContain('Email shared@example.com appears 2 times in the file.');
 	});
+
+	it('reports telegram values that cannot be normalised, without blocking', () => {
+		const report = validate(
+			'mentee',
+			'student_id,industry,full_name,email,telegram\n01000001,Finance,Ada Fictional,ada@example.com,bad handle!\n'
+		);
+		expect(report.blocking).toEqual([]);
+		expect(report.invalidTelegrams).toBe(1);
+	});
 });
 
 describe('validateRosterFile — mentors', () => {

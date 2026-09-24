@@ -209,6 +209,19 @@ describe('previewRoster — mentees', () => {
 			'Student ID 99999999 already belongs to Mentor A in this cycle.'
 		);
 	});
+
+	it('counts telegram values that cannot be normalised, without blocking', () => {
+		const report = previewRoster(
+			db,
+			1,
+			'mentee',
+			parseCsv(
+				'student_id,industry,full_name,email,telegram\n01000001,Finance,Ada Fictional,ada@example.com,bad handle!\n01000002,Finance,Bo Fictional,bo@example.com,@bofictional\n'
+			)
+		);
+		expect(report.blocking).toEqual([]);
+		expect(report.invalidTelegrams).toBe(1);
+	});
 });
 
 describe('previewRoster — mentors', () => {

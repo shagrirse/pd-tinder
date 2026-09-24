@@ -9,6 +9,8 @@ export type RosterRow = {
 	industry: string | null;
 	studentId: string | null;
 	applicantId: number | null;
+	telegram: string | null;
+	linkedin: string | null;
 };
 
 export type RosterSummary = {
@@ -27,7 +29,9 @@ export function listRoster(db: AppDb, cycleId: number): RosterSummary {
 			email: members.email,
 			industry: members.industry,
 			studentId: members.studentId,
-			applicantId: members.applicantId
+			applicantId: members.applicantId,
+			telegram: members.telegram,
+			linkedin: members.linkedin
 		})
 		.from(members)
 		.where(eq(members.cycleId, cycleId))
@@ -61,7 +65,9 @@ export function listActiveRoster(
 			email: members.email,
 			industry: members.industry,
 			studentId: members.studentId,
-			applicantId: members.applicantId
+			applicantId: members.applicantId,
+			telegram: members.telegram,
+			linkedin: members.linkedin
 		})
 		.from(members)
 		.where(and(eq(members.cycleId, cycleId), eq(members.role, role), eq(members.active, true)))

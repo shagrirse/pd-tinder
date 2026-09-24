@@ -6,6 +6,8 @@ export function memberTokensCsv(rows: MemberTokenRow[], origin: string): string 
 		role: row.role,
 		full_name: row.fullName,
 		email: row.email,
+		telegram: row.telegram ?? '',
+		linkedin: row.linkedin ?? '',
 		link: new URL(`/member/${row.token}`, origin).toString()
 	}));
 

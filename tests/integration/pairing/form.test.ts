@@ -95,10 +95,56 @@ describe('submissionStatus', () => {
 
 		const status = submissionStatus(db, 1);
 		expect(status.submitted).toEqual([
-			{ id: mentee, role: 'mentee', fullName: 'Jordan Mentee', email: 'jordan@example.com' }
+			{
+				id: mentee,
+				role: 'mentee',
+				fullName: 'Jordan Mentee',
+				email: 'jordan@example.com',
+				industry: null,
+				studentId: null,
+				applicantId: null,
+				telegram: null,
+				linkedin: null
+			}
 		]);
 		expect(status.notSubmitted).toEqual([
-			{ id: mentor, role: 'mentor', fullName: 'Priya Mentor', email: 'priya@example.com' }
+			{
+				id: mentor,
+				role: 'mentor',
+				fullName: 'Priya Mentor',
+				email: 'priya@example.com',
+				industry: null,
+				studentId: null,
+				applicantId: null,
+				telegram: null,
+				linkedin: null
+			}
 		]);
+	});
+
+	it('carries full member detail for the modal', () => {
+		const db = makeTestDb();
+		db.insert(cycles).values({ name: '10th Circle', year: 2026 }).run();
+		db.insert(members)
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Ada Mentor',
+				email: 'ada@example.com',
+				industry: 'Tech',
+				studentId: '02000001',
+				telegram: 'adamentor'
+			})
+			.run();
+
+		const status = submissionStatus(db, 1);
+		expect(status.notSubmitted[0]).toMatchObject({
+			fullName: 'Ada Mentor',
+			industry: 'Tech',
+			studentId: '02000001',
+			telegram: 'adamentor',
+			linkedin: null,
+			applicantId: null
+		});
 	});
 });

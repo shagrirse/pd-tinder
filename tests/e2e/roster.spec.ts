@@ -65,9 +65,8 @@ test.describe('roster import', () => {
 
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText(/1 mentee added/)).toBeVisible();
-		// Scoped to the roster entry: "New Mentee" alone also matches the csv-note
-		// ("...create a new mentee from the CSV") and trips strict mode.
-		await expect(page.getByText('New Mentee — new-mentee@example.com')).toBeVisible();
+		// The roster list now shows names only; the button targets the row.
+		await expect(page.getByRole('button', { name: 'New Mentee' })).toBeVisible();
 	});
 
 	test('a mentee file missing the email column is blocked', async ({ page }) => {
@@ -121,7 +120,7 @@ test.describe('roster import', () => {
 		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
 		const path = await download.path();
 		const csv = path ? readFileSync(path, 'utf8') : '';
-		expect(csv).toContain('role,full_name,email,link');
+		expect(csv).toContain('role,full_name,email,telegram,linkedin,link');
 		expect(csv).toContain('/member/');
 	});
 
@@ -156,5 +155,86 @@ test.describe('roster import', () => {
 		await mentorForm.getByRole('button', { name: 'Validate mentors' }).click();
 
 		await expect(page.getByText('That cycle is closed. Reopen it before importing.')).toBeVisible();
+	});
+
+	test('shows inherited and CSV contact in the member modal, and edits it', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		// Blank contact columns: Ada (01000001) inherits @adafictional from her
+		// seeded application.
+		await page.getByLabel('Mentee roster CSV file').setInputFiles({
+			name: 'roster-blank-contact.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from(
+				'student_id,industry,full_name,email,telegram\n01000001,Finance,Ada Fictional,ada@example.com,\n'
+			)
+		});
+		await page.getByRole('button', { name: 'Validate mentees' }).click();
+		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
+		await expect(page.getByText('Roster updated')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		let modal = page.getByRole('dialog', { name: 'Member detail' });
+		await expect(modal.getByRole('link', { name: 'adafictional' })).toHaveAttribute(
+			'href',
+			'https://t.me/adafictional'
+		);
+		await expect(modal.getByRole('link', { name: 'ada-fictional' })).toHaveAttribute(
+			'href',
+			'https://www.linkedin.com/in/ada-fictional'
+		);
+
+		// Copy button flips to "Copied" (clipboard happy path). Headless
+		// Chromium denies the clipboard API unless the permission is granted.
+		await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+		await modal.getByRole('button', { name: 'Copy', exact: true }).first().click();
+		await expect(modal.getByRole('button', { name: 'Copied' })).toBeVisible();
+
+		// Edit: rename the handle, save, reload, still there.
+		await modal.getByRole('button', { name: 'Edit contact' }).click();
+		await modal.getByLabel('Telegram').fill('adachanged');
+		await modal.getByRole('button', { name: 'Save changes' }).click();
+		await expect(modal.getByRole('link', { name: 'adachanged' })).toBeVisible();
+		await page.keyboard.press('Escape');
+		await page.reload();
+		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		modal = page.getByRole('dialog', { name: 'Member detail' });
+		await expect(modal.getByRole('link', { name: 'adachanged' })).toHaveAttribute(
+			'href',
+			'https://t.me/adachanged'
+		);
+
+		// Clear the handle: persists through reload too (imports re-inherit; edits don't).
+		await modal.getByRole('button', { name: 'Edit contact' }).click();
+		await modal.getByLabel('Telegram').fill('');
+		await modal.getByRole('button', { name: 'Save changes' }).click();
+		await expect(modal.getByText('Not provided').first()).toBeVisible();
+		await page.keyboard.press('Escape');
+		await page.reload();
+		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		await expect(page.getByRole('dialog').getByText('Not provided').first()).toBeVisible();
+	});
+
+	test('shows a No application chip for an unlinked mentee', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+
+		await page.getByLabel('Mentee roster CSV file').setInputFiles({
+			name: 'roster-direct-mentee.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from(
+				'student_id,industry,full_name,email\n99999998,Finance,Chip Mentee,chip@example.com\n'
+			)
+		});
+		await page.getByRole('button', { name: 'Validate mentees' }).click();
+		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
+		await expect(page.getByText('Roster updated')).toBeVisible();
+
+		// The chip lives in the member modal: open this test's own direct
+		// mentee and look inside the dialog.
+		await page.getByRole('button', { name: 'Chip Mentee' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Member detail' });
+		await expect(dialog.getByText('No application')).toBeVisible();
 	});
 });

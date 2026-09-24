@@ -2,8 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../../helpers/db';
 import { seedApplicant } from '../../helpers/applicants';
-import { cycles, members } from '../../../src/lib/server/db/schema';
-import { promoteApplicant, upsertMember } from '../../../src/lib/server/roster/members';
+import { applicantPii, cycles, members } from '../../../src/lib/server/db/schema';
+import {
+	promoteApplicant,
+	updateMemberContact,
+	upsertMember
+} from '../../../src/lib/server/roster/members';
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
@@ -109,5 +113,115 @@ describe('promoteApplicant', () => {
 	it('throws when the applicant is not in this cycle', () => {
 		db.insert(cycles).values({ name: '11th Circle', year: 2027 }).run();
 		expect(() => promoteApplicant(db, 2, 1, 'mentee', 'Finance')).toThrow();
+	});
+});
+
+describe('upsertMember — contact values', () => {
+	it('inserts with null contact when none is provided', () => {
+		const { id } = upsertMember(db, 1, MENTOR);
+		const row = db.select().from(members).where(eq(members.id, id)).get();
+		expect(row).toMatchObject({ telegram: null, linkedin: null });
+	});
+
+	it('writes provided contact values on insert and update', () => {
+		const { id } = upsertMember(db, 1, {
+			...MENTOR,
+			telegram: 'adamentor',
+			linkedin: 'ada-mentor'
+		});
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: 'adamentor',
+			linkedin: 'ada-mentor'
+		});
+
+		upsertMember(db, 1, { ...MENTOR, telegram: 'renamed' });
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: 'renamed',
+			linkedin: 'ada-mentor'
+		});
+	});
+
+	it('never clears contact values on re-import with blank columns', () => {
+		const { id } = upsertMember(db, 1, { ...MENTOR, telegram: 'adamentor' });
+		upsertMember(db, 1, MENTOR);
+		expect(db.select().from(members).where(eq(members.id, id)).get()!.telegram).toBe('adamentor');
+	});
+});
+
+describe('promoteApplicant — contact inheritance', () => {
+	it('inherits normalised contact from the application when no override is given', () => {
+		const applicantId = seedApplicant(db, {
+			cycleId: 1,
+			publicRef: 1,
+			industry1: 'Finance',
+			fullName: 'Ada Fictional',
+			email: 'ada@example.com',
+			studentId: '01000001'
+		});
+		db.update(applicantPii)
+			.set({ telegram: '@adafictional', linkedinUrl: 'https://www.linkedin.com/in/ada-fictional' })
+			.where(eq(applicantPii.applicantId, applicantId))
+			.run();
+
+		const { id } = promoteApplicant(db, 1, applicantId, 'mentee', 'Finance');
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: 'adafictional',
+			linkedin: 'ada-fictional'
+		});
+	});
+
+	it('lets a CSV override win over the application value', () => {
+		const applicantId = seedApplicant(db, {
+			cycleId: 1,
+			publicRef: 2,
+			industry1: 'Finance',
+			fullName: 'Bo Fictional',
+			email: 'bo@example.com',
+			studentId: '01000002'
+		});
+		db.update(applicantPii)
+			.set({ telegram: '@bofictional' })
+			.where(eq(applicantPii.applicantId, applicantId))
+			.run();
+
+		const { id } = promoteApplicant(db, 1, applicantId, 'mentee', 'Finance', {
+			telegram: 'csvhandle',
+			linkedin: null
+		});
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: 'csvhandle',
+			linkedin: null
+		});
+	});
+});
+
+describe('updateMemberContact', () => {
+	it('normalises and stores edits, and clears on blank', () => {
+		const { id } = upsertMember(db, 1, { ...MENTOR, telegram: 'adamentor' });
+
+		updateMemberContact(db, id, {
+			telegram: '@renamed',
+			linkedin: 'https://www.linkedin.com/in/new-slug'
+		});
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: 'renamed',
+			linkedin: 'new-slug'
+		});
+
+		updateMemberContact(db, id, { telegram: '', linkedin: '' });
+		expect(db.select().from(members).where(eq(members.id, id)).get()).toMatchObject({
+			telegram: null,
+			linkedin: null
+		});
+	});
+
+	it('rejects an invalid handle and an unknown member', () => {
+		const { id } = upsertMember(db, 1, MENTOR);
+		expect(() => updateMemberContact(db, id, { telegram: 'bad handle!', linkedin: '' })).toThrow(
+			/not valid/
+		);
+		expect(() => updateMemberContact(db, 999, { telegram: '', linkedin: '' })).toThrow(
+			/no longer exists/
+		);
 	});
 });

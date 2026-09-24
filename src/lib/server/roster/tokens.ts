@@ -9,6 +9,8 @@ export type MemberTokenRow = {
 	fullName: string;
 	email: string;
 	token: string;
+	telegram: string | null;
+	linkedin: string | null;
 };
 
 /**
@@ -27,7 +29,9 @@ export function generateMemberTokens(
 			id: members.id,
 			role: members.role,
 			fullName: members.fullName,
-			email: members.email
+			email: members.email,
+			telegram: members.telegram,
+			linkedin: members.linkedin
 		})
 		.from(members)
 		.where(and(eq(members.cycleId, cycleId), eq(members.active, true)))

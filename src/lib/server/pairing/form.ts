@@ -67,6 +67,11 @@ export type SubmissionRow = {
 	role: 'mentor' | 'mentee';
 	fullName: string;
 	email: string;
+	industry: string | null;
+	studentId: string | null;
+	applicantId: number | null;
+	telegram: string | null;
+	linkedin: string | null;
 };
 export type SubmissionStatus = { submitted: SubmissionRow[]; notSubmitted: SubmissionRow[] };
 
@@ -77,7 +82,12 @@ export function submissionStatus(db: AppDb, cycleId: number): SubmissionStatus {
 			id: members.id,
 			role: members.role,
 			fullName: members.fullName,
-			email: members.email
+			email: members.email,
+			industry: members.industry,
+			studentId: members.studentId,
+			applicantId: members.applicantId,
+			telegram: members.telegram,
+			linkedin: members.linkedin
 		})
 		.from(members)
 		.where(and(eq(members.cycleId, cycleId), eq(members.active, true)))

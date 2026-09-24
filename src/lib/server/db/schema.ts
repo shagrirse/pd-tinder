@@ -204,6 +204,12 @@ export const members = sqliteTable(
 		// one role's applications predate the system — the 10th Circle's mentors
 		// being exactly that case.
 		applicantId: integer('applicant_id').references(() => applicants.id),
+		// Contact handles, stored bare (no `@`, no URL): display and exports
+		// build https://t.me/<telegram> and https://www.linkedin.com/in/<linkedin>.
+		// Nullable: mentors predate the app's contact capture, and direct
+		// mentee rows only have what the roster CSV provides.
+		telegram: text('telegram'),
+		linkedin: text('linkedin'),
 		active: integer('active', { mode: 'boolean' }).notNull().default(true)
 	},
 	(t) => [
