@@ -90,3 +90,28 @@ describe('members.student_id', () => {
 		).not.toThrow();
 	});
 });
+
+describe('members.contact handles', () => {
+	it('stores contact handles and leaves them null when absent', () => {
+		const db = makeTestDb();
+		const cycleId = seedCycle(db, '10th Circle', 2026);
+
+		db.insert(members)
+			.values({
+				cycleId,
+				role: 'mentor',
+				fullName: 'Handle Mentor',
+				email: 'hm@example.com',
+				telegram: 'adamentor',
+				linkedin: 'ada-mentor'
+			})
+			.run();
+		db.insert(members)
+			.values({ cycleId, role: 'mentee', fullName: 'Plain Mentee', email: 'pm@example.com' })
+			.run();
+
+		const rows = db.select().from(members).all();
+		expect(rows[0]).toMatchObject({ telegram: 'adamentor', linkedin: 'ada-mentor' });
+		expect(rows[1]).toMatchObject({ telegram: null, linkedin: null });
+	});
+});
