@@ -56,13 +56,13 @@
 	.hero-card-stamp {
 		font-family: var(--font-display);
 		font-size: 2.1rem;
-		font-weight: 800;
+		font-weight: 700;
 		color: var(--like);
 	}
 	h1 {
 		font-family: var(--font-display);
 		font-size: clamp(2.5rem, 9vw, 4rem);
-		font-weight: 900;
+		font-weight: 700;
 		font-style: italic;
 		margin: 0 0 1rem;
 		letter-spacing: -0.02em;

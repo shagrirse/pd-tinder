@@ -57,7 +57,7 @@
 		position: fixed;
 		inset: 0;
 		z-index: 20;
-		background: rgba(10, 6, 5, 0.72);
+		background: rgba(5, 10, 15, 0.72);
 		backdrop-filter: blur(3px);
 		display: flex;
 		align-items: flex-end;

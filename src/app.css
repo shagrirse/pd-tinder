@@ -1,34 +1,33 @@
 /* Design tokens and shared primitives for pd-tinder.
-   Dark "case file" theme: ink backdrop, cream index-card surfaces, stamp-style accents.
-   This is a deliberate single committed theme (no light/dark toggle), like a branded app. */
+   TMC brand theme: navy admin surfaces, white paper surfaces, gold seal accents. */
 
 :root {
 	color-scheme: dark;
 
 	/* ink (page) surfaces */
-	--bg: #150f0f;
-	--bg-raised: #1d1615;
-	--bg-raised-2: #251c1a;
+	--bg: #0e1a26;
+	--bg-raised: #14242f;
+	--bg-raised-2: #1b2d3a;
 
 	/* paper (card) surfaces */
-	--paper: #f6efe0;
-	--paper-dim: #ece0c7;
-	--ink-on-paper: #221a14;
-	--ink-on-paper-soft: #6c5c49;
-	--line-on-paper: rgba(34, 26, 20, 0.14);
+	--paper: #f4f6f8;
+	--paper-dim: #e7eaee;
+	--ink-on-paper: #0e1a26;
+	--ink-on-paper-soft: #53657a;
+	--line-on-paper: rgba(14, 26, 38, 0.14);
 
 	/* text on ink */
-	--text: #f4ece0;
-	--text-dim: #ab9a86;
-	--text-faint: #756355;
+	--text: #f1f2f3;
+	--text-dim: #9db0c0;
+	--text-faint: #8495a5;
 
-	--line: rgba(244, 236, 224, 0.12);
-	--line-strong: rgba(244, 236, 224, 0.24);
+	--line: rgba(241, 242, 243, 0.12);
+	--line-strong: rgba(241, 242, 243, 0.24);
 
 	/* brand + semantic ink colors */
-	--flame: #ff5a36;
-	--flame-dim: #c4431f;
-	--flame-soft: rgba(255, 90, 54, 0.16);
+	--flame: #d8ae5e;
+	--flame-dim: #c08a3e;
+	--flame-soft: rgba(216, 174, 94, 0.16);
 
 	--like: #34a374;
 	--like-soft: rgba(52, 163, 116, 0.16);
@@ -48,13 +47,11 @@
 		0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 24px -8px rgba(0, 0, 0, 0.55),
 		0 32px 64px -28px rgba(0, 0, 0, 0.5);
 
-	--font-display: 'Fraunces', ui-serif, Georgia, serif;
-	--font-body: 'Libre Franklin', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--font-display: 'Cormorant Garamond', ui-serif, Georgia, serif;
+	--font-body: 'Jost', ui-sans-serif, system-ui, -apple-system, sans-serif;
 	--font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
 	--verdict-h: 230px;
-
-	--grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 *,
@@ -85,19 +82,8 @@ body::before {
 	inset: 0;
 	z-index: -2;
 	background:
-		radial-gradient(60rem 40rem at 12% -12%, rgba(255, 90, 54, 0.16), transparent 60%),
-		radial-gradient(50rem 40rem at 105% 110%, rgba(52, 163, 116, 0.08), transparent 55%), var(--bg);
-}
-
-body::after {
-	content: '';
-	position: fixed;
-	inset: 0;
-	z-index: -1;
-	background-image: var(--grain);
-	opacity: 0.045;
-	mix-blend-mode: overlay;
-	pointer-events: none;
+		radial-gradient(60rem 40rem at 12% -12%, rgba(216, 174, 94, 0.1), transparent 60%),
+		radial-gradient(50rem 40rem at 105% 110%, rgba(216, 174, 94, 0.07), transparent 55%), var(--bg);
 }
 
 h1,
@@ -218,7 +204,6 @@ a {
 	text-decoration: none;
 	transition:
 		transform 120ms ease,
-		filter 120ms ease,
 		background 120ms ease,
 		border-color 120ms ease,
 		color 120ms ease;
@@ -236,7 +221,7 @@ a {
 	color: #1c0d05;
 }
 .btn-primary:hover:not(:disabled) {
-	filter: brightness(1.08);
+	background-image: linear-gradient(#e3c48a, #ce9f4e);
 }
 .btn-ghost {
 	background: transparent;
