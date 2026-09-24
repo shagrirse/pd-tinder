@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members } from '../../../src/lib/server/db/schema';
-import { listActiveRoster } from '../../../src/lib/server/roster/list';
+import { listActiveRoster, listRoster } from '../../../src/lib/server/roster/list';
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
@@ -73,5 +73,25 @@ describe('listActiveRoster', () => {
 
 	it('returns nothing for a cycle with no members', () => {
 		expect(listActiveRoster(db, 1, 'mentor')).toEqual([]);
+	});
+});
+
+describe('listRoster — contact handles', () => {
+	it('carries contact handles on roster rows', () => {
+		const db = makeTestDb();
+		db.insert(cycles).values({ name: '10th Circle', year: 2026 }).run();
+		db.insert(members)
+			.values({
+				cycleId: 1,
+				role: 'mentor',
+				fullName: 'Ada Mentor',
+				email: 'ada@example.com',
+				telegram: 'adamentor',
+				linkedin: 'ada-mentor'
+			})
+			.run();
+
+		const { mentors } = listRoster(db, 1);
+		expect(mentors[0]).toMatchObject({ telegram: 'adamentor', linkedin: 'ada-mentor' });
 	});
 });

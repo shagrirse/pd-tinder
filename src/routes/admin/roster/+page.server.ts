@@ -6,7 +6,7 @@ import { parseCsv } from '$lib/server/import/parse';
 import { previewRoster, type RosterReport } from '$lib/server/roster/validate';
 import { commitRoster } from '$lib/server/roster/commit';
 import { listRoster } from '$lib/server/roster/list';
-import type { MemberRole } from '$lib/server/roster/members';
+import { updateMemberContact, type MemberRole } from '$lib/server/roster/members';
 import { discardStagedUpload, readStagedUpload, stageUpload } from '$lib/server/upload/staging';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -28,6 +28,7 @@ type ActionResult = {
 	fileName: string | null;
 	committed: { inserted: number; updated: number } | null;
 	error: string | null;
+	updateError: string | null;
 };
 
 const EMPTY: ActionResult = {
@@ -37,7 +38,8 @@ const EMPTY: ActionResult = {
 	cycleId: null,
 	fileName: null,
 	committed: null,
-	error: null
+	error: null,
+	updateError: null
 };
 
 const problem = (message: string): ActionResult => ({ ...EMPTY, error: message });
@@ -120,5 +122,27 @@ export const actions: Actions = {
 	validateMentees: validateAction('mentee', 'mentees'),
 	commitMentees: commitAction('mentee', 'mentees'),
 	validateMentors: validateAction('mentor', 'mentors'),
-	commitMentors: commitAction('mentor', 'mentors')
+	commitMentors: commitAction('mentor', 'mentors'),
+	updateMember: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const db = getDb();
+		const form = await request.formData();
+
+		const memberId = Number(form.get('memberId'));
+		if (!Number.isInteger(memberId)) {
+			return fail(400, { ...EMPTY, updateError: 'Choose a member first.' });
+		}
+
+		try {
+			updateMemberContact(db, memberId, {
+				telegram: String(form.get('telegram') ?? ''),
+				linkedin: String(form.get('linkedin') ?? '')
+			});
+		} catch (cause) {
+			if (cause instanceof Error) return fail(400, { ...EMPTY, updateError: cause.message });
+			throw cause;
+		}
+
+		return { ...EMPTY, updateError: null };
+	}
 };

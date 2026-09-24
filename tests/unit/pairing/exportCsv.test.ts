@@ -18,7 +18,9 @@ const PAIR: PairingRow = {
 		email: 'priya@example.com',
 		industry: 'Finance',
 		studentId: '01000001',
-		applicantId: null
+		applicantId: null,
+		telegram: null,
+		linkedin: null
 	},
 	mentee: {
 		id: 2,
@@ -26,7 +28,9 @@ const PAIR: PairingRow = {
 		email: 'jordan@example.com',
 		industry: 'Finance',
 		studentId: '01000002',
-		applicantId: null
+		applicantId: null,
+		telegram: null,
+		linkedin: null
 	}
 };
 

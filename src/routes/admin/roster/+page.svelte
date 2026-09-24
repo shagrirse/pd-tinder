@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
 
@@ -24,10 +25,19 @@
 	let mentorDone = $derived(mentorCommit?.committed ?? null);
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
 
+	let detailMemberId = $state<number | null>(null);
+	let detailRole = $state<'mentor' | 'mentee'>('mentee');
+	let detailMember = $derived.by(() => {
+		if (detailMemberId === null || !roster) return null;
+		const list = detailRole === 'mentor' ? roster.mentors : roster.mentees;
+		const found = list.find((m) => m.id === detailMemberId);
+		return found ? { ...found, role: detailRole } : null;
+	});
+
 	const MENTOR_EXAMPLE_CSV =
-		'full_name,email,industry,student_id\nAda Mentor,ada.mentor@example.com,Tech,02000001\n';
+		'full_name,email,industry,student_id,telegram,linkedin\nAda Mentor,ada.mentor@example.com,Tech,02000001,adamentor,ada-mentor\n';
 	const MENTEE_EXAMPLE_CSV =
-		'student_id,industry,full_name,email\n01000001,Finance,Bo Mentee,bo.mentee@example.com\n';
+		'student_id,industry,full_name,email,telegram,linkedin\n01000001,Finance,Bo Mentee,bo.mentee@example.com,bomentee,bo-mentee\n';
 	const mentorExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTOR_EXAMPLE_CSV)}`;
 	const menteeExampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(MENTEE_EXAMPLE_CSV)}`;
 </script>
@@ -60,7 +70,10 @@
 					<span class="chip">email</span>
 					<span class="chip">industry</span>
 					<span class="chip">student_id</span>
+					<span class="chip">telegram</span>
+					<span class="chip">linkedin</span>
 				</p>
+				<p class="csv-note">telegram and linkedin are optional.</p>
 			</div>
 
 			{#if mentorDone}
@@ -110,6 +123,12 @@
 							<li>{industry} · {count}</li>
 						{/each}
 					</ul>
+					{#if report.invalidTelegrams > 0}
+						<p class="warn-inline">
+							{report.invalidTelegrams} telegram handle{report.invalidTelegrams === 1 ? '' : 's'}
+							could not be normalised and will be left blank.
+						</p>
+					{/if}
 					<form method="POST" action="?/commitMentors" class="upload-form">
 						<input type="hidden" name="token" value={mentors?.token ?? ''} />
 						<button type="submit" class="btn btn-primary">
@@ -137,10 +156,13 @@
 					<span class="chip">industry</span>
 					<span class="chip">full_name</span>
 					<span class="chip">email</span>
+					<span class="chip">telegram</span>
+					<span class="chip">linkedin</span>
 				</p>
 				<p class="csv-note">
 					full_name and email are required. Rows matching an application keep the application's
-					identity; rows without a match create a new mentee from the CSV.
+					identity; rows without a match create a new mentee from the CSV. telegram and linkedin are
+					optional — blank values inherit from the application where one exists.
 				</p>
 			</div>
 
@@ -203,6 +225,12 @@
 							— no prior application found.
 						</p>
 					{/if}
+					{#if report.invalidTelegrams > 0}
+						<p class="warn-inline">
+							{report.invalidTelegrams} telegram handle{report.invalidTelegrams === 1 ? '' : 's'}
+							could not be normalised and will be left blank.
+						</p>
+					{/if}
 					<form method="POST" action="?/commitMentees" class="upload-form">
 						<input type="hidden" name="token" value={mentees?.token ?? ''} />
 						<button type="submit" class="btn btn-primary">
@@ -241,7 +269,16 @@
 						<ul class="roster-list">
 							{#each roster.mentors as member (member.id)}
 								<li>
-									{member.fullName} — {member.email} — {member.industry ?? 'No industry'} —
+									<button
+										class="member-link"
+										onclick={() => {
+											detailMemberId = member.id;
+											detailRole = 'mentor';
+										}}
+									>
+										{member.fullName}
+									</button>
+									— {member.email} — {member.industry ?? 'No industry'} —
 									{member.studentId ?? 'No student ID'}
 								</li>
 							{/each}
@@ -255,10 +292,20 @@
 						<ul class="roster-list">
 							{#each roster.mentees as member (member.id)}
 								<li>
-									{member.fullName} — {member.email} — {member.industry ?? 'No industry'} —
+									<button
+										class="member-link"
+										onclick={() => {
+											detailMemberId = member.id;
+											detailRole = 'mentee';
+										}}
+									>
+										{member.fullName}
+									</button>
+									— {member.email} — {member.industry ?? 'No industry'} —
 									{member.studentId ?? 'No student ID'}
 									{#if member.applicantId === null}
-										— not linked to an application{/if}
+										<span class="chip roster-chip">No application</span>
+									{/if}
 								</li>
 							{/each}
 						</ul>
@@ -267,6 +314,12 @@
 			{/if}
 		</div>
 	{/if}
+
+	<MemberDetailModal
+		member={detailMember}
+		actionUrl="?/updateMember"
+		onclose={() => (detailMemberId = null)}
+	/>
 </section>
 
 <style>
@@ -392,5 +445,21 @@
 		padding-left: 1.1rem;
 		font-size: 0.88rem;
 		line-height: 1.6;
+	}
+	.member-link {
+		background: none;
+		border: none;
+		padding: 0;
+		color: var(--text);
+		font: inherit;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		cursor: pointer;
+	}
+	.member-link:hover {
+		color: var(--flame);
+	}
+	.roster-chip {
+		margin-left: 0.4rem;
 	}
 </style>
