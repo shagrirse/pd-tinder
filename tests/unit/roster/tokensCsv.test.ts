@@ -15,7 +15,9 @@ describe('memberTokensCsv', () => {
 					role: 'mentor',
 					fullName: 'Ada Fictional',
 					email: 'ada@example.com',
-					token: 'abc123'
+					token: 'abc123',
+					telegram: null,
+					linkedin: null
 				}
 			],
 			'https://pdtinder.example.com'
@@ -29,5 +31,25 @@ describe('memberTokensCsv', () => {
 			email: 'ada@example.com',
 			link: 'https://pdtinder.example.com/member/abc123'
 		});
+	});
+
+	it('includes contact columns, empty when unknown', () => {
+		const csv = memberTokensCsv(
+			[
+				{
+					id: 1,
+					role: 'mentor',
+					fullName: 'Ada Fictional',
+					email: 'ada@example.com',
+					token: 'abc123',
+					telegram: 'adafictional',
+					linkedin: null
+				}
+			],
+			'https://pdtinder.example.com'
+		);
+
+		const rows = rowsOf(csv);
+		expect(rows[0]).toMatchObject({ telegram: 'adafictional', linkedin: '' });
 	});
 });

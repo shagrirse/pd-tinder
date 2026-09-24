@@ -129,7 +129,7 @@ test.describe('pairing admin surface', () => {
 		const path = await download.path();
 		const csv = path ? readFileSync(path, 'utf8') : '';
 		expect(csv).toContain(
-			'mentor_name,mentor_email,mentor_student_id,mentee_name,mentee_email,mentee_student_id,method,override_reason'
+			'mentor_name,mentor_email,mentor_telegram,mentor_linkedin,mentor_student_id,mentee_name,mentee_email,mentee_telegram,mentee_linkedin,mentee_student_id,method,override_reason'
 		);
 		expect(csv).toContain('Sam Mentor');
 		expect(csv).toContain('Jordan asked to switch at the mixer');

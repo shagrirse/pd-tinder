@@ -65,4 +65,22 @@ describe('pairingsCsv', () => {
 		const rows = rowsOf(pairingsCsv([noStudentId]));
 		expect(rows[0].mentor_student_id).toBe('');
 	});
+
+	it('includes contact columns, empty when unknown', () => {
+		const rows = rowsOf(
+			pairingsCsv([
+				{
+					...PAIR,
+					mentor: { ...PAIR.mentor, telegram: 'priya', linkedin: 'priya-mentor' },
+					mentee: { ...PAIR.mentee, telegram: null, linkedin: 'jordan-mentor' }
+				}
+			])
+		);
+		expect(rows[0]).toMatchObject({
+			mentor_telegram: 'priya',
+			mentor_linkedin: 'priya-mentor',
+			mentee_telegram: '',
+			mentee_linkedin: 'jordan-mentor'
+		});
+	});
 });

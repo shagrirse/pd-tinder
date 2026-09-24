@@ -6,9 +6,13 @@ export function pairingsCsv(rows: PairingRow[]): string {
 	const records = rows.map((row) => ({
 		mentor_name: row.mentor.fullName,
 		mentor_email: row.mentor.email,
+		mentor_telegram: row.mentor.telegram ?? '',
+		mentor_linkedin: row.mentor.linkedin ?? '',
 		mentor_student_id: row.mentor.studentId ?? '',
 		mentee_name: row.mentee.fullName,
 		mentee_email: row.mentee.email,
+		mentee_telegram: row.mentee.telegram ?? '',
+		mentee_linkedin: row.mentee.linkedin ?? '',
 		mentee_student_id: row.mentee.studentId ?? '',
 		method: row.method,
 		override_reason: row.overrideReason ?? ''
