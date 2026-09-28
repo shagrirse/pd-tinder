@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { RatingValue } from '$lib/draft';
+	import { VERDICT_LABEL } from '$lib/verdictLabels';
+	import { trapFocus } from '$lib/actions/trapFocus';
 
 	/**
 	 * `ApplicantDetail` from `$lib/server/results/detail` as it arrives over the wire.
@@ -114,9 +116,10 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Applicant detail"
+			aria-labelledby="applicant-detail-heading"
 			tabindex="-1"
 			bind:this={modalEl}
+			use:trapFocus
 		>
 			<button type="button" class="close" onclick={onclose} aria-label="Close">&times;</button>
 
@@ -127,7 +130,7 @@
 			{:else if detail}
 				<header class="modal-head">
 					<p class="eyebrow">Applicant #{detail.publicRef}</p>
-					<h2>{detail.fullName}</h2>
+					<h2 id="applicant-detail-heading">{detail.fullName}</h2>
 					<div class="chips">
 						<span class="chip chip-primary">{detail.industry1}</span>
 						{#if detail.industry2}<span class="chip">2nd · {detail.industry2}</span>{/if}
@@ -204,7 +207,9 @@
 									{#if detail.redFlag}
 										<span class="verdict-tag verdict-flag">Red flag</span>
 									{:else if detail.overall}
-										<span class="verdict-tag verdict-{detail.overall}">{detail.overall}</span>
+										<span class="verdict-tag verdict-{detail.overall}"
+											>{VERDICT_LABEL[detail.overall]}</span
+										>
 									{:else}
 										—
 									{/if}
@@ -232,9 +237,11 @@
 								<h4>{answer.prompt}</h4>
 								{#if answer.isRated}
 									{#if answer.rating}
-										<span class="verdict-tag verdict-{answer.rating}">{answer.rating}</span>
+										<span class="verdict-tag verdict-{answer.rating}"
+											>{VERDICT_LABEL[answer.rating]}</span
+										>
 									{:else}
-										<span class="verdict-tag verdict-unrated">unrated</span>
+										<span class="verdict-tag verdict-unrated">Unrated</span>
 									{/if}
 								{/if}
 							</div>
@@ -290,7 +297,7 @@
 		margin: 0;
 	}
 	.state.error {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.modal-head h2 {
 		font-size: 1.6rem;
@@ -333,7 +340,8 @@
 		word-break: break-word;
 	}
 	.missing {
-		color: var(--danger);
+		color: var(--text-faint);
+		font-style: italic;
 	}
 	.muted {
 		color: var(--text-dim);

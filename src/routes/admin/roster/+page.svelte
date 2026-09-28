@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -23,6 +26,14 @@
 	let mentorCommit = $derived(form && form.stage === 'commitMentors' ? form : null);
 	let menteeCommit = $derived(form && form.stage === 'commitMentees' ? form : null);
 	let mentorDone = $derived(mentorCommit?.committed ?? null);
+
+	const validateMentors = createPendingSubmit();
+	const commitMentors = createPendingSubmit();
+	const validateMentees = createPendingSubmit();
+	const commitMentees = createPendingSubmit();
+
+	let tokensConfirmOpen = $state(false);
+	let tokensFormEl: HTMLFormElement | undefined = $state();
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
 
 	let detailMemberId = $state<number | null>(null);
@@ -89,6 +100,7 @@
 				action="?/validateMentors"
 				enctype="multipart/form-data"
 				class="upload-form"
+				use:enhance={validateMentors.submit}
 			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
@@ -106,7 +118,9 @@
 					<input name="file" type="file" accept=".csv,text/csv" required />
 				</label>
 
-				<button type="submit" class="btn btn-primary">Validate mentors</button>
+				<button type="submit" class="btn btn-primary" disabled={validateMentors.pending}>
+					{validateMentors.pending ? 'Validating…' : 'Validate mentors'}
+				</button>
 			</form>
 
 			{#if mentors?.report}
@@ -129,10 +143,17 @@
 							could not be normalised and will be left blank.
 						</p>
 					{/if}
-					<form method="POST" action="?/commitMentors" class="upload-form">
+					<form
+						method="POST"
+						action="?/commitMentors"
+						class="upload-form"
+						use:enhance={commitMentors.submit}
+					>
 						<input type="hidden" name="token" value={mentors?.token ?? ''} />
-						<button type="submit" class="btn btn-primary">
-							Import {report.rowCount} mentor{report.rowCount === 1 ? '' : 's'}
+						<button type="submit" class="btn btn-primary" disabled={commitMentors.pending}>
+							{commitMentors.pending
+								? 'Importing…'
+								: `Import ${report.rowCount} mentor${report.rowCount === 1 ? '' : 's'}`}
 						</button>
 					</form>
 				{/if}
@@ -179,6 +200,7 @@
 				action="?/validateMentees"
 				enctype="multipart/form-data"
 				class="upload-form"
+				use:enhance={validateMentees.submit}
 			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
@@ -196,7 +218,9 @@
 					<input name="file" type="file" accept=".csv,text/csv" required />
 				</label>
 
-				<button type="submit" class="btn btn-primary">Validate mentees</button>
+				<button type="submit" class="btn btn-primary" disabled={validateMentees.pending}>
+					{validateMentees.pending ? 'Validating…' : 'Validate mentees'}
+				</button>
 			</form>
 
 			{#if mentees?.report}
@@ -231,10 +255,17 @@
 							could not be normalised and will be left blank.
 						</p>
 					{/if}
-					<form method="POST" action="?/commitMentees" class="upload-form">
+					<form
+						method="POST"
+						action="?/commitMentees"
+						class="upload-form"
+						use:enhance={commitMentees.submit}
+					>
 						<input type="hidden" name="token" value={mentees?.token ?? ''} />
-						<button type="submit" class="btn btn-primary">
-							Import {report.rowCount} mentee{report.rowCount === 1 ? '' : 's'}
+						<button type="submit" class="btn btn-primary" disabled={commitMentees.pending}>
+							{commitMentees.pending
+								? 'Importing…'
+								: `Import ${report.rowCount} mentee${report.rowCount === 1 ? '' : 's'}`}
 						</button>
 					</form>
 				{/if}
@@ -253,10 +284,20 @@
 						{roster.mentees.length} mentee{roster.mentees.length === 1 ? '' : 's'}
 					</p>
 
-					<form method="POST" action="/admin/roster/tokens" class="upload-form">
+					<form
+						method="POST"
+						action="/admin/roster/tokens"
+						class="upload-form"
+						bind:this={tokensFormEl}
+					>
 						<input type="hidden" name="cycleId" value={selectedCycleId} />
-						<button type="submit" class="btn btn-primary">Generate &amp; export member links</button
+						<button
+							type="button"
+							class="btn btn-primary"
+							onclick={() => (tokensConfirmOpen = true)}
 						>
+							Generate &amp; export member links
+						</button>
 					</form>
 					<p class="warn-inline">
 						Regenerating replaces every member's link — anyone with an old one loses access.
@@ -313,6 +354,19 @@
 		actionUrl="?/updateMember"
 		onclose={() => (detailMemberId = null)}
 	/>
+
+	<ConfirmDialog
+		open={tokensConfirmOpen}
+		title="Regenerate member links?"
+		body="Every existing member's link stops working immediately. Anyone who hasn't opened theirs yet will need the new one."
+		confirmLabel="Regenerate links"
+		danger
+		onconfirm={() => {
+			tokensConfirmOpen = false;
+			tokensFormEl?.requestSubmit();
+		}}
+		oncancel={() => (tokensConfirmOpen = false)}
+	/>
 </section>
 
 <style>
@@ -333,7 +387,7 @@
 	}
 	.form-error {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
@@ -419,7 +473,7 @@
 		color: var(--meh);
 	}
 	.warn-inline.danger {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 
 	.report-list {
@@ -442,7 +496,8 @@
 	.member-link {
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.4rem 0;
+		display: inline-block;
 		color: var(--text);
 		font: inherit;
 		text-decoration: underline;

@@ -1,7 +1,13 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
+	import PersonRowActions from '$lib/components/PersonRowActions.svelte';
+
 	let { data, form } = $props();
 
 	let copied = $state(false);
+
+	const createPerson = createPendingSubmit();
 
 	async function copyInvite(link: string) {
 		try {
@@ -54,7 +60,7 @@
 
 	<div class="panel">
 		<div class="panel-head"><span>Add someone</span></div>
-		<form method="POST" action="?/create" class="create-form">
+		<form method="POST" action="?/create" class="create-form" use:enhance={createPerson.submit}>
 			<label class="field">
 				<span class="field-label">Name</span>
 				<input name="name" required disabled={!data.cycleName} />
@@ -81,8 +87,12 @@
 				{/each}
 			</fieldset>
 
-			<button type="submit" class="btn btn-primary" disabled={!data.cycleName}>
-				Create and issue invite
+			<button
+				type="submit"
+				class="btn btn-primary"
+				disabled={!data.cycleName || createPerson.pending}
+			>
+				{createPerson.pending ? 'Creating…' : 'Create and issue invite'}
 			</button>
 		</form>
 	</div>
@@ -112,10 +122,8 @@
 						{#each data.people as person (person.id)}
 							<tr class:inactive={!person.active}>
 								<td>
-									<span class="person-name">
-										{person.name}
-										{#if !person.active}<span class="deactivated-tag">Deactivated</span>{/if}
-									</span>
+									<span class="person-name">{person.name}</span>
+									{#if !person.active}<span class="deactivated-tag">Deactivated</span>{/if}
 									<span class="person-email">{person.email}</span>
 								</td>
 								<td><span class="chip">{person.role}</span></td>
@@ -147,24 +155,10 @@
 										</span>
 									{/if}
 								</td>
-								<td class="row-actions">
-									{#if person.inviteState.kind !== 'active'}
-										<form method="POST" action="?/regenerate">
-											<input type="hidden" name="userId" value={person.id} />
-											<input type="hidden" name="personName" value={person.name} />
-											<button type="submit" class="link-btn">New invite</button>
-										</form>
-									{/if}
-									{#if person.id !== data.currentUserId}
-										<form method="POST" action="?/setActive">
-											<input type="hidden" name="userId" value={person.id} />
-											<input type="hidden" name="active" value={person.active ? 'false' : 'true'} />
-											<button type="submit" class="link-btn" class:danger={person.active}>
-												{person.active ? 'Deactivate' : 'Reactivate'}
-											</button>
-										</form>
-									{/if}
-								</td>
+								<PersonRowActions
+									person={{ ...person }}
+									isCurrentUser={person.id === data.currentUserId}
+								/>
 							</tr>
 						{/each}
 					</tbody>
@@ -198,7 +192,7 @@
 	}
 	.form-error {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
@@ -206,8 +200,8 @@
 	}
 
 	.invite-panel {
-		background: var(--like-soft);
-		border: 1px solid var(--like);
+		background: var(--meh-soft);
+		border: 1px solid var(--meh);
 		border-radius: var(--radius-md);
 		padding: 1.1rem;
 		margin-bottom: 1.5rem;
@@ -330,7 +324,7 @@
 		font-size: 0.78rem;
 	}
 	.unassigned {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.mono {
 		font-family: var(--font-mono);
@@ -338,27 +332,6 @@
 	.breakdown {
 		color: var(--text-faint);
 		font-size: 0.74rem;
-	}
-	.link-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		font: inherit;
-		font-size: 0.82rem;
-		color: var(--flame);
-		cursor: pointer;
-		text-decoration: underline;
-		text-underline-offset: 2px;
-		white-space: nowrap;
-	}
-	.link-btn.danger {
-		color: var(--danger);
-	}
-	.row-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		align-items: flex-start;
 	}
 	tr.inactive .person-name,
 	tr.inactive .person-email {
@@ -369,7 +342,7 @@
 		font-size: 0.62rem;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: 999px;
 		padding: 0 0.4rem;

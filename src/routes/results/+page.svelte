@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { VERDICT_LABEL } from '$lib/verdictLabels';
 	import ApplicantDetailModal from '$lib/components/ApplicantDetailModal.svelte';
 
 	let { data } = $props();
@@ -99,7 +100,7 @@
 											<td class="mono">{applicant.rated}/{applicant.total}</td>
 											<td
 												><span class="verdict-tag verdict-{applicant.overall}"
-													>{applicant.overall}</span
+													>{applicant.overall ? VERDICT_LABEL[applicant.overall] : '—'}</span
 												></td
 											>
 											<td class="muted">{applicant.reviewerName ?? ''}</td>
@@ -327,7 +328,8 @@
 	.name-btn {
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.4rem 0;
+		display: inline-block;
 		font: inherit;
 		font-weight: 600;
 		color: var(--flame);

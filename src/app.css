@@ -37,6 +37,9 @@
 	--skip-soft: rgba(177, 85, 47, 0.16);
 	--danger: #e2382c;
 	--danger-soft: rgba(226, 56, 44, 0.14);
+	--danger-text: #ff6659; /* dark-surface text use: --danger fails 4.5:1 at small sizes */
+	--skip-text: #d97a48; /* dark-surface text use: --skip fails 4.5:1 at small sizes */
+	--danger-on-paper: #bc261b; /* paper-surface text use; clears 4.5:1 over .form-error's danger-soft fill */
 
 	--radius-sm: 0.5rem;
 	--radius-md: 0.9rem;
@@ -181,11 +184,11 @@ a {
 }
 .verdict-skip {
 	background: var(--skip-soft);
-	color: var(--skip);
+	color: var(--skip-text);
 }
 .verdict-flag {
 	background: var(--danger-soft);
-	color: var(--danger);
+	color: var(--danger-text);
 }
 
 .btn {

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { VERDICT_LABEL } from '$lib/verdictLabels';
+
 	let { data } = $props();
 </script>
 
@@ -24,7 +26,9 @@
 						{#if item.redFlag}
 							<span class="verdict-tag verdict-flag">Red flag</span>
 						{:else}
-							<span class="verdict-tag verdict-{item.overall}">{item.overall}</span>
+							<span class="verdict-tag verdict-{item.overall}">
+								{item.overall ? VERDICT_LABEL[item.overall] : '—'}
+							</span>
 						{/if}
 					</a>
 				</li>

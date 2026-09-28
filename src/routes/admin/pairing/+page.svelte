@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -25,6 +28,16 @@
 	);
 
 	let detailMemberId = $state<number | null>(null);
+
+	const reopen = createPendingSubmit();
+	const close = createPendingSubmit();
+	const reconcile = createPendingSubmit();
+	const override = createPendingSubmit();
+	let closeFormEl: HTMLFormElement | undefined = $state();
+	let closeConfirmOpen = $state(false);
+
+	let pairedMentorIds = $derived(new Set(data.pairings.map((p) => p.mentor.id)));
+	let pairedMenteeIds = $derived(new Set(data.pairings.map((p) => p.mentee.id)));
 	// Every list on this page already knows each member's role.
 	let detailMember = $derived.by(() => {
 		if (detailMemberId === null || !data.cycle) return null;
@@ -85,21 +98,42 @@
 			{/if}
 
 			{#if data.status === 'closed'}
-				<form method="POST" action="?/reopen" class="inline-form">
-					<button type="submit" class="btn btn-primary">Reopen form</button>
+				<form method="POST" action="?/reopen" class="inline-form" use:enhance={reopen.submit}>
+					<button type="submit" class="btn btn-primary" disabled={reopen.pending}>
+						{reopen.pending ? 'Reopening…' : 'Reopen form'}
+					</button>
 				</form>
 			{:else if data.status === 'open'}
-				<form method="POST" action="?/close" class="inline-form">
-					<button type="submit" class="btn btn-danger">Close form</button>
+				<form
+					method="POST"
+					action="?/close"
+					class="inline-form"
+					use:enhance={close.submit}
+					bind:this={closeFormEl}
+				>
+					<button
+						type="button"
+						class="btn btn-danger"
+						disabled={close.pending}
+						onclick={() => (closeConfirmOpen = true)}
+					>
+						{close.pending ? 'Closing…' : 'Close form'}
+					</button>
 				</form>
 			{/if}
 		</div>
 
 		<div class="panel">
 			<div class="panel-head"><span>Reconciliation</span></div>
-			<form method="POST" action="?/reconcile" class="inline-form">
-				<button type="submit" class="btn btn-primary">Run reconciliation</button>
+			<form method="POST" action="?/reconcile" class="inline-form" use:enhance={reconcile.submit}>
+				<button type="submit" class="btn btn-primary" disabled={reconcile.pending}>
+					{reconcile.pending ? 'Running…' : 'Run reconciliation'}
+				</button>
 			</form>
+			<p class="warn-inline">
+				Rebuilds pairings from current submissions. Manual overrides are preserved; every other
+				pairing is recomputed.
+			</p>
 
 			{#if data.pairings.length === 0}
 				<p class="notice">No pairs yet.</p>
@@ -175,14 +209,16 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Override a pair</span></div>
-			<form method="POST" action="?/override" class="override-form">
+			<form method="POST" action="?/override" class="override-form" use:enhance={override.submit}>
 				<div class="override-pair">
 					<label class="field">
 						<span class="field-label">Mentor</span>
 						<select name="mentorMemberId" required>
 							<option value="">Choose a mentor</option>
 							{#each data.mentors as mentor (mentor.id)}
-								<option value={mentor.id}>{mentor.fullName}</option>
+								<option value={mentor.id}>
+									{mentor.fullName}{pairedMentorIds.has(mentor.id) ? ' — already paired' : ''}
+								</option>
 							{/each}
 						</select>
 					</label>
@@ -191,7 +227,9 @@
 						<select name="menteeMemberId" required>
 							<option value="">Choose a mentee</option>
 							{#each data.mentees as mentee (mentee.id)}
-								<option value={mentee.id}>{mentee.fullName}</option>
+								<option value={mentee.id}>
+									{mentee.fullName}{pairedMenteeIds.has(mentee.id) ? ' — already paired' : ''}
+								</option>
 							{/each}
 						</select>
 					</label>
@@ -200,7 +238,9 @@
 					<span class="field-label">Reason</span>
 					<textarea name="reason"></textarea>
 				</label>
-				<button type="submit" class="btn btn-primary">Save override</button>
+				<button type="submit" class="btn btn-primary" disabled={override.pending}>
+					{override.pending ? 'Saving…' : 'Save override'}
+				</button>
 			</form>
 		</div>
 
@@ -214,6 +254,19 @@
 		member={detailMember}
 		actionUrl="?/updateMember"
 		onclose={() => (detailMemberId = null)}
+	/>
+
+	<ConfirmDialog
+		open={closeConfirmOpen}
+		title="Close the preference form?"
+		body="Members who haven't submitted yet will no longer be able to. You can reopen it later."
+		confirmLabel="Close form"
+		danger
+		onconfirm={() => {
+			closeConfirmOpen = false;
+			closeFormEl?.requestSubmit();
+		}}
+		oncancel={() => (closeConfirmOpen = false)}
 	/>
 </section>
 
@@ -240,7 +293,7 @@
 	}
 	.form-error {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
@@ -270,6 +323,11 @@
 
 	.inline-form {
 		margin-top: 0.9rem;
+	}
+	.warn-inline {
+		margin: 0.9rem 0 0;
+		font-size: 0.85rem;
+		color: var(--meh);
 	}
 
 	.scroll {
@@ -336,7 +394,8 @@
 	.member-link {
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.4rem 0;
+		display: inline-block;
 		color: var(--text);
 		font: inherit;
 		text-decoration: underline;

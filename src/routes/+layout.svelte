@@ -9,4 +9,6 @@
 	<AppHeader user={data.user} />
 {/if}
 
-{@render children()}
+<main>
+	{@render children()}
+</main>

@@ -115,6 +115,7 @@ test.describe('roster import', () => {
 
 		const downloadPromise = page.waitForEvent('download');
 		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Regenerate links' }).click();
 		const download = await downloadPromise;
 
 		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
@@ -175,7 +176,7 @@ test.describe('roster import', () => {
 		await expect(page.getByText('Roster updated')).toBeVisible();
 
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
-		let modal = page.getByRole('dialog', { name: 'Member detail' });
+		let modal = page.getByRole('dialog');
 		await expect(modal.getByRole('link', { name: 'adafictional' })).toHaveAttribute(
 			'href',
 			'https://t.me/adafictional'
@@ -199,7 +200,7 @@ test.describe('roster import', () => {
 		await page.keyboard.press('Escape');
 		await page.reload();
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
-		modal = page.getByRole('dialog', { name: 'Member detail' });
+		modal = page.getByRole('dialog');
 		await expect(modal.getByRole('link', { name: 'adachanged' })).toHaveAttribute(
 			'href',
 			'https://t.me/adachanged'
@@ -234,7 +235,38 @@ test.describe('roster import', () => {
 		// The chip lives in the member modal: open this test's own direct
 		// mentee and look inside the dialog.
 		await page.getByRole('button', { name: 'Chip Mentee' }).click();
-		const dialog = page.getByRole('dialog', { name: 'Member detail' });
+		const dialog = page.getByRole('dialog', { name: 'Chip Mentee' });
 		await expect(dialog.getByText('No application')).toBeVisible();
+	});
+
+	test('traps Tab focus inside the member detail dialog', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+		await expect(page.getByText('Ada Fictional')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		const modal = page.getByRole('dialog');
+		await expect(modal).toBeVisible();
+
+		const close = modal.getByRole('button', { name: 'Close' });
+		await close.focus();
+		await page.keyboard.press('Shift+Tab');
+		const editToggle = modal.getByRole('button', { name: 'Edit contact' });
+		await expect(editToggle).toBeFocused();
+
+		await page.keyboard.press('Tab');
+		await expect(close).toBeFocused();
+	});
+
+	test('cancels the member-link regeneration without generating anything', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+		await expect(page.getByText('Ada Fictional')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Regenerate member links?' });
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
 	});
 });

@@ -58,7 +58,7 @@ test.describe('admin drill-down', () => {
 
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
 
-		const modal = page.getByRole('dialog', { name: 'Applicant detail' });
+		const modal = page.getByRole('dialog', { name: 'Ada Fictional' });
 		await expect(modal).toBeVisible();
 		await expect(modal.getByText('ada@example.com')).toBeVisible();
 		await expect(modal.getByText('01000001')).toBeVisible();
@@ -69,7 +69,8 @@ test.describe('admin drill-down', () => {
 		// the specific answer article to assert the per-question rating chip renders
 		// (rather than just the answer text), avoiding a strict-mode collision.
 		const ratedAnswer = modal.locator('article', { hasText: 'I want structured guidance.' });
-		await expect(ratedAnswer.getByText('like', { exact: true })).toBeVisible();
+		await expect(ratedAnswer.getByText('Good', { exact: true })).toBeVisible();
+		await expect(modal.getByText('Unrated', { exact: true }).first()).toBeVisible();
 	});
 
 	test('closes on the close control', async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('admin drill-down', () => {
 		await page.goto('/results');
 
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
-		const modal = page.getByRole('dialog', { name: 'Applicant detail' });
+		const modal = page.getByRole('dialog', { name: 'Ada Fictional' });
 		await expect(modal).toBeVisible();
 
 		await page.getByRole('button', { name: 'Close' }).click();
@@ -176,6 +177,7 @@ test.describe('admin people management', () => {
 		// Revoke it.
 		const row = page.getByRole('row', { name: new RegExp(email) });
 		await row.getByRole('button', { name: 'Deactivate' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Deactivate' }).click();
 		// exact: default getByText matching is a case-insensitive substring match,
 		// and the row's own email text (`deactivated-<timestamp>@example.com`)
 		// contains "deactivated" too, so an inexact match resolves to both the
@@ -199,5 +201,45 @@ test.describe('admin people management', () => {
 
 		const ownRow = page.getByRole('row', { name: new RegExp(ADMIN.email) });
 		await expect(ownRow.getByRole('button', { name: 'Deactivate' })).toHaveCount(0);
+	});
+
+	test('cancelling the deactivate dialog leaves the person active', async ({ page }) => {
+		const email = `cancel-deactivate-${Date.now()}@example.com`;
+
+		await signIn(page, ADMIN);
+		await page.goto('/admin/people');
+		await page.getByLabel('Name').fill('Not Deactivated');
+		await page.getByLabel('Email').fill(email);
+		await page.getByRole('checkbox', { name: 'Finance', exact: true }).check();
+		await page.getByRole('button', { name: 'Create and issue invite' }).click();
+
+		const row = page.getByRole('row', { name: new RegExp(email) });
+		await row.getByRole('button', { name: 'Deactivate' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Deactivate Not Deactivated?' });
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
+
+		await expect(row.getByText('Deactivated', { exact: true })).toHaveCount(0);
+		await expect(row.getByRole('button', { name: 'Deactivate' })).toBeVisible();
+	});
+});
+
+test.describe('nav active state', () => {
+	test('marks the current route in the header nav', async ({ page }) => {
+		await signIn(page, ADMIN);
+		const routes = [
+			'/results',
+			'/admin/people',
+			'/admin/import',
+			'/admin/roster',
+			'/admin/pairing'
+		];
+		for (const path of routes) {
+			await page.goto(path);
+			const current = page.locator('.app-nav a[aria-current="page"]');
+			await expect(current).toHaveCount(1);
+			await expect(current).toHaveAttribute('href', path);
+		}
 	});
 });

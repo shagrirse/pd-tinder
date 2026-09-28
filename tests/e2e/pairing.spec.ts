@@ -76,12 +76,12 @@ test.describe('pairing admin surface', () => {
 		await page.goto('/admin/pairing');
 
 		await page.getByLabel('Mentor').selectOption({ label: 'Sam Mentor' });
-		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee' });
+		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee — already paired' });
 		await page.getByRole('button', { name: 'Save override' }).click();
 		await expect(page.getByText('An override needs a reason.')).toBeVisible();
 
 		await page.getByLabel('Mentor').selectOption({ label: 'Sam Mentor' });
-		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee' });
+		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee — already paired' });
 		await page.getByLabel('Reason').fill('Jordan asked to switch at the mixer');
 		await page.getByRole('button', { name: 'Save override' }).click();
 
@@ -103,6 +103,7 @@ test.describe('pairing admin surface', () => {
 		await page.goto('/admin/pairing');
 
 		await page.getByRole('button', { name: 'Close form' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Close form' }).click();
 		await expect(page.getByText('Closed', { exact: true })).toBeVisible();
 
 		const jordanToken = tokenFor('Jordan Mentee');
@@ -144,7 +145,7 @@ test.describe('pairing admin surface', () => {
 
 		const statusPanel = page.locator('.panel', { hasText: 'Form status' });
 		await statusPanel.getByRole('button', { name: 'Sam Mentor' }).click();
-		const modal = page.getByRole('dialog', { name: 'Member detail' });
+		const modal = page.getByRole('dialog');
 		await expect(modal).toBeVisible();
 		await expect(modal.getByRole('heading', { name: 'Sam Mentor' })).toBeVisible();
 		await expect(modal.getByText('Mentor', { exact: true })).toBeVisible();
@@ -156,5 +157,60 @@ test.describe('pairing admin surface', () => {
 		await recon.getByRole('button', { name: 'Priya Mentor' }).click();
 		await expect(modal).toBeVisible();
 		await expect(modal.getByRole('heading', { name: 'Priya Mentor' })).toBeVisible();
+	});
+
+	test('cancelling or escaping the close-form dialog leaves the form open', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		await page.getByRole('button', { name: 'Close form' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Close the preference form?' });
+		await expect(dialog).toBeVisible();
+
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Close form' }).click();
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('dialog')).toBeHidden();
+		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+	});
+
+	test('flags an already-paired member in the override selects without blocking the pick', async ({
+		page
+	}) => {
+		seedMutualFirstChoice();
+		await signIn(page);
+		await page.goto('/admin/pairing');
+		await page.getByRole('button', { name: 'Run reconciliation' }).click();
+
+		const mentorSelect = page.getByLabel('Mentor');
+		const menteeSelect = page.getByLabel('Mentee');
+		await expect(mentorSelect.locator('option', { hasText: 'Priya Mentor' })).toHaveText(
+			'Priya Mentor — already paired'
+		);
+		await expect(menteeSelect.locator('option', { hasText: 'Jordan Mentee' })).toHaveText(
+			'Jordan Mentee — already paired'
+		);
+
+		await mentorSelect.selectOption({ label: 'Priya Mentor — already paired' });
+		await menteeSelect.selectOption({ label: 'Jordan Mentee — already paired' });
+		await page.getByLabel('Reason').fill('Admin decided to keep them, logged explicitly');
+		await page.getByRole('button', { name: 'Save override' }).click();
+
+		const row = page.locator('tr', { hasText: 'Priya Mentor' });
+		await expect(row.getByText('Manual')).toBeVisible();
+	});
+
+	test('shows an accurate reconciliation caption', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		await expect(
+			page.getByText(
+				'Rebuilds pairings from current submissions. Manual overrides are preserved; every other pairing is recomputed.'
+			)
+		).toBeVisible();
 	});
 });

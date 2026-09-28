@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+
 	let { user }: { user: { name: string; email: string; role: 'admin' | 'reviewer' } } = $props();
 </script>
 
@@ -9,14 +11,42 @@
 
 	<nav class="app-nav">
 		{#if user.role === 'reviewer'}
-			<a href="/review">Deck</a>
-			<a href="/review/reviewed">Reviewed</a>
+			<a
+				href="/review"
+				aria-current={page.url.pathname === '/review' ? 'page' : undefined}
+				class:active={page.url.pathname === '/review'}>Deck</a
+			>
+			<a
+				href="/review/reviewed"
+				aria-current={page.url.pathname === '/review/reviewed' ? 'page' : undefined}
+				class:active={page.url.pathname === '/review/reviewed'}>Reviewed</a
+			>
 		{:else}
-			<a href="/results">Results</a>
-			<a href="/admin/people">People</a>
-			<a href="/admin/import">Import</a>
-			<a href="/admin/roster">Roster</a>
-			<a href="/admin/pairing">Pairing</a>
+			<a
+				href="/results"
+				aria-current={page.url.pathname === '/results' ? 'page' : undefined}
+				class:active={page.url.pathname === '/results'}>Results</a
+			>
+			<a
+				href="/admin/people"
+				aria-current={page.url.pathname === '/admin/people' ? 'page' : undefined}
+				class:active={page.url.pathname === '/admin/people'}>People</a
+			>
+			<a
+				href="/admin/import"
+				aria-current={page.url.pathname === '/admin/import' ? 'page' : undefined}
+				class:active={page.url.pathname === '/admin/import'}>Import</a
+			>
+			<a
+				href="/admin/roster"
+				aria-current={page.url.pathname === '/admin/roster' ? 'page' : undefined}
+				class:active={page.url.pathname === '/admin/roster'}>Roster</a
+			>
+			<a
+				href="/admin/pairing"
+				aria-current={page.url.pathname === '/admin/pairing' ? 'page' : undefined}
+				class:active={page.url.pathname === '/admin/pairing'}>Pairing</a
+			>
 		{/if}
 	</nav>
 
@@ -81,6 +111,10 @@
 	}
 	.app-nav a:hover {
 		color: var(--text);
+	}
+	.app-nav a.active {
+		color: var(--flame);
+		border-bottom: 2px solid var(--flame);
 	}
 	.app-user {
 		display: flex;

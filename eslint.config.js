@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import svelte from 'eslint-plugin-svelte';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import svelteParser from 'svelte-eslint-parser';
 
 export default tseslint.config(
 	{
@@ -29,6 +30,18 @@ export default tseslint.config(
 	{
 		files: ['**/*.svelte'],
 		languageOptions: {
+			parserOptions: {
+				parser: tseslint.parser
+			}
+		}
+	},
+	{
+		// Svelte 5 runes files (.svelte.ts/.svelte.js) are script-only modules:
+		// parse them with the Svelte parser, whose TypeScript hook is the
+		// typescript-eslint parser.
+		files: ['**/*.svelte.ts', '**/*.svelte.js'],
+		languageOptions: {
+			parser: svelteParser,
 			parserOptions: {
 				parser: tseslint.parser
 			}

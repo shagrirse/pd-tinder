@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { trapFocus } from '$lib/actions/trapFocus';
+
 	let {
 		open = false,
 		onconfirm,
@@ -25,7 +27,14 @@
 		onclick={(event) => event.target === event.currentTarget && oncancel()}
 		onkeydown={(event) => event.key === 'Escape' && oncancel()}
 	>
-		<div class="sheet" role="dialog" aria-modal="true" aria-label="Raise a red flag" tabindex="-1">
+		<div
+			class="sheet"
+			role="dialog"
+			aria-modal="true"
+			aria-label="Raise a red flag"
+			tabindex="-1"
+			use:trapFocus
+		>
 			<div class="sheet-handle" aria-hidden="true"></div>
 			<p class="eyebrow">Reject outright</p>
 			<h2>Red flag this applicant</h2>

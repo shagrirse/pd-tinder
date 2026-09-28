@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 
 	let { data, form } = $props();
 
@@ -24,6 +26,9 @@
 		const cycle = data.cycles.find((c) => c.id === Number(form?.cycleId));
 		return cycle ? `${cycle.name} (${cycle.year})` : '';
 	});
+
+	const validate = createPendingSubmit();
+	const commit = createPendingSubmit();
 </script>
 
 <section class="wrap">
@@ -53,13 +58,19 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>1 · Choose a file</span></div>
-			<form method="POST" action="?/validate" enctype="multipart/form-data" class="upload-form">
+			<form
+				method="POST"
+				action="?/validate"
+				enctype="multipart/form-data"
+				class="upload-form"
+				use:enhance={validate.submit}
+			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
 					<!-- Locked once a token is staged: the commit step always targets the cycle chosen at validate time. -->
 					<select name="cycleId" bind:value={selectedCycleId} disabled={!!form?.token}>
 						{#each data.cycles as cycle (cycle.id)}
-							<option value={cycle.id}>
+							<option value={cycle.id} disabled={cycle.status === 'closed'}>
 								{cycle.name} ({cycle.year}) — {statusLabel[cycle.status]}
 							</option>
 						{/each}
@@ -71,7 +82,9 @@
 					<input name="file" type="file" accept=".csv,text/csv" required />
 				</label>
 
-				<button type="submit" class="btn btn-primary">Validate</button>
+				<button type="submit" class="btn btn-primary" disabled={validate.pending}>
+					{validate.pending ? 'Validating…' : 'Validate'}
+				</button>
 			</form>
 
 			{#if selectedCycle?.status === 'reviewing'}
@@ -146,10 +159,10 @@
 				{/if}
 
 				{#if form.token}
-					<form method="POST" action="?/commit" class="confirm-form">
+					<form method="POST" action="?/commit" class="confirm-form" use:enhance={commit.submit}>
 						<input type="hidden" name="token" value={form.token} />
-						<button type="submit" class="btn btn-primary">
-							Import {report.rowCount} applicants
+						<button type="submit" class="btn btn-primary" disabled={commit.pending}>
+							{commit.pending ? 'Importing…' : `Import ${report.rowCount} applicants`}
 						</button>
 						{#if stagedCycleName}
 							<span class="confirm-note">Importing into {stagedCycleName}.</span>
@@ -184,7 +197,7 @@
 	}
 	.form-error {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
@@ -247,7 +260,7 @@
 		color: var(--meh);
 	}
 	.warn-inline.danger {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 
 	.stat-row {
@@ -299,7 +312,7 @@
 		padding-left: 0.9rem;
 	}
 	.report-block.errors .report-title {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.report-block.warnings {
 		border-left: 3px solid var(--meh);
