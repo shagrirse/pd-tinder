@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import { trapFocus } from '$lib/actions/trapFocus';
 
 	/**
@@ -27,18 +28,30 @@
 
 	let copiedField = $state<string | null>(null);
 	let editing = $state(false);
-	let saving = $state(false);
 	let editError = $state<string | null>(null);
 	let telegramDraft = $state('');
 	let linkedinDraft = $state('');
 	let modalEl = $state<HTMLDivElement | undefined>();
+
+	const editSubmit = createPendingSubmit({
+		onFailure: (data) => {
+			editError =
+				typeof data?.updateError === 'string'
+					? data.updateError
+					: 'Could not save the contact details.';
+		},
+		onSuccess: () => {
+			editError = null;
+			editing = false;
+		},
+		reset: false
+	});
 
 	$effect(() => {
 		if (member !== null && modalEl) modalEl.focus();
 		// Opening (or reopening after the host page's data refreshed) resets
 		// the edit form to the member's current values.
 		editing = false;
-		saving = false;
 		editError = null;
 		telegramDraft = member?.telegram ?? '';
 		linkedinDraft = member?.linkedin ?? '';
@@ -56,33 +69,6 @@
 			// leave the value selectable.
 			copiedField = null;
 		}
-	}
-
-	function handleEnhance() {
-		return async ({
-			update,
-			result
-		}: {
-			update: (opts?: { reset?: boolean }) => Promise<void>;
-			result: {
-				type: 'success' | 'failure' | 'error' | 'redirect';
-				data?: Record<string, unknown>;
-			};
-		}) => {
-			saving = true;
-			if (result.type === 'failure') {
-				editError =
-					typeof result.data?.updateError === 'string'
-						? result.data.updateError
-						: 'Could not save the contact details.';
-				saving = false;
-				return;
-			}
-			editError = null;
-			editing = false;
-			saving = false;
-			await update({ reset: false });
-		};
 	}
 </script>
 
@@ -242,7 +228,7 @@
 			</div>
 
 			{#if editing}
-				<form method="POST" action={actionUrl} class="edit-form" use:enhance={handleEnhance}>
+				<form method="POST" action={actionUrl} class="edit-form" use:enhance={editSubmit.submit}>
 					<input type="hidden" name="memberId" value={member.id} />
 					<label class="field">
 						<span class="field-label">Telegram</span>
@@ -254,8 +240,8 @@
 					</label>
 					{#if editError}<p class="form-error" role="alert">{editError}</p>{/if}
 					<div class="edit-actions">
-						<button type="submit" class="btn btn-primary" disabled={saving}>
-							{saving ? 'Saving…' : 'Save changes'}
+						<button type="submit" class="btn btn-primary" disabled={editSubmit.pending}>
+							{editSubmit.pending ? 'Saving…' : 'Save changes'}
 						</button>
 						<button
 							type="button"
