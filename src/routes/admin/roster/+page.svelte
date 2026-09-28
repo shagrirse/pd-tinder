@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -23,6 +25,11 @@
 	let mentorCommit = $derived(form && form.stage === 'commitMentors' ? form : null);
 	let menteeCommit = $derived(form && form.stage === 'commitMentees' ? form : null);
 	let mentorDone = $derived(mentorCommit?.committed ?? null);
+
+	const validateMentors = createPendingSubmit();
+	const commitMentors = createPendingSubmit();
+	const validateMentees = createPendingSubmit();
+	const commitMentees = createPendingSubmit();
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
 
 	let detailMemberId = $state<number | null>(null);
@@ -89,6 +96,7 @@
 				action="?/validateMentors"
 				enctype="multipart/form-data"
 				class="upload-form"
+				use:enhance={validateMentors.submit}
 			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
@@ -106,7 +114,9 @@
 					<input name="file" type="file" accept=".csv,text/csv" required />
 				</label>
 
-				<button type="submit" class="btn btn-primary">Validate mentors</button>
+				<button type="submit" class="btn btn-primary" disabled={validateMentors.pending}>
+					{validateMentors.pending ? 'Validating…' : 'Validate mentors'}
+				</button>
 			</form>
 
 			{#if mentors?.report}
@@ -129,10 +139,17 @@
 							could not be normalised and will be left blank.
 						</p>
 					{/if}
-					<form method="POST" action="?/commitMentors" class="upload-form">
+					<form
+						method="POST"
+						action="?/commitMentors"
+						class="upload-form"
+						use:enhance={commitMentors.submit}
+					>
 						<input type="hidden" name="token" value={mentors?.token ?? ''} />
-						<button type="submit" class="btn btn-primary">
-							Import {report.rowCount} mentor{report.rowCount === 1 ? '' : 's'}
+						<button type="submit" class="btn btn-primary" disabled={commitMentors.pending}>
+							{commitMentors.pending
+								? 'Importing…'
+								: `Import ${report.rowCount} mentor${report.rowCount === 1 ? '' : 's'}`}
 						</button>
 					</form>
 				{/if}
@@ -179,6 +196,7 @@
 				action="?/validateMentees"
 				enctype="multipart/form-data"
 				class="upload-form"
+				use:enhance={validateMentees.submit}
 			>
 				<label class="field">
 					<span class="field-label">Cycle</span>
@@ -196,7 +214,9 @@
 					<input name="file" type="file" accept=".csv,text/csv" required />
 				</label>
 
-				<button type="submit" class="btn btn-primary">Validate mentees</button>
+				<button type="submit" class="btn btn-primary" disabled={validateMentees.pending}>
+					{validateMentees.pending ? 'Validating…' : 'Validate mentees'}
+				</button>
 			</form>
 
 			{#if mentees?.report}
@@ -231,10 +251,17 @@
 							could not be normalised and will be left blank.
 						</p>
 					{/if}
-					<form method="POST" action="?/commitMentees" class="upload-form">
+					<form
+						method="POST"
+						action="?/commitMentees"
+						class="upload-form"
+						use:enhance={commitMentees.submit}
+					>
 						<input type="hidden" name="token" value={mentees?.token ?? ''} />
-						<button type="submit" class="btn btn-primary">
-							Import {report.rowCount} mentee{report.rowCount === 1 ? '' : 's'}
+						<button type="submit" class="btn btn-primary" disabled={commitMentees.pending}>
+							{commitMentees.pending
+								? 'Importing…'
+								: `Import ${report.rowCount} mentee${report.rowCount === 1 ? '' : 's'}`}
 						</button>
 					</form>
 				{/if}
