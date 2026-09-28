@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RatingValue } from '$lib/draft';
+	import { VERDICT_LABEL } from '$lib/verdictLabels';
 	import { trapFocus } from '$lib/actions/trapFocus';
 
 	/**
@@ -206,7 +207,9 @@
 									{#if detail.redFlag}
 										<span class="verdict-tag verdict-flag">Red flag</span>
 									{:else if detail.overall}
-										<span class="verdict-tag verdict-{detail.overall}">{detail.overall}</span>
+										<span class="verdict-tag verdict-{detail.overall}"
+											>{VERDICT_LABEL[detail.overall]}</span
+										>
 									{:else}
 										—
 									{/if}
@@ -234,9 +237,11 @@
 								<h4>{answer.prompt}</h4>
 								{#if answer.isRated}
 									{#if answer.rating}
-										<span class="verdict-tag verdict-{answer.rating}">{answer.rating}</span>
+										<span class="verdict-tag verdict-{answer.rating}"
+											>{VERDICT_LABEL[answer.rating]}</span
+										>
 									{:else}
-										<span class="verdict-tag verdict-unrated">unrated</span>
+										<span class="verdict-tag verdict-unrated">Unrated</span>
 									{/if}
 								{/if}
 							</div>

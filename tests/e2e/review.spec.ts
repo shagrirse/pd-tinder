@@ -68,6 +68,16 @@ test.describe('reviewer journey', () => {
 
 		await expect(page.getByRole('heading', { name: 'Applicant #2' })).toBeVisible();
 	});
+
+	test('shows a Title Case verdict on the reviewed list', async ({ page }) => {
+		await signIn(page, REVIEWER);
+		await page.getByRole('group').first().getByRole('button', { name: 'Good' }).click();
+		await page.getByRole('button', { name: 'Meh', exact: true }).last().click();
+		await expect(page.getByRole('heading', { name: 'Applicant #2' })).toBeVisible();
+
+		await page.goto('/review/reviewed');
+		await expect(page.locator('li').first().getByText('Meh', { exact: true })).toBeVisible();
+	});
 });
 
 test.describe('admin journey', () => {

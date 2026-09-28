@@ -69,7 +69,8 @@ test.describe('admin drill-down', () => {
 		// the specific answer article to assert the per-question rating chip renders
 		// (rather than just the answer text), avoiding a strict-mode collision.
 		const ratedAnswer = modal.locator('article', { hasText: 'I want structured guidance.' });
-		await expect(ratedAnswer.getByText('like', { exact: true })).toBeVisible();
+		await expect(ratedAnswer.getByText('Good', { exact: true })).toBeVisible();
+		await expect(modal.getByText('Unrated', { exact: true }).first()).toBeVisible();
 	});
 
 	test('closes on the close control', async ({ page }) => {
