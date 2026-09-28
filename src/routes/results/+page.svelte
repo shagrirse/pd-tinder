@@ -327,7 +327,8 @@
 	.name-btn {
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.4rem 0;
+		display: inline-block;
 		font: inherit;
 		font-weight: 600;
 		color: var(--flame);

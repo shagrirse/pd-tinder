@@ -378,7 +378,8 @@
 	.member-link {
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.4rem 0;
+		display: inline-block;
 		color: var(--text);
 		font: inherit;
 		text-decoration: underline;
