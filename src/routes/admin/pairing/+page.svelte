@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -25,6 +27,12 @@
 	);
 
 	let detailMemberId = $state<number | null>(null);
+
+	const reopen = createPendingSubmit();
+	const close = createPendingSubmit();
+	const reconcile = createPendingSubmit();
+	const override = createPendingSubmit();
+	let closeFormEl: HTMLFormElement | undefined = $state();
 	// Every list on this page already knows each member's role.
 	let detailMember = $derived.by(() => {
 		if (detailMemberId === null || !data.cycle) return null;
@@ -85,20 +93,32 @@
 			{/if}
 
 			{#if data.status === 'closed'}
-				<form method="POST" action="?/reopen" class="inline-form">
-					<button type="submit" class="btn btn-primary">Reopen form</button>
+				<form method="POST" action="?/reopen" class="inline-form" use:enhance={reopen.submit}>
+					<button type="submit" class="btn btn-primary" disabled={reopen.pending}>
+						{reopen.pending ? 'Reopening…' : 'Reopen form'}
+					</button>
 				</form>
 			{:else if data.status === 'open'}
-				<form method="POST" action="?/close" class="inline-form">
-					<button type="submit" class="btn btn-danger">Close form</button>
+				<form
+					method="POST"
+					action="?/close"
+					class="inline-form"
+					use:enhance={close.submit}
+					bind:this={closeFormEl}
+				>
+					<button type="submit" class="btn btn-danger" disabled={close.pending}>
+						{close.pending ? 'Closing…' : 'Close form'}
+					</button>
 				</form>
 			{/if}
 		</div>
 
 		<div class="panel">
 			<div class="panel-head"><span>Reconciliation</span></div>
-			<form method="POST" action="?/reconcile" class="inline-form">
-				<button type="submit" class="btn btn-primary">Run reconciliation</button>
+			<form method="POST" action="?/reconcile" class="inline-form" use:enhance={reconcile.submit}>
+				<button type="submit" class="btn btn-primary" disabled={reconcile.pending}>
+					{reconcile.pending ? 'Running…' : 'Run reconciliation'}
+				</button>
 			</form>
 
 			{#if data.pairings.length === 0}
@@ -175,7 +195,7 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Override a pair</span></div>
-			<form method="POST" action="?/override" class="override-form">
+			<form method="POST" action="?/override" class="override-form" use:enhance={override.submit}>
 				<div class="override-pair">
 					<label class="field">
 						<span class="field-label">Mentor</span>
@@ -200,7 +220,9 @@
 					<span class="field-label">Reason</span>
 					<textarea name="reason"></textarea>
 				</label>
-				<button type="submit" class="btn btn-primary">Save override</button>
+				<button type="submit" class="btn btn-primary" disabled={override.pending}>
+					{override.pending ? 'Saving…' : 'Save override'}
+				</button>
 			</form>
 		</div>
 
