@@ -223,3 +223,22 @@ test.describe('admin people management', () => {
 		await expect(row.getByRole('button', { name: 'Deactivate' })).toBeVisible();
 	});
 });
+
+test.describe('nav active state', () => {
+	test('marks the current route in the header nav', async ({ page }) => {
+		await signIn(page, ADMIN);
+		const routes = [
+			'/results',
+			'/admin/people',
+			'/admin/import',
+			'/admin/roster',
+			'/admin/pairing'
+		];
+		for (const path of routes) {
+			await page.goto(path);
+			const current = page.locator('.app-nav a[aria-current="page"]');
+			await expect(current).toHaveCount(1);
+			await expect(current).toHaveAttribute('href', path);
+		}
+	});
+});
