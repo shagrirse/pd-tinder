@@ -35,6 +35,9 @@
 	const override = createPendingSubmit();
 	let closeFormEl: HTMLFormElement | undefined = $state();
 	let closeConfirmOpen = $state(false);
+
+	let pairedMentorIds = $derived(new Set(data.pairings.map((p) => p.mentor.id)));
+	let pairedMenteeIds = $derived(new Set(data.pairings.map((p) => p.mentee.id)));
 	// Every list on this page already knows each member's role.
 	let detailMember = $derived.by(() => {
 		if (detailMemberId === null || !data.cycle) return null;
@@ -127,6 +130,10 @@
 					{reconcile.pending ? 'Running…' : 'Run reconciliation'}
 				</button>
 			</form>
+			<p class="warn-inline">
+				Rebuilds pairings from current submissions. Manual overrides are preserved; every other
+				pairing is recomputed.
+			</p>
 
 			{#if data.pairings.length === 0}
 				<p class="notice">No pairs yet.</p>
@@ -209,7 +216,9 @@
 						<select name="mentorMemberId" required>
 							<option value="">Choose a mentor</option>
 							{#each data.mentors as mentor (mentor.id)}
-								<option value={mentor.id}>{mentor.fullName}</option>
+								<option value={mentor.id}>
+									{mentor.fullName}{pairedMentorIds.has(mentor.id) ? ' — already paired' : ''}
+								</option>
 							{/each}
 						</select>
 					</label>
@@ -218,7 +227,9 @@
 						<select name="menteeMemberId" required>
 							<option value="">Choose a mentee</option>
 							{#each data.mentees as mentee (mentee.id)}
-								<option value={mentee.id}>{mentee.fullName}</option>
+								<option value={mentee.id}>
+									{mentee.fullName}{pairedMenteeIds.has(mentee.id) ? ' — already paired' : ''}
+								</option>
 							{/each}
 						</select>
 					</label>
@@ -312,6 +323,11 @@
 
 	.inline-form {
 		margin-top: 0.9rem;
+	}
+	.warn-inline {
+		margin: 0.9rem 0 0;
+		font-size: 0.85rem;
+		color: var(--meh);
 	}
 
 	.scroll {

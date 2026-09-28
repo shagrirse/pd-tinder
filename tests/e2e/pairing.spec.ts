@@ -76,12 +76,12 @@ test.describe('pairing admin surface', () => {
 		await page.goto('/admin/pairing');
 
 		await page.getByLabel('Mentor').selectOption({ label: 'Sam Mentor' });
-		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee' });
+		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee — already paired' });
 		await page.getByRole('button', { name: 'Save override' }).click();
 		await expect(page.getByText('An override needs a reason.')).toBeVisible();
 
 		await page.getByLabel('Mentor').selectOption({ label: 'Sam Mentor' });
-		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee' });
+		await page.getByLabel('Mentee').selectOption({ label: 'Jordan Mentee — already paired' });
 		await page.getByLabel('Reason').fill('Jordan asked to switch at the mixer');
 		await page.getByRole('button', { name: 'Save override' }).click();
 
@@ -175,5 +175,42 @@ test.describe('pairing admin surface', () => {
 		await page.keyboard.press('Escape');
 		await expect(page.getByRole('dialog')).toBeHidden();
 		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+	});
+
+	test('flags an already-paired member in the override selects without blocking the pick', async ({
+		page
+	}) => {
+		seedMutualFirstChoice();
+		await signIn(page);
+		await page.goto('/admin/pairing');
+		await page.getByRole('button', { name: 'Run reconciliation' }).click();
+
+		const mentorSelect = page.getByLabel('Mentor');
+		const menteeSelect = page.getByLabel('Mentee');
+		await expect(mentorSelect.locator('option', { hasText: 'Priya Mentor' })).toHaveText(
+			'Priya Mentor — already paired'
+		);
+		await expect(menteeSelect.locator('option', { hasText: 'Jordan Mentee' })).toHaveText(
+			'Jordan Mentee — already paired'
+		);
+
+		await mentorSelect.selectOption({ label: 'Priya Mentor — already paired' });
+		await menteeSelect.selectOption({ label: 'Jordan Mentee — already paired' });
+		await page.getByLabel('Reason').fill('Admin decided to keep them, logged explicitly');
+		await page.getByRole('button', { name: 'Save override' }).click();
+
+		const row = page.locator('tr', { hasText: 'Priya Mentor' });
+		await expect(row.getByText('Manual')).toBeVisible();
+	});
+
+	test('shows an accurate reconciliation caption', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		await expect(
+			page.getByText(
+				'Rebuilds pairings from current submissions. Manual overrides are preserved; every other pairing is recomputed.'
+			)
+		).toBeVisible();
 	});
 });

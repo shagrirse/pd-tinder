@@ -70,7 +70,7 @@
 					<!-- Locked once a token is staged: the commit step always targets the cycle chosen at validate time. -->
 					<select name="cycleId" bind:value={selectedCycleId} disabled={!!form?.token}>
 						{#each data.cycles as cycle (cycle.id)}
-							<option value={cycle.id}>
+							<option value={cycle.id} disabled={cycle.status === 'closed'}>
 								{cycle.name} ({cycle.year}) — {statusLabel[cycle.status]}
 							</option>
 						{/each}

@@ -134,4 +134,14 @@ test.describe('import wizard', () => {
 		const response = await page.goto('/admin/import');
 		expect(response?.status()).toBe(403);
 	});
+
+	test('disables a closed cycle in the cycle select', async ({ page }) => {
+		await signIn(page, ADMIN);
+		await page.goto('/admin/import');
+
+		const closedOption = page.locator('select[name="cycleId"] option', {
+			hasText: 'Mentor Recruitment 2025'
+		});
+		await expect(closedOption).toHaveAttribute('disabled', '');
+	});
 });
