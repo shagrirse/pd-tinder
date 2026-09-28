@@ -78,6 +78,11 @@ test.describe('reviewer journey', () => {
 		await page.goto('/review/reviewed');
 		await expect(page.locator('li').first().getByText('Meh', { exact: true })).toBeVisible();
 	});
+
+	test('shows the keyboard shortcut hint', async ({ page }) => {
+		await signIn(page, REVIEWER);
+		await expect(page.getByText('1 · 2 · 3 to rate')).toBeVisible();
+	});
 });
 
 test.describe('admin journey', () => {

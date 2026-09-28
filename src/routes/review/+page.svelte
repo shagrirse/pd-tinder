@@ -258,6 +258,7 @@
 			aria-label="Note for the admin"></textarea>
 
 		<div class="verdict-row">
+			<span class="shortcut-hint">1 · 2 · 3 to rate</span>
 			<span class="rated-count">{ratedCount}/{ratedQuestions.length} rated</span>
 		</div>
 
@@ -598,8 +599,15 @@
 	}
 	.verdict-row {
 		display: flex;
-		justify-content: flex-end;
+		justify-content: space-between;
 		margin: 0.5rem 0;
+	}
+	.shortcut-hint {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--text-faint);
 	}
 	.rated-count {
 		font-family: var(--font-mono);
