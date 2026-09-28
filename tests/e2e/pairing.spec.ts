@@ -144,7 +144,7 @@ test.describe('pairing admin surface', () => {
 
 		const statusPanel = page.locator('.panel', { hasText: 'Form status' });
 		await statusPanel.getByRole('button', { name: 'Sam Mentor' }).click();
-		const modal = page.getByRole('dialog', { name: 'Member detail' });
+		const modal = page.getByRole('dialog');
 		await expect(modal).toBeVisible();
 		await expect(modal.getByRole('heading', { name: 'Sam Mentor' })).toBeVisible();
 		await expect(modal.getByText('Mentor', { exact: true })).toBeVisible();

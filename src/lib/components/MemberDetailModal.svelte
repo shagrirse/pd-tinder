@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { trapFocus } from '$lib/actions/trapFocus';
 
 	/**
 	 * A member as it arrives over the wire. `$lib/server` is not reachable
@@ -96,14 +97,15 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Member detail"
+			aria-labelledby="member-detail-heading"
 			tabindex="-1"
 			bind:this={modalEl}
+			use:trapFocus
 		>
 			<button class="close" onclick={onclose} aria-label="Close">&times;</button>
 
 			<div class="modal-head">
-				<h2>{member.fullName}</h2>
+				<h2 id="member-detail-heading">{member.fullName}</h2>
 				<div class="chips">
 					{#if member.role === 'mentor'}
 						<span class="chip chip-mentor">

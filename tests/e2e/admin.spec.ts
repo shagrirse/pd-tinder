@@ -58,7 +58,7 @@ test.describe('admin drill-down', () => {
 
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
 
-		const modal = page.getByRole('dialog', { name: 'Applicant detail' });
+		const modal = page.getByRole('dialog', { name: 'Ada Fictional' });
 		await expect(modal).toBeVisible();
 		await expect(modal.getByText('ada@example.com')).toBeVisible();
 		await expect(modal.getByText('01000001')).toBeVisible();
@@ -78,7 +78,7 @@ test.describe('admin drill-down', () => {
 		await page.goto('/results');
 
 		await page.getByRole('button', { name: 'Ada Fictional' }).click();
-		const modal = page.getByRole('dialog', { name: 'Applicant detail' });
+		const modal = page.getByRole('dialog', { name: 'Ada Fictional' });
 		await expect(modal).toBeVisible();
 
 		await page.getByRole('button', { name: 'Close' }).click();

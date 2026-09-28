@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RatingValue } from '$lib/draft';
+	import { trapFocus } from '$lib/actions/trapFocus';
 
 	/**
 	 * `ApplicantDetail` from `$lib/server/results/detail` as it arrives over the wire.
@@ -114,9 +115,10 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Applicant detail"
+			aria-labelledby="applicant-detail-heading"
 			tabindex="-1"
 			bind:this={modalEl}
+			use:trapFocus
 		>
 			<button type="button" class="close" onclick={onclose} aria-label="Close">&times;</button>
 
@@ -127,7 +129,7 @@
 			{:else if detail}
 				<header class="modal-head">
 					<p class="eyebrow">Applicant #{detail.publicRef}</p>
-					<h2>{detail.fullName}</h2>
+					<h2 id="applicant-detail-heading">{detail.fullName}</h2>
 					<div class="chips">
 						<span class="chip chip-primary">{detail.industry1}</span>
 						{#if detail.industry2}<span class="chip">2nd · {detail.industry2}</span>{/if}
@@ -333,7 +335,8 @@
 		word-break: break-word;
 	}
 	.missing {
-		color: var(--danger);
+		color: var(--text-faint);
+		font-style: italic;
 	}
 	.muted {
 		color: var(--text-dim);
