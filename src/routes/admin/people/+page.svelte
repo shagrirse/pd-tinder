@@ -200,8 +200,8 @@
 	}
 
 	.invite-panel {
-		background: var(--like-soft);
-		border: 1px solid var(--like);
+		background: var(--meh-soft);
+		border: 1px solid var(--meh);
 		border-radius: var(--radius-md);
 		padding: 1.1rem;
 		margin-bottom: 1.5rem;
