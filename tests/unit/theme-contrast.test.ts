@@ -68,14 +68,18 @@ describe('paper-surface danger text', () => {
 describe('admin/people danger text and deactivated tag', () => {
 	const source = read('src/routes/admin/people/+page.svelte');
 
-	it('repaints .unassigned, .link-btn.danger, and .deactivated-tag', () => {
+	it('repaints .unassigned and .deactivated-tag', () => {
 		expect(source.match(/\.unassigned\s*{([^}]*)}/)?.[1]).toContain('color: var(--danger-text);');
-		expect(source.match(/\.link-btn\.danger\s*{([^}]*)}/)?.[1]).toContain(
-			'color: var(--danger-text);'
-		);
 		const tag = source.match(/\.deactivated-tag\s*{([^}]*)}/)?.[1] ?? '';
 		expect(tag).toContain('color: var(--danger-text);');
 		expect(tag).toContain('border: 1px solid var(--danger);');
+	});
+
+	it('repaints .link-btn.danger where it now lives: PersonRowActions', () => {
+		const component = read('src/lib/components/PersonRowActions.svelte');
+		expect(component.match(/\.link-btn\.danger\s*{([^}]*)}/)?.[1]).toContain(
+			'color: var(--danger-text);'
+		);
 	});
 
 	it('moves the deactivated tag outside the dimmed person-name span', () => {
