@@ -90,3 +90,23 @@ describe('admin/people danger text and deactivated tag', () => {
 		expect(tagIndex).toBeGreaterThan(nameClose);
 	});
 });
+
+describe('remaining dark-surface danger text', () => {
+	it('repaints .warn-inline.danger on roster and import', () => {
+		for (const file of [
+			'src/routes/admin/roster/+page.svelte',
+			'src/routes/admin/import/+page.svelte'
+		]) {
+			const rule = read(file).match(/\.warn-inline\.danger\s*{([^}]*)}/)?.[1] ?? '';
+			expect(rule).toContain('color: var(--danger-text);');
+		}
+	});
+
+	it('repaints the import report error title', () => {
+		const rule =
+			read('src/routes/admin/import/+page.svelte').match(
+				/\.report-block\.errors \.report-title\s*{([^}]*)}/
+			)?.[1] ?? '';
+		expect(rule).toContain('color: var(--danger-text);');
+	});
+});

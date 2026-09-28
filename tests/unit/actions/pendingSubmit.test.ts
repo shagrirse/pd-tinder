@@ -16,7 +16,8 @@ function fakeCallbackInput(
 	result:
 		| { type: 'success'; status: number; data?: Record<string, unknown> }
 		| { type: 'failure'; status: number; data?: Record<string, unknown> }
-		| { type: 'redirect'; status: number; location: string },
+		| { type: 'redirect'; status: number; location: string }
+		| { type: 'error'; status: number; error: Error },
 	update: (options?: { reset?: boolean; invalidateAll?: boolean }) => Promise<void> = async () => {}
 ) {
 	return {
@@ -67,5 +68,35 @@ describe('createPendingSubmit', () => {
 		await callback?.(fakeCallbackInput({ type: 'success', status: 200 }, update));
 
 		expect(update).toHaveBeenCalledWith({ reset: false });
+	});
+
+	it('treats an error result as a failure and clears pending', async () => {
+		const onFailure = vi.fn();
+		const onSuccess = vi.fn();
+		const helper = createPendingSubmit({ onFailure, onSuccess });
+		const callback = await helper.submit(fakeSubmitInput());
+
+		await callback?.(fakeCallbackInput({ type: 'error', status: 500, error: new Error('boom') }));
+
+		expect(onFailure).toHaveBeenCalledWith(undefined);
+		expect(onSuccess).not.toHaveBeenCalled();
+		expect(helper.pending).toBe(false);
+	});
+
+	it('clears pending even when update rejects', async () => {
+		const helper = createPendingSubmit();
+		const callback = await helper.submit(fakeSubmitInput());
+
+		try {
+			await callback?.(
+				fakeCallbackInput({ type: 'success', status: 200 }, async () => {
+					throw new Error('applyAction failed');
+				})
+			);
+		} catch {
+			// update() rejecting propagates; pending must still clear in the finally.
+		}
+
+		expect(helper.pending).toBe(false);
 	});
 });

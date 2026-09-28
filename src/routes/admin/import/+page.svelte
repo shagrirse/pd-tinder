@@ -260,7 +260,7 @@
 		color: var(--meh);
 	}
 	.warn-inline.danger {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 
 	.stat-row {
@@ -312,7 +312,7 @@
 		padding-left: 0.9rem;
 	}
 	.report-block.errors .report-title {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.report-block.warnings {
 		border-left: 3px solid var(--meh);

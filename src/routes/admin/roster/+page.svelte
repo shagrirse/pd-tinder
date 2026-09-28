@@ -473,7 +473,7 @@
 		color: var(--meh);
 	}
 	.warn-inline.danger {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 
 	.report-list {

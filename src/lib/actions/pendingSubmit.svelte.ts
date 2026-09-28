@@ -9,10 +9,14 @@ export function createPendingSubmit(options?: {
 	const submit: SubmitFunction = () => {
 		pending = true;
 		return async ({ update, result }) => {
-			if (result.type === 'failure') options?.onFailure?.(result.data);
-			else options?.onSuccess?.();
-			await update({ reset: options?.reset ?? true });
-			pending = false;
+			try {
+				if (result.type === 'failure') options?.onFailure?.(result.data);
+				else if (result.type === 'error') options?.onFailure?.(undefined);
+				else options?.onSuccess?.();
+				await update({ reset: options?.reset ?? true });
+			} finally {
+				pending = false;
+			}
 		};
 	};
 	return {
