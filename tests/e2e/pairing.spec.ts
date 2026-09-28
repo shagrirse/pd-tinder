@@ -103,6 +103,7 @@ test.describe('pairing admin surface', () => {
 		await page.goto('/admin/pairing');
 
 		await page.getByRole('button', { name: 'Close form' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Close form' }).click();
 		await expect(page.getByText('Closed', { exact: true })).toBeVisible();
 
 		const jordanToken = tokenFor('Jordan Mentee');
@@ -156,5 +157,23 @@ test.describe('pairing admin surface', () => {
 		await recon.getByRole('button', { name: 'Priya Mentor' }).click();
 		await expect(modal).toBeVisible();
 		await expect(modal.getByRole('heading', { name: 'Priya Mentor' })).toBeVisible();
+	});
+
+	test('cancelling or escaping the close-form dialog leaves the form open', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		await page.getByRole('button', { name: 'Close form' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Close the preference form?' });
+		await expect(dialog).toBeVisible();
+
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Close form' }).click();
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('dialog')).toBeHidden();
+		await expect(page.getByText('Open', { exact: true })).toBeVisible();
 	});
 });

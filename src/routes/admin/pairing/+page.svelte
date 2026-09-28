@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -33,6 +34,7 @@
 	const reconcile = createPendingSubmit();
 	const override = createPendingSubmit();
 	let closeFormEl: HTMLFormElement | undefined = $state();
+	let closeConfirmOpen = $state(false);
 	// Every list on this page already knows each member's role.
 	let detailMember = $derived.by(() => {
 		if (detailMemberId === null || !data.cycle) return null;
@@ -106,7 +108,12 @@
 					use:enhance={close.submit}
 					bind:this={closeFormEl}
 				>
-					<button type="submit" class="btn btn-danger" disabled={close.pending}>
+					<button
+						type="button"
+						class="btn btn-danger"
+						disabled={close.pending}
+						onclick={() => (closeConfirmOpen = true)}
+					>
 						{close.pending ? 'Closing…' : 'Close form'}
 					</button>
 				</form>
@@ -236,6 +243,19 @@
 		member={detailMember}
 		actionUrl="?/updateMember"
 		onclose={() => (detailMemberId = null)}
+	/>
+
+	<ConfirmDialog
+		open={closeConfirmOpen}
+		title="Close the preference form?"
+		body="Members who haven't submitted yet will no longer be able to. You can reopen it later."
+		confirmLabel="Close form"
+		danger
+		onconfirm={() => {
+			closeConfirmOpen = false;
+			closeFormEl?.requestSubmit();
+		}}
+		oncancel={() => (closeConfirmOpen = false)}
 	/>
 </section>
 

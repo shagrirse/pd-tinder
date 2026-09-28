@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
@@ -30,6 +31,9 @@
 	const commitMentors = createPendingSubmit();
 	const validateMentees = createPendingSubmit();
 	const commitMentees = createPendingSubmit();
+
+	let tokensConfirmOpen = $state(false);
+	let tokensFormEl: HTMLFormElement | undefined = $state();
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
 
 	let detailMemberId = $state<number | null>(null);
@@ -280,10 +284,20 @@
 						{roster.mentees.length} mentee{roster.mentees.length === 1 ? '' : 's'}
 					</p>
 
-					<form method="POST" action="/admin/roster/tokens" class="upload-form">
+					<form
+						method="POST"
+						action="/admin/roster/tokens"
+						class="upload-form"
+						bind:this={tokensFormEl}
+					>
 						<input type="hidden" name="cycleId" value={selectedCycleId} />
-						<button type="submit" class="btn btn-primary">Generate &amp; export member links</button
+						<button
+							type="button"
+							class="btn btn-primary"
+							onclick={() => (tokensConfirmOpen = true)}
 						>
+							Generate &amp; export member links
+						</button>
 					</form>
 					<p class="warn-inline">
 						Regenerating replaces every member's link — anyone with an old one loses access.
@@ -339,6 +353,19 @@
 		member={detailMember}
 		actionUrl="?/updateMember"
 		onclose={() => (detailMemberId = null)}
+	/>
+
+	<ConfirmDialog
+		open={tokensConfirmOpen}
+		title="Regenerate member links?"
+		body="Every existing member's link stops working immediately. Anyone who hasn't opened theirs yet will need the new one."
+		confirmLabel="Regenerate links"
+		danger
+		onconfirm={() => {
+			tokensConfirmOpen = false;
+			tokensFormEl?.requestSubmit();
+		}}
+		oncancel={() => (tokensConfirmOpen = false)}
 	/>
 </section>
 

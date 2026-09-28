@@ -115,6 +115,7 @@ test.describe('roster import', () => {
 
 		const downloadPromise = page.waitForEvent('download');
 		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Regenerate links' }).click();
 		const download = await downloadPromise;
 
 		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
@@ -255,5 +256,17 @@ test.describe('roster import', () => {
 
 		await page.keyboard.press('Tab');
 		await expect(close).toBeFocused();
+	});
+
+	test('cancels the member-link regeneration without generating anything', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+		await expect(page.getByText('Ada Fictional')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Regenerate member links?' });
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
 	});
 });

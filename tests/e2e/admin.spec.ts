@@ -176,6 +176,7 @@ test.describe('admin people management', () => {
 		// Revoke it.
 		const row = page.getByRole('row', { name: new RegExp(email) });
 		await row.getByRole('button', { name: 'Deactivate' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Deactivate' }).click();
 		// exact: default getByText matching is a case-insensitive substring match,
 		// and the row's own email text (`deactivated-<timestamp>@example.com`)
 		// contains "deactivated" too, so an inexact match resolves to both the
@@ -199,5 +200,26 @@ test.describe('admin people management', () => {
 
 		const ownRow = page.getByRole('row', { name: new RegExp(ADMIN.email) });
 		await expect(ownRow.getByRole('button', { name: 'Deactivate' })).toHaveCount(0);
+	});
+
+	test('cancelling the deactivate dialog leaves the person active', async ({ page }) => {
+		const email = `cancel-deactivate-${Date.now()}@example.com`;
+
+		await signIn(page, ADMIN);
+		await page.goto('/admin/people');
+		await page.getByLabel('Name').fill('Not Deactivated');
+		await page.getByLabel('Email').fill(email);
+		await page.getByRole('checkbox', { name: 'Finance', exact: true }).check();
+		await page.getByRole('button', { name: 'Create and issue invite' }).click();
+
+		const row = page.getByRole('row', { name: new RegExp(email) });
+		await row.getByRole('button', { name: 'Deactivate' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Deactivate Not Deactivated?' });
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).toBeHidden();
+
+		await expect(row.getByText('Deactivated', { exact: true })).toHaveCount(0);
+		await expect(row.getByRole('button', { name: 'Deactivate' })).toBeVisible();
 	});
 });
