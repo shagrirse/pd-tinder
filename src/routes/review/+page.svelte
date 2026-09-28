@@ -505,7 +505,7 @@
 		margin-top: 0.9rem;
 	}
 	.warning {
-		color: var(--danger);
+		color: var(--danger-on-paper);
 		font-weight: 700;
 		font-size: 0.85rem;
 		margin: 0.75rem 0 0;

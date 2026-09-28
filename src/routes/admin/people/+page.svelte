@@ -112,10 +112,8 @@
 						{#each data.people as person (person.id)}
 							<tr class:inactive={!person.active}>
 								<td>
-									<span class="person-name">
-										{person.name}
-										{#if !person.active}<span class="deactivated-tag">Deactivated</span>{/if}
-									</span>
+									<span class="person-name">{person.name}</span>
+									{#if !person.active}<span class="deactivated-tag">Deactivated</span>{/if}
 									<span class="person-email">{person.email}</span>
 								</td>
 								<td><span class="chip">{person.role}</span></td>
@@ -198,7 +196,7 @@
 	}
 	.form-error {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
@@ -330,7 +328,7 @@
 		font-size: 0.78rem;
 	}
 	.unassigned {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.mono {
 		font-family: var(--font-mono);
@@ -352,7 +350,7 @@
 		white-space: nowrap;
 	}
 	.link-btn.danger {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.row-actions {
 		display: flex;
@@ -369,7 +367,7 @@
 		font-size: 0.62rem;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--danger);
+		color: var(--danger-text);
 		border: 1px solid var(--danger);
 		border-radius: 999px;
 		padding: 0 0.4rem;

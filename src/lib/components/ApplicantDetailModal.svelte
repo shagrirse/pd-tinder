@@ -290,7 +290,7 @@
 		margin: 0;
 	}
 	.state.error {
-		color: var(--danger);
+		color: var(--danger-text);
 	}
 	.modal-head h2 {
 		font-size: 1.6rem;

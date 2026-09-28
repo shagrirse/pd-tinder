@@ -61,7 +61,7 @@
 	}
 	:global(.auth-card .form-error) {
 		background: var(--danger-soft);
-		color: var(--danger);
+		color: var(--danger-on-paper);
 		border: 1px solid var(--danger);
 		border-radius: var(--radius-sm);
 		padding: 0.6rem 0.8rem;
