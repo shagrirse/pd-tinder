@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
@@ -49,6 +50,38 @@
 	let closeConfirmOpen = $state(false);
 	let tokensFormEl: HTMLFormElement | undefined = $state();
 	let regenConfirmOpen = $state(false);
+	let tokensPending = $state(false);
+	let tokensError = $state<string | null>(null);
+
+	// Submitted by fetch so the page can refresh once the CSV has downloaded.
+	// A native POST leaves the page data stale.
+	async function generateLinks(event: SubmitEvent) {
+		event.preventDefault();
+		if (tokensPending) return;
+		const form = event.currentTarget as HTMLFormElement;
+		tokensPending = true;
+		tokensError = null;
+		try {
+			const res = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+			if (!res.ok) throw new Error(`Request failed (${res.status})`);
+			const blob = await res.blob();
+			const disposition = res.headers.get('content-disposition') ?? '';
+			const filename = /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? 'member-links.csv';
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = filename;
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			URL.revokeObjectURL(url);
+			await invalidateAll();
+		} catch {
+			tokensError = 'Could not generate the member links. Try again.';
+		} finally {
+			tokensPending = false;
+		}
+	}
 </script>
 
 <section class="wrap">
@@ -94,19 +127,31 @@
 							</button>
 						</form>
 					{/if}
-					<!-- Generating links is what opens the form. A plain POST, not
-					     enhanced, so the browser receives the CSV download. -->
-					<form method="POST" action="/admin/roster/tokens" bind:this={tokensFormEl}>
+					<!-- Generating links is what opens the form. -->
+					<form
+						method="POST"
+						action="/admin/roster/tokens"
+						bind:this={tokensFormEl}
+						onsubmit={generateLinks}
+					>
 						<input type="hidden" name="cycleId" value={data.cycle.id} />
 						{#if data.status === 'not_opened'}
-							<button type="submit" class="btn btn-primary">Generate &amp; export links</button>
+							<button type="submit" class="btn btn-primary" disabled={tokensPending}>
+								Generate &amp; export links
+							</button>
 						{:else if data.status === 'open'}
-							<button type="button" class="btn btn-ghost" onclick={() => (regenConfirmOpen = true)}>
+							<button
+								type="button"
+								class="btn btn-ghost"
+								disabled={tokensPending}
+								onclick={() => (regenConfirmOpen = true)}
+							>
 								Regenerate links
 							</button>
 						{/if}
 					</form>
 				</div>
+				{#if tokensError}<p class="form-error" role="alert">{tokensError}</p>{/if}
 			</div>
 
 			<div class="panel">
@@ -141,10 +186,17 @@
 						<a href="/admin/members/export/baseline" class="btn btn-ghost">Export baseline CSV</a>
 						<a href="/admin/members/export/overrides" class="btn btn-ghost">Export overrides CSV</a>
 					{:else}
-						<button type="button" class="btn btn-ghost" disabled>Export baseline CSV</button>
-						<button type="button" class="btn btn-ghost" disabled>Export overrides CSV</button>
+						<button type="button" class="btn btn-ghost" disabled aria-describedby="exports-locked">
+							Export baseline CSV
+						</button>
+						<button type="button" class="btn btn-ghost" disabled aria-describedby="exports-locked">
+							Export overrides CSV
+						</button>
 					{/if}
 				</div>
+				{#if lockedReason}
+					<p class="warn-inline" id="exports-locked">{lockedReason}</p>
+				{/if}
 			</div>
 		</div>
 

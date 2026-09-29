@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
+import Database from 'better-sqlite3';
 import { expect, test } from '@playwright/test';
+import { E2E_DB } from './global-setup';
 
 const ADMIN = { email: 'admin@example.com', password: 'admin-password-1' };
 
@@ -279,5 +281,25 @@ test.describe('roster import', () => {
 		await page.goto('/admin/roster');
 		await expect(page.getByText('Current roster')).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Ada Fictional', exact: true })).toHaveCount(0);
+	});
+
+	test('refreshes the members page after generating the first member links', async ({ page }) => {
+		// Runs last: it clears the links other specs rely on.
+		const db = new Database(E2E_DB);
+		db.prepare('DELETE FROM member_tokens').run();
+		db.close();
+
+		await signIn(page);
+		await page.goto('/admin/members');
+		await expect(page.getByText('Not opened yet')).toBeVisible();
+
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'Generate & export links' }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
+
+		await expect(page.locator('.verdict-tag')).toHaveText('Open');
+		await expect(page.getByRole('button', { name: 'Generate & export links' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Regenerate links' })).toBeVisible();
 	});
 });
