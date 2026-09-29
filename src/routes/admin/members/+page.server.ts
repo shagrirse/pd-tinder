@@ -25,9 +25,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 };
 
-type ActionResult = { error: string | null; updateError: string | null };
-const OK: ActionResult = { error: null, updateError: null };
-const problem = (message: string): ActionResult => ({ error: message, updateError: null });
+type ActionResult = {
+	error: string | null;
+	updateError: string | null;
+	overrideError: string | null;
+};
+const OK: ActionResult = { error: null, updateError: null, overrideError: null };
+const problem = (message: string): ActionResult => ({
+	error: message,
+	updateError: null,
+	overrideError: null
+});
 
 const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
 	not_found: 'Choose a mentor and a mentee from the lists.',
@@ -90,14 +98,22 @@ export const actions: Actions = {
 		const reason = String(form.get('reason') ?? '');
 
 		if (!Number.isInteger(mentorMemberId) || !Number.isInteger(menteeMemberId)) {
-			return fail(400, problem('Choose a mentor and a mentee.'));
+			return fail(400, {
+				error: null,
+				updateError: null,
+				overrideError: 'Choose a mentor and a mentee.'
+			});
 		}
 
 		try {
 			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason, user.id);
 		} catch (cause) {
 			if (cause instanceof OverrideError) {
-				return fail(400, problem(OVERRIDE_ERROR_MESSAGES[cause.code]));
+				return fail(400, {
+					error: null,
+					updateError: null,
+					overrideError: OVERRIDE_ERROR_MESSAGES[cause.code]
+				});
 			}
 			throw cause;
 		}
@@ -111,7 +127,7 @@ export const actions: Actions = {
 
 		const memberId = Number(form.get('memberId'));
 		if (!Number.isInteger(memberId)) {
-			return fail(400, { error: null, updateError: 'Choose a member first.' });
+			return fail(400, { error: null, updateError: 'Choose a member first.', overrideError: null });
 		}
 
 		try {
@@ -121,7 +137,7 @@ export const actions: Actions = {
 			});
 		} catch (cause) {
 			if (cause instanceof Error) {
-				return fail(400, { error: null, updateError: cause.message });
+				return fail(400, { error: null, updateError: cause.message, overrideError: null });
 			}
 			throw cause;
 		}

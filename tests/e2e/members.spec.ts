@@ -155,10 +155,12 @@ test.describe('pairing on the members page', () => {
 		await expect(formCard.getByText('Open', { exact: true })).toBeVisible();
 		await expect(formCard.getByText('2 of 4 submitted')).toBeVisible();
 
-		// No baseline yet, so overriding is locked.
-		const overridePanel = page.locator('.panel', { hasText: 'Override a pair' });
-		await expect(overridePanel.getByText(/Close the preference form first/)).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Save override' })).toBeDisabled();
+		// No baseline yet, so pairing from the modal is locked.
+		await rowOf(page, 'Sam Mentor').getByRole('button', { name: 'Sam Mentor' }).click();
+		const lockedModal = page.getByRole('dialog');
+		await expect(lockedModal.getByRole('button', { name: 'Pair with…' })).toBeDisabled();
+		await expect(lockedModal.getByText(/Close the preference form first/)).toBeVisible();
+		await page.keyboard.press('Escape');
 
 		await page.getByLabel('Pairing').selectOption('not_submitted');
 		await expect(page.getByText('Showing 2 of 4')).toBeVisible();
@@ -188,7 +190,11 @@ test.describe('pairing on the members page', () => {
 		await expect(page.getByText('Closed', { exact: true })).toBeVisible();
 		await expect(page.getByText(/^Baseline saved /)).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Run reconciliation' })).toBeHidden();
-		await expect(page.getByRole('button', { name: 'Save override' })).toBeEnabled();
+		await rowOf(page, 'Sam Mentor').getByRole('button', { name: 'Sam Mentor' }).click();
+		await expect(
+			page.getByRole('dialog').getByRole('button', { name: 'Pair with…' })
+		).toBeEnabled();
+		await page.keyboard.press('Escape');
 
 		// The server refuses a rerun while closed, even without the button.
 		const result = await page.evaluate(async () => {
@@ -208,28 +214,48 @@ test.describe('pairing on the members page', () => {
 		await expect(rowOf(page, 'Priya Mentor').getByText('Jordan Mentee')).toBeVisible();
 	});
 
-	test('overrides a pair with a required reason', async ({ page }) => {
+	test('pairs from the member modal with a warning and a required reason', async ({ page }) => {
 		await signIn(page);
 		await page.goto('/admin/members');
 
-		await page.getByLabel('Mentor', { exact: true }).selectOption({ label: 'Sam Mentor' });
-		await page
-			.getByLabel('Mentee', { exact: true })
-			.selectOption({ label: 'Jordan Mentee — already paired' });
-		await page.getByRole('button', { name: 'Save override' }).click();
-		await expect(page.getByText('An override needs a reason.')).toBeVisible();
+		await rowOf(page, 'Sam Mentor').getByRole('button', { name: 'Sam Mentor' }).click();
+		const modal = page.getByRole('dialog');
+		await modal.getByRole('button', { name: 'Pair with…' }).click();
+		await modal
+			.getByLabel('Pair with')
+			.selectOption({ label: 'Jordan Mentee — paired with Priya Mentor' });
+		await expect(
+			modal.getByText('This ends Priya Mentor ↔ Jordan Mentee. Priya Mentor returns to unpaired.')
+		).toBeVisible();
 
-		await page.getByLabel('Mentor', { exact: true }).selectOption({ label: 'Sam Mentor' });
-		await page
-			.getByLabel('Mentee', { exact: true })
-			.selectOption({ label: 'Jordan Mentee — already paired' });
-		await page.getByLabel('Reason').fill('Jordan asked to switch at the mixer');
-		await page.getByRole('button', { name: 'Save override' }).click();
+		// Whitespace passes the browser's required check; the server rejects it,
+		// and the error shows inside the modal, not behind it.
+		await modal.getByLabel('Reason').fill('   ');
+		await modal.getByRole('button', { name: 'Save pair' }).click();
+		await expect(modal.getByText('An override needs a reason.')).toBeVisible();
+		await expect(page.locator('section.wrap > .form-error')).toHaveCount(0);
 
-		await expect(rowOf(page, 'Sam Mentor').getByText('Jordan Mentee')).toBeVisible();
+		await modal.getByLabel('Reason').fill('Jordan asked to switch at the mixer');
+		await modal.getByRole('button', { name: 'Save pair' }).click();
+
+		// The modal stays on Sam and shows the new pair.
+		await expect(modal.getByRole('heading', { name: 'Sam Mentor' })).toBeVisible();
+		await expect(modal.getByRole('button', { name: 'Jordan Mentee' })).toBeVisible();
+		await expect(modal.getByText('Manual')).toBeVisible();
+		await expect(
+			modal.getByText('Override reason: Jordan asked to switch at the mixer')
+		).toBeVisible();
+
+		// Clicking the partner switches the modal. Jordan's panel starts closed,
+		// and shows the baseline pair beside the new one.
+		await modal.getByRole('button', { name: 'Jordan Mentee' }).click();
+		await expect(modal.getByRole('heading', { name: 'Jordan Mentee' })).toBeVisible();
+		await expect(modal.getByRole('button', { name: 'Pair with…' })).toBeVisible();
+		await expect(modal.getByLabel('Reason')).toHaveCount(0);
+		await expect(modal.getByText('Priya Mentor · Mutual · first choice')).toBeVisible();
+		await page.keyboard.press('Escape');
+
 		await expect(rowOf(page, 'Sam Mentor').getByText('Manual')).toBeVisible();
-
-		// Priya lost her pair to the override.
 		await page.getByLabel('Pairing').selectOption('unpaired');
 		await expect(rowOf(page, 'Priya Mentor')).toBeVisible();
 	});
@@ -308,29 +334,28 @@ test.describe('pairing on the members page', () => {
 		await expect(page.getByText('Open', { exact: true })).toBeVisible();
 	});
 
-	test('flags an already-paired member in the override selects without blocking the pick', async ({
-		page
-	}) => {
+	test('flags already-paired partners in the modal without blocking the pick', async ({ page }) => {
 		seedMutualFirstChoice();
 		await signIn(page);
 		await page.goto('/admin/members');
 		await page.getByRole('button', { name: 'Run reconciliation' }).click();
+		await expect(rowOf(page, 'Priya Mentor').getByText('Jordan Mentee')).toBeVisible();
 
-		const mentorSelect = page.getByLabel('Mentor', { exact: true });
-		const menteeSelect = page.getByLabel('Mentee', { exact: true });
-		await expect(mentorSelect.locator('option', { hasText: 'Priya Mentor' })).toHaveText(
-			'Priya Mentor — already paired'
+		await rowOf(page, 'Alex Mentor').getByRole('button', { name: 'Alex Mentor' }).click();
+		const modal = page.getByRole('dialog');
+		await modal.getByRole('button', { name: 'Pair with…' }).click();
+		const partner = modal.getByLabel('Pair with');
+		await expect(partner.locator('option', { hasText: 'Jordan Mentee' })).toHaveText(
+			'Jordan Mentee — paired with Priya Mentor'
 		);
-		await expect(menteeSelect.locator('option', { hasText: 'Jordan Mentee' })).toHaveText(
-			'Jordan Mentee — already paired'
-		);
 
-		await mentorSelect.selectOption({ label: 'Priya Mentor — already paired' });
-		await menteeSelect.selectOption({ label: 'Jordan Mentee — already paired' });
-		await page.getByLabel('Reason').fill('Admin decided to keep them, logged explicitly');
-		await page.getByRole('button', { name: 'Save override' }).click();
+		await partner.selectOption({ label: 'Jordan Mentee — paired with Priya Mentor' });
+		await modal.getByLabel('Reason').fill('Admin decided, logged explicitly');
+		await modal.getByRole('button', { name: 'Save pair' }).click();
+		await expect(modal.getByText('Manual')).toBeVisible();
+		await page.keyboard.press('Escape');
 
-		await expect(rowOf(page, 'Priya Mentor').getByText('Manual')).toBeVisible();
+		await expect(rowOf(page, 'Alex Mentor').getByText('Manual')).toBeVisible();
 	});
 
 	test('shows an accurate reconciliation caption', async ({ page }) => {

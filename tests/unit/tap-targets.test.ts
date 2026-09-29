@@ -7,7 +7,8 @@ describe('row link tap targets', () => {
 	it('pads .member-link on roster and pairing', () => {
 		for (const file of [
 			'src/routes/admin/roster/+page.svelte',
-			'src/lib/components/MembersTable.svelte'
+			'src/lib/components/MembersTable.svelte',
+			'src/lib/components/MemberPairingPanel.svelte'
 		]) {
 			const rule = read(file).match(/\.member-link\s*{([^}]*)}/)?.[1] ?? '';
 			expect(rule).toContain('padding: 0.4rem 0;');

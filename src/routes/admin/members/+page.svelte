@@ -3,6 +3,7 @@
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
+	import MemberPairingPanel from '$lib/components/MemberPairingPanel.svelte';
 	import MembersTable from '$lib/components/MembersTable.svelte';
 
 	let { data, form } = $props();
@@ -33,14 +34,17 @@
 	// or the member links expired on their own.
 	let closedWithoutBaseline = $derived(data.status === 'closed' && !data.baseline);
 
-	// Interim override panel: replaced by "Pair with…" in the member modal.
-	let mentors = $derived(data.rows.filter((m) => m.role === 'mentor'));
-	let mentees = $derived(data.rows.filter((m) => m.role === 'mentee'));
+	let lockedReason = $derived(
+		data.baseline
+			? null
+			: closedWithoutBaseline
+				? 'No baseline was saved for this close. Reopen the form and close it again to save one.'
+				: 'Close the preference form first. Overrides are measured against the baseline it saves.'
+	);
 
 	const reopen = createPendingSubmit();
 	const close = createPendingSubmit();
 	const reconcile = createPendingSubmit();
-	const override = createPendingSubmit();
 	let closeFormEl: HTMLFormElement | undefined = $state();
 	let closeConfirmOpen = $state(false);
 	let tokensFormEl: HTMLFormElement | undefined = $state();
@@ -152,52 +156,6 @@
 			</div>
 		{/if}
 
-		<div class="panel">
-			<div class="panel-head"><span>Override a pair</span></div>
-			{#if closedWithoutBaseline}
-				<p class="notice">
-					No baseline was saved for this close. Reopen the form and close it again to save one.
-				</p>
-			{:else if !data.baseline}
-				<p class="notice">
-					Close the preference form first. Overrides are measured against the baseline it saves.
-				</p>
-			{/if}
-			<form method="POST" action="?/override" class="override-form" use:enhance={override.submit}>
-				<div class="override-pair">
-					<label class="field">
-						<span class="field-label">Mentor</span>
-						<select name="mentorMemberId" aria-label="Mentor" required>
-							<option value="">Choose a mentor</option>
-							{#each mentors as mentor (mentor.id)}
-								<option value={mentor.id}>
-									{mentor.fullName}{mentor.pair ? ' — already paired' : ''}
-								</option>
-							{/each}
-						</select>
-					</label>
-					<label class="field">
-						<span class="field-label">Mentee</span>
-						<select name="menteeMemberId" aria-label="Mentee" required>
-							<option value="">Choose a mentee</option>
-							{#each mentees as mentee (mentee.id)}
-								<option value={mentee.id}>
-									{mentee.fullName}{mentee.pair ? ' — already paired' : ''}
-								</option>
-							{/each}
-						</select>
-					</label>
-				</div>
-				<label class="field">
-					<span class="field-label">Reason</span>
-					<textarea name="reason"></textarea>
-				</label>
-				<button type="submit" class="btn btn-primary" disabled={override.pending || !data.baseline}>
-					{override.pending ? 'Saving…' : 'Save override'}
-				</button>
-			</form>
-		</div>
-
 		<ConfirmDialog
 			open={closeConfirmOpen}
 			title="Close the preference form?"
@@ -229,7 +187,21 @@
 		member={detailMember}
 		actionUrl="?/updateMember"
 		onclose={() => (detailMemberId = null)}
-	/>
+	>
+		{#snippet pairing()}
+			{#if detailMember && data.cycle}
+				<!-- Keyed so switching member starts the panel fresh. -->
+				{#key detailMember.id}
+					<MemberPairingPanel
+						member={detailMember}
+						rows={data.rows}
+						{lockedReason}
+						onopen={(id) => (detailMemberId = id)}
+					/>
+				{/key}
+			{/if}
+		{/snippet}
+	</MemberDetailModal>
 </section>
 
 <style>
@@ -300,32 +272,5 @@
 		margin: 0.9rem 0 0;
 		font-size: 0.85rem;
 		color: var(--meh);
-	}
-	.override-form {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-	.override-pair {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-		gap: 1rem;
-	}
-	.override-form select,
-	.override-form textarea {
-		background: var(--bg-raised-2);
-		border: 1.5px solid var(--line);
-		border-radius: var(--radius-sm);
-		color: var(--text);
-		font: inherit;
-		padding: 0.7rem 0.9rem;
-		min-height: 46px;
-	}
-	.override-form textarea {
-		min-height: 5rem;
-		resize: vertical;
-	}
-	.override-form .btn {
-		align-self: flex-start;
 	}
 </style>

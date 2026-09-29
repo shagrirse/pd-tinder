@@ -33,7 +33,8 @@ describe('dark-surface form-error and danger-text usage', () => {
 		'src/routes/admin/roster/+page.svelte',
 		'src/routes/admin/members/+page.svelte',
 		'src/routes/admin/import/+page.svelte',
-		'src/lib/components/MemberDetailModal.svelte'
+		'src/lib/components/MemberDetailModal.svelte',
+		'src/lib/components/MemberPairingPanel.svelte'
 	];
 
 	it.each(files)('%s repaints .form-error text without touching its border', (file) => {

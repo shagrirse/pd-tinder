@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import { trapFocus } from '$lib/actions/trapFocus';
+	import type { Snippet } from 'svelte';
 
 	/**
 	 * A member as it arrives over the wire. `$lib/server` is not reachable
@@ -23,8 +24,15 @@
 	let {
 		member,
 		actionUrl,
-		onclose
-	}: { member: WireMember | null; actionUrl: string; onclose: () => void } = $props();
+		onclose,
+		pairing
+	}: {
+		member: WireMember | null;
+		actionUrl: string;
+		onclose: () => void;
+		/** Optional extra section, rendered after Details (the members page passes its pairing panel). */
+		pairing?: Snippet;
+	} = $props();
 
 	let copiedField = $state<string | null>(null);
 	let editing = $state(false);
@@ -226,6 +234,8 @@
 					{/if}
 				</div>
 			</div>
+
+			{#if pairing}{@render pairing()}{/if}
 
 			{#if editing}
 				<form method="POST" action={actionUrl} class="edit-form" use:enhance={editSubmit.submit}>
