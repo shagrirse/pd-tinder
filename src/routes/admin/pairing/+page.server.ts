@@ -45,7 +45,9 @@ const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
 	not_found: 'Choose a mentor and a mentee from the lists above.',
 	reason_required: 'An override needs a reason.',
 	role_mismatch: 'Choose one mentor and one mentee.',
-	wrong_cycle: 'Both members must belong to the active cycle.'
+	wrong_cycle: 'Both members must belong to the active cycle.',
+	no_baseline:
+		'Close the preference form first. Overrides are measured against the baseline it saves.'
 };
 
 export const actions: Actions = {
@@ -79,7 +81,7 @@ export const actions: Actions = {
 	},
 
 	override: async ({ request, locals }) => {
-		requireAdmin(locals);
+		const user = requireAdmin(locals);
 		const db = getDb();
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
@@ -94,7 +96,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason);
+			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason, user.id);
 		} catch (cause) {
 			if (cause instanceof OverrideError) {
 				return fail(400, problem(OVERRIDE_ERROR_MESSAGES[cause.code]));
