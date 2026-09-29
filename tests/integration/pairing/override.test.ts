@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { makeTestDb } from '../../helpers/db';
-import { cycles, members, pairings } from '../../../src/lib/server/db/schema';
+import { makeTestDb, seedAdmin } from '../../helpers/db';
+import {
+	cycles,
+	members,
+	pairingBaselines,
+	pairingOverrides,
+	pairings
+} from '../../../src/lib/server/db/schema';
 import { OverrideError, overridePair } from '../../../src/lib/server/pairing/override';
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
 let mentors: number[];
 let mentees: number[];
+let admin: number;
+let baseline: number;
 
 function addMember(cycleId: number, role: 'mentor' | 'mentee', n: number) {
 	return db
@@ -26,6 +34,13 @@ beforeEach(() => {
 	db.insert(cycles).values({ name: '10th Circle', year: 2026 }).run();
 	mentors = [1, 2].map((n) => addMember(1, 'mentor', n));
 	mentees = [1, 2].map((n) => addMember(1, 'mentee', n));
+	admin = seedAdmin(db);
+	// Overrides are only allowed once the form has closed and saved a baseline.
+	baseline = db
+		.insert(pairingBaselines)
+		.values({ cycleId: 1, createdBy: admin })
+		.returning({ id: pairingBaselines.id })
+		.get().id;
 });
 
 /**
@@ -43,7 +58,7 @@ function codeOf(fn: () => void): string {
 
 describe('overridePair', () => {
 	it('creates a manual pair carrying its reason', () => {
-		overridePair(db, 1, mentors[0], mentees[0], 'agreed at the mixer');
+		overridePair(db, 1, mentors[0], mentees[0], 'agreed at the mixer', admin);
 		const row = db.select().from(pairings).get()!;
 		expect(row.method).toBe('manual');
 		expect(row.overrideReason).toBe('agreed at the mixer');
@@ -52,7 +67,7 @@ describe('overridePair', () => {
 	});
 
 	it('requires a reason', () => {
-		expect(codeOf(() => overridePair(db, 1, mentors[0], mentees[0], '   '))).toBe(
+		expect(codeOf(() => overridePair(db, 1, mentors[0], mentees[0], '   ', admin))).toBe(
 			'reason_required'
 		);
 		expect(db.select().from(pairings).all()).toEqual([]);
@@ -71,7 +86,7 @@ describe('overridePair', () => {
 			])
 			.run();
 
-		overridePair(db, 1, mentors[0], mentees[1], 'mentee asked to switch');
+		overridePair(db, 1, mentors[0], mentees[1], 'mentee asked to switch', admin);
 
 		const rows = db.select().from(pairings).all();
 		expect(rows).toHaveLength(1);
@@ -81,21 +96,21 @@ describe('overridePair', () => {
 	});
 
 	it('replaces an earlier override rather than duplicating it', () => {
-		overridePair(db, 1, mentors[0], mentees[0], 'first call');
-		overridePair(db, 1, mentors[0], mentees[0], 'second thoughts');
+		overridePair(db, 1, mentors[0], mentees[0], 'first call', admin);
+		overridePair(db, 1, mentors[0], mentees[0], 'second thoughts', admin);
 		const rows = db.select().from(pairings).all();
 		expect(rows).toHaveLength(1);
 		expect(rows[0].overrideReason).toBe('second thoughts');
 	});
 
 	it('rejects two members of the same role', () => {
-		expect(codeOf(() => overridePair(db, 1, mentors[0], mentors[1], 'nonsense'))).toBe(
+		expect(codeOf(() => overridePair(db, 1, mentors[0], mentors[1], 'nonsense', admin))).toBe(
 			'role_mismatch'
 		);
 	});
 
 	it('rejects arguments given in the wrong order', () => {
-		expect(codeOf(() => overridePair(db, 1, mentees[0], mentors[0], 'swapped'))).toBe(
+		expect(codeOf(() => overridePair(db, 1, mentees[0], mentors[0], 'swapped', admin))).toBe(
 			'role_mismatch'
 		);
 	});
@@ -103,12 +118,99 @@ describe('overridePair', () => {
 	it('rejects a member from another cycle', () => {
 		db.insert(cycles).values({ name: '11th Circle', year: 2027 }).run();
 		const foreign = addMember(2, 'mentee', 9);
-		expect(codeOf(() => overridePair(db, 1, mentors[0], foreign, 'wrong cycle'))).toBe(
+		expect(codeOf(() => overridePair(db, 1, mentors[0], foreign, 'wrong cycle', admin))).toBe(
 			'wrong_cycle'
 		);
 	});
 
 	it('rejects an unknown member', () => {
-		expect(codeOf(() => overridePair(db, 1, mentors[0], 9999, 'ghost'))).toBe('not_found');
+		expect(codeOf(() => overridePair(db, 1, mentors[0], 9999, 'ghost', admin))).toBe('not_found');
+	});
+
+	it('rejects an override before any baseline exists', () => {
+		db.delete(pairingBaselines).run();
+		expect(codeOf(() => overridePair(db, 1, mentors[0], mentees[0], 'too early', admin))).toBe(
+			'no_baseline'
+		);
+		expect(db.select().from(pairings).all()).toEqual([]);
+		expect(db.select().from(pairingOverrides).all()).toEqual([]);
+	});
+
+	it('logs who made the override, why, and against which baseline', () => {
+		overridePair(db, 1, mentors[0], mentees[0], 'agreed at the mixer', admin);
+		const log = db.select().from(pairingOverrides).all();
+		expect(log).toHaveLength(1);
+		expect(log[0]).toMatchObject({
+			cycleId: 1,
+			baselineId: baseline,
+			mentorMemberId: mentors[0],
+			menteeMemberId: mentees[0],
+			reason: 'agreed at the mixer',
+			displacedMenteeId: null,
+			displacedMentorId: null,
+			createdBy: admin
+		});
+	});
+
+	it('logs against the latest baseline', () => {
+		const newer = db
+			.insert(pairingBaselines)
+			.values({ cycleId: 1, createdBy: admin })
+			.returning({ id: pairingBaselines.id })
+			.get().id;
+		overridePair(db, 1, mentors[0], mentees[0], 'after the second close', admin);
+		expect(db.select().from(pairingOverrides).get()?.baselineId).toBe(newer);
+	});
+
+	it('logs the partner each member lost', () => {
+		db.insert(pairings)
+			.values([
+				{
+					cycleId: 1,
+					mentorMemberId: mentors[0],
+					menteeMemberId: mentees[0],
+					method: 'mutual_first'
+				},
+				{ cycleId: 1, mentorMemberId: mentors[1], menteeMemberId: mentees[1], method: 'mutual_any' }
+			])
+			.run();
+
+		overridePair(db, 1, mentors[0], mentees[1], 'mentee asked to switch', admin);
+
+		expect(db.select().from(pairingOverrides).get()).toMatchObject({
+			displacedMenteeId: mentees[0],
+			displacedMentorId: mentors[1]
+		});
+	});
+
+	it('logs no displacement when re-pairing two members already paired together', () => {
+		db.insert(pairings)
+			.values({
+				cycleId: 1,
+				mentorMemberId: mentors[0],
+				menteeMemberId: mentees[0],
+				method: 'mutual_first'
+			})
+			.run();
+
+		overridePair(db, 1, mentors[0], mentees[0], 'confirming the algorithm', admin);
+
+		expect(db.select().from(pairingOverrides).get()).toMatchObject({
+			displacedMenteeId: null,
+			displacedMentorId: null
+		});
+	});
+
+	it('keeps every override in the log even when a later one replaces it', () => {
+		overridePair(db, 1, mentors[0], mentees[0], 'first call', admin);
+		overridePair(db, 1, mentors[0], mentees[0], 'second thoughts', admin);
+		expect(
+			db
+				.select()
+				.from(pairingOverrides)
+				.all()
+				.map((r) => r.reason)
+		).toEqual(['first call', 'second thoughts']);
+		expect(db.select().from(pairings).all()).toHaveLength(1);
 	});
 });

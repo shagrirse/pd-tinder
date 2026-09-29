@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import Database from 'better-sqlite3';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { E2E_DB, MEMBER_TOKENS_FILE } from './global-setup';
 
 const ADMIN = { email: 'admin@example.com', password: 'admin-password-1' };
@@ -14,11 +14,19 @@ function tokenFor(fullName: string): string {
 	return row.token;
 }
 
-async function signIn(page: import('@playwright/test').Page) {
+async function signIn(page: Page) {
 	await page.goto('/login');
 	await page.getByLabel('Email').fill(ADMIN.email);
 	await page.getByLabel('Password').fill(ADMIN.password);
 	await page.getByRole('button', { name: 'Sign in' }).click();
+}
+
+async function downloadCsv(page: Page, linkName: string) {
+	const downloadPromise = page.waitForEvent('download');
+	await page.getByRole('link', { name: linkName }).click();
+	const download = await downloadPromise;
+	const path = await download.path();
+	return { filename: download.suggestedFilename(), csv: path ? readFileSync(path, 'utf8') : '' };
 }
 
 /**
@@ -60,6 +68,11 @@ test.describe('pairing admin surface', () => {
 		await expect(statusPanel.getByText('Sam Mentor (mentor)')).toBeVisible();
 		await expect(statusPanel.getByText('Alex Mentor (mentor)')).toBeVisible();
 
+		// No baseline yet, so overriding is locked.
+		const overridePanel = page.locator('.panel', { hasText: 'Override a pair' });
+		await expect(overridePanel.getByText(/Close the preference form first/)).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Save override' })).toBeDisabled();
+
 		await page.getByRole('button', { name: 'Run reconciliation' }).click();
 
 		const row = page.locator('tr', { hasText: 'Priya Mentor' });
@@ -69,6 +82,43 @@ test.describe('pairing admin surface', () => {
 		const residualPanel = page.locator('.panel', { hasText: 'Residual' });
 		await expect(residualPanel.getByText('Sam Mentor (mentor)')).toBeVisible();
 		await expect(residualPanel.getByText('Alex Mentor (mentor)')).toBeVisible();
+	});
+
+	test('closing the form saves a baseline and unlocks overrides', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/pairing');
+
+		await page.getByRole('button', { name: 'Close form' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Close the preference form?' });
+		await expect(dialog.getByText(/saves the baseline/)).toBeVisible();
+		await dialog.getByRole('button', { name: 'Close form' }).click();
+
+		await expect(page.getByText('Closed', { exact: true })).toBeVisible();
+		await expect(page.getByText(/^Baseline saved /)).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Run reconciliation' })).toBeHidden();
+		await expect(page.getByRole('button', { name: 'Save override' })).toBeEnabled();
+
+		// The UI hides the reconcile button, so the server guard is exercised
+		// with a same-origin fetch (passes SvelteKit's CSRF origin check).
+		const result = await page.evaluate(async () => {
+			const res = await fetch('/admin/pairing?/reconcile', {
+				method: 'POST',
+				headers: { 'x-sveltekit-action': 'true' },
+				body: new FormData()
+			});
+			return res.json();
+		});
+		expect(result).toMatchObject({ type: 'failure', status: 400 });
+		// `data` is the devalue-serialised action payload, so the message is
+		// readable as a substring.
+		expect(result.data).toContain(
+			'The form is closed, so the pairings already reflect the saved baseline.'
+		);
+
+		// Closing rebuilt the live pairs from the frozen choices, and the
+		// rejected reconcile left them alone.
+		const row = page.locator('tr', { hasText: 'Priya Mentor' });
+		await expect(row.getByText('Jordan Mentee')).toBeVisible();
 	});
 
 	test('overrides a pair with a required reason', async ({ page }) => {
@@ -96,44 +146,46 @@ test.describe('pairing admin surface', () => {
 		await expect(residualPanel.getByText('Priya Mentor (mentor)')).toBeVisible();
 	});
 
-	test('closes and reopens the form without invalidating the distributed link', async ({
-		page
-	}) => {
+	test('exports the pairings, the baseline and the override log', async ({ page }) => {
 		await signIn(page);
 		await page.goto('/admin/pairing');
 
-		await page.getByRole('button', { name: 'Close form' }).click();
-		await page.getByRole('dialog').getByRole('button', { name: 'Close form' }).click();
-		await expect(page.getByText('Closed', { exact: true })).toBeVisible();
+		const pairingsFile = await downloadCsv(page, 'Export pairings CSV');
+		expect(pairingsFile.filename).toMatch(/pairings\.csv$/);
+		expect(pairingsFile.csv).toContain(
+			'mentor_name,mentor_email,mentor_telegram,mentor_linkedin,mentor_student_id,mentee_name,mentee_email,mentee_telegram,mentee_linkedin,mentee_student_id,method,override_reason'
+		);
+		expect(pairingsFile.csv).toContain('Sam Mentor');
+		expect(pairingsFile.csv).toContain('Jordan asked to switch at the mixer');
 
+		const baselineFile = await downloadCsv(page, 'Export baseline CSV');
+		expect(baselineFile.filename).toMatch(/baseline\.csv$/);
+		expect(baselineFile.csv).toContain(
+			'name,role,industry,student_id,email,choice_1,choice_1_reason,choice_2,choice_2_reason,choice_3,choice_3_reason,baseline_pair,baseline_method,their_rank_for_pair,pair_rank_for_them,baseline_created_at'
+		);
+		expect(baselineFile.csv).toContain('mutual_first');
+
+		const overridesFile = await downloadCsv(page, 'Export overrides CSV');
+		expect(overridesFile.filename).toMatch(/overrides\.csv$/);
+		expect(overridesFile.csv).toContain(
+			'created_at,created_by,mentor_name,mentor_student_id,mentee_name,mentee_student_id,reason,mentor_baseline_pair,mentee_baseline_pair,displaced_mentee,displaced_mentor,still_live'
+		);
+		expect(overridesFile.csv).toContain('Jordan asked to switch at the mixer');
+	});
+
+	test('reopening keeps the distributed link working', async ({ page }) => {
 		const jordanToken = tokenFor('Jordan Mentee');
 		const closedResponse = await page.goto(`/member/${jordanToken}`);
 		expect(closedResponse?.status()).toBe(404);
 
+		await signIn(page);
 		await page.goto('/admin/pairing');
 		await page.getByRole('button', { name: 'Reopen form' }).click();
 		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Run reconciliation' })).toBeVisible();
 
 		await page.goto(`/member/${jordanToken}`);
 		await expect(page.getByRole('heading', { name: 'Rank your top three mentors' })).toBeVisible();
-	});
-
-	test('exports the pairing record as CSV', async ({ page }) => {
-		await signIn(page);
-		await page.goto('/admin/pairing');
-
-		const downloadPromise = page.waitForEvent('download');
-		await page.getByRole('link', { name: 'Export CSV' }).click();
-		const download = await downloadPromise;
-
-		expect(download.suggestedFilename()).toMatch(/pairings\.csv$/);
-		const path = await download.path();
-		const csv = path ? readFileSync(path, 'utf8') : '';
-		expect(csv).toContain(
-			'mentor_name,mentor_email,mentor_telegram,mentor_linkedin,mentor_student_id,mentee_name,mentee_email,mentee_telegram,mentee_linkedin,mentee_student_id,method,override_reason'
-		);
-		expect(csv).toContain('Sam Mentor');
-		expect(csv).toContain('Jordan asked to switch at the mixer');
 	});
 
 	test('opens the member modal from the form status list and the pairing table', async ({

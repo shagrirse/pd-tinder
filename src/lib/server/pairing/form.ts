@@ -2,6 +2,8 @@ import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { AppDb } from '../db';
 import { memberTokens, members, preferences } from '../db/schema';
 import { MEMBER_TOKEN_TTL_MS } from '../auth/memberToken';
+import { captureBaseline } from './baseline';
+import { rebuildLivePairings } from './run';
 
 export type FormStatus = 'not_opened' | 'open' | 'closed';
 
@@ -49,10 +51,29 @@ export function getFormStatus(db: AppDb, cycleId: number, now: Date = new Date()
 	return latest.some((row) => row.expiresAt > now) ? 'open' : 'closed';
 }
 
-export function closeForm(db: AppDb, cycleId: number, now: Date = new Date()): void {
+/**
+ * Close the form and save the pairing baseline, in one transaction: expire
+ * each member's current link, capture the baseline, then rebuild the live
+ * pairings from the same (now frozen) choices, keeping manual pairs.
+ *
+ * Returns the new baseline's id, or null when the form was not open (never
+ * opened, or already closed), so a repeated close cannot stack baselines.
+ */
+export function closeForm(
+	db: AppDb,
+	cycleId: number,
+	actorUserId: number,
+	now: Date = new Date()
+): number | null {
+	if (getFormStatus(db, cycleId, now) !== 'open') return null;
 	const ids = latestTokenRows(db, cycleId).map((row) => row.id);
-	if (ids.length === 0) return;
-	db.update(memberTokens).set({ expiresAt: now }).where(inArray(memberTokens.id, ids)).run();
+
+	return db.transaction((tx) => {
+		tx.update(memberTokens).set({ expiresAt: now }).where(inArray(memberTokens.id, ids)).run();
+		const baselineId = captureBaseline(tx, cycleId, actorUserId);
+		rebuildLivePairings(tx, cycleId);
+		return baselineId;
+	});
 }
 
 export function reopenForm(db: AppDb, cycleId: number, now: Date = new Date()): void {

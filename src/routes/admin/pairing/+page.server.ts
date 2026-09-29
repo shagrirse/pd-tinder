@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db/instance';
 import { requireAdmin } from '$lib/server/auth/guards';
 import { getActiveCycle } from '$lib/server/import/cycle';
+import { getLatestBaseline } from '$lib/server/pairing/baseline';
 import { closeForm, getFormStatus, reopenForm, submissionStatus } from '$lib/server/pairing/form';
 import { computeResidual, listPairings } from '$lib/server/pairing/list';
 import { runReconciliation } from '$lib/server/pairing/run';
@@ -22,6 +23,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			submissions: { submitted: [], notSubmitted: [] },
 			pairings: [],
 			residual: { unpaired: [], gotNoChoice: [] },
+			baseline: null,
 			mentors: [],
 			mentees: []
 		};
@@ -33,6 +35,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		submissions: submissionStatus(db, cycle.id),
 		pairings: listPairings(db, cycle.id),
 		residual: computeResidual(db, cycle.id),
+		baseline: getLatestBaseline(db, cycle.id),
 		mentors: listActiveRoster(db, cycle.id, 'mentor'),
 		mentees: listActiveRoster(db, cycle.id, 'mentee')
 	};
@@ -45,16 +48,20 @@ const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
 	not_found: 'Choose a mentor and a mentee from the lists above.',
 	reason_required: 'An override needs a reason.',
 	role_mismatch: 'Choose one mentor and one mentee.',
-	wrong_cycle: 'Both members must belong to the active cycle.'
+	wrong_cycle: 'Both members must belong to the active cycle.',
+	no_baseline:
+		'Close the preference form first. Overrides are measured against the baseline it saves.'
 };
 
 export const actions: Actions = {
 	close: async ({ locals }) => {
-		requireAdmin(locals);
+		const user = requireAdmin(locals);
 		const db = getDb();
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
-		closeForm(db, cycle.id);
+		if (closeForm(db, cycle.id, user.id) === null) {
+			return fail(400, problem('The form is not open, so there is nothing to close.'));
+		}
 		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
@@ -72,12 +79,22 @@ export const actions: Actions = {
 		const db = getDb();
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
+		// Choices are frozen while closed, so the live pairs already match the
+		// saved baseline plus overrides. A rerun is only useful as a preview.
+		if (getFormStatus(db, cycle.id) === 'closed') {
+			return fail(
+				400,
+				problem(
+					'The form is closed, so the pairings already reflect the saved baseline. Reopen the form to rerun reconciliation.'
+				)
+			);
+		}
 		runReconciliation(db, cycle.id);
 		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
 	override: async ({ request, locals }) => {
-		requireAdmin(locals);
+		const user = requireAdmin(locals);
 		const db = getDb();
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
@@ -92,7 +109,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason);
+			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason, user.id);
 		} catch (cause) {
 			if (cause instanceof OverrideError) {
 				return fail(400, problem(OVERRIDE_ERROR_MESSAGES[cause.code]));

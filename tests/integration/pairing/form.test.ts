@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { makeTestDb } from '../../helpers/db';
+import { makeTestDb, seedAdmin } from '../../helpers/db';
 import { cycles, memberTokens, members, preferences } from '../../../src/lib/server/db/schema';
 import { createMemberToken, resolveMemberToken } from '../../../src/lib/server/auth/memberToken';
 import {
@@ -12,12 +12,14 @@ import {
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
+let admin: number;
 let mentor: number;
 let mentee: number;
 
 beforeEach(() => {
 	db = makeTestDb();
 	db.insert(cycles).values({ name: '10th Circle', year: 2026 }).run();
+	admin = seedAdmin(db);
 	mentor = db
 		.insert(members)
 		.values({ cycleId: 1, role: 'mentor', fullName: 'Priya Mentor', email: 'priya@example.com' })
@@ -42,7 +44,7 @@ describe('getFormStatus', () => {
 
 	it('is closed once every token has expired', () => {
 		createMemberToken(db, mentor);
-		closeForm(db, 1);
+		closeForm(db, 1, admin);
 		expect(getFormStatus(db, 1)).toBe('closed');
 	});
 });
@@ -52,7 +54,7 @@ describe('closeForm / reopenForm', () => {
 		const token = createMemberToken(db, mentor);
 		expect(resolveMemberToken(db, token)).not.toBeNull();
 
-		closeForm(db, 1);
+		closeForm(db, 1, admin);
 		expect(resolveMemberToken(db, token)).toBeNull();
 
 		reopenForm(db, 1);
@@ -70,7 +72,7 @@ describe('closeForm / reopenForm', () => {
 			.run();
 
 		const current = createMemberToken(db, mentor);
-		closeForm(db, 1);
+		closeForm(db, 1, admin);
 
 		expect(resolveMemberToken(db, current)).toBeNull();
 		const rows = db.select().from(memberTokens).where(eq(memberTokens.memberId, mentor)).all();
@@ -82,7 +84,7 @@ describe('closeForm / reopenForm', () => {
 	});
 
 	it('does nothing when no member has ever had a token', () => {
-		expect(() => closeForm(db, 1)).not.toThrow();
+		expect(closeForm(db, 1, admin)).toBeNull();
 		expect(() => reopenForm(db, 1)).not.toThrow();
 	});
 });

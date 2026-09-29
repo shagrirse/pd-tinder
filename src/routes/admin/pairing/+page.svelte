@@ -27,6 +27,17 @@
 		data.submissions.submitted.length + data.submissions.notSubmitted.length
 	);
 
+	// The same UTC format as the CSV exports, so the server's locale and time
+	// zone never leak into what an admin reads.
+	let baselineSavedAt = $derived(
+		data.baseline
+			? new Date(data.baseline.createdAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+			: ''
+	);
+	// A cycle can be closed without a baseline: closed before baselines existed,
+	// or the member link expired on its own.
+	let closedWithoutBaseline = $derived(data.status === 'closed' && !data.baseline);
+
 	let detailMemberId = $state<number | null>(null);
 
 	const reopen = createPendingSubmit();
@@ -82,6 +93,11 @@
 				<span class="verdict-tag {STATUS_TAG[data.status]}">{STATUS_LABEL[data.status]}</span>
 			</div>
 			<p class="done-body">{data.submissions.submitted.length} of {totalRoster} submitted.</p>
+			{#if data.baseline}
+				<p class="done-body">
+					Baseline saved {baselineSavedAt}.
+				</p>
+			{/if}
 
 			{#if data.submissions.notSubmitted.length > 0}
 				<p class="field-label">Not submitted</p>
@@ -125,15 +141,26 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Reconciliation</span></div>
-			<form method="POST" action="?/reconcile" class="inline-form" use:enhance={reconcile.submit}>
-				<button type="submit" class="btn btn-primary" disabled={reconcile.pending}>
-					{reconcile.pending ? 'Running…' : 'Run reconciliation'}
-				</button>
-			</form>
-			<p class="warn-inline">
-				Rebuilds pairings from current submissions. Manual overrides are preserved; every other
-				pairing is recomputed.
-			</p>
+			{#if closedWithoutBaseline}
+				<p class="done-body">
+					No baseline was saved for this close. Reopen the form and close it again to save one.
+				</p>
+			{:else if data.status === 'closed'}
+				<p class="done-body">
+					The form is closed, so these pairs are the saved baseline plus any overrides. Reopen the
+					form to rerun reconciliation.
+				</p>
+			{:else}
+				<form method="POST" action="?/reconcile" class="inline-form" use:enhance={reconcile.submit}>
+					<button type="submit" class="btn btn-primary" disabled={reconcile.pending}>
+						{reconcile.pending ? 'Running…' : 'Run reconciliation'}
+					</button>
+				</form>
+				<p class="warn-inline">
+					Rebuilds pairings from current submissions. Manual overrides are preserved; every other
+					pairing is recomputed.
+				</p>
+			{/if}
 
 			{#if data.pairings.length === 0}
 				<p class="notice">No pairs yet.</p>
@@ -209,6 +236,15 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Override a pair</span></div>
+			{#if closedWithoutBaseline}
+				<p class="notice">
+					No baseline was saved for this close. Reopen the form and close it again to save one.
+				</p>
+			{:else if !data.baseline}
+				<p class="notice">
+					Close the preference form first. Overrides are measured against the baseline it saves.
+				</p>
+			{/if}
 			<form method="POST" action="?/override" class="override-form" use:enhance={override.submit}>
 				<div class="override-pair">
 					<label class="field">
@@ -238,7 +274,7 @@
 					<span class="field-label">Reason</span>
 					<textarea name="reason"></textarea>
 				</label>
-				<button type="submit" class="btn btn-primary" disabled={override.pending}>
+				<button type="submit" class="btn btn-primary" disabled={override.pending || !data.baseline}>
 					{override.pending ? 'Saving…' : 'Save override'}
 				</button>
 			</form>
@@ -246,7 +282,13 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Export</span></div>
-			<a href="/admin/pairing/export" class="btn btn-ghost">Export CSV</a>
+			<div class="export-links">
+				<a href="/admin/pairing/export" class="btn btn-ghost">Export pairings CSV</a>
+				{#if data.baseline}
+					<a href="/admin/pairing/export/baseline" class="btn btn-ghost">Export baseline CSV</a>
+					<a href="/admin/pairing/export/overrides" class="btn btn-ghost">Export overrides CSV</a>
+				{/if}
+			</div>
 		</div>
 	{/if}
 
@@ -259,7 +301,7 @@
 	<ConfirmDialog
 		open={closeConfirmOpen}
 		title="Close the preference form?"
-		body="Members who haven't submitted yet will no longer be able to. You can reopen it later."
+		body="Members who haven't submitted yet will no longer be able to. Closing also saves the baseline: everyone's choices and the pairs they produce. You can reopen it later."
 		confirmLabel="Close form"
 		danger
 		onconfirm={() => {
@@ -390,6 +432,11 @@
 	}
 	.override-form .btn {
 		align-self: flex-start;
+	}
+	.export-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
 	}
 	.member-link {
 		background: none;

@@ -15,3 +15,6 @@ export function createDb(url: string) {
 export function applyMigrations(db: AppDb): void {
 	migrate(db, { migrationsFolder: 'drizzle' });
 }
+
+/** The handle a `db.transaction` callback receives, for helpers that must run inside one. */
+export type AppTx = Parameters<Parameters<AppDb['transaction']>[0]>[0];
