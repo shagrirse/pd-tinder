@@ -31,7 +31,7 @@ describe('dark-surface form-error and danger-text usage', () => {
 	const files = [
 		'src/routes/admin/people/+page.svelte',
 		'src/routes/admin/roster/+page.svelte',
-		'src/routes/admin/pairing/+page.svelte',
+		'src/routes/admin/members/+page.svelte',
 		'src/routes/admin/import/+page.svelte',
 		'src/lib/components/MemberDetailModal.svelte'
 	];
