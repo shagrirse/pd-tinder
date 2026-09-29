@@ -278,3 +278,98 @@ export const pairings = sqliteTable(
 		unique('pairings_mentee').on(t.menteeMemberId)
 	]
 );
+
+/**
+ * The pairing round's source of truth, saved each time the preference form
+ * closes: every member's choices as submitted, plus what the algorithm made
+ * of them with no manual overrides applied. Never updated or deleted, so
+ * overrides can always be measured against it. The newest row per cycle
+ * (highest id) is authoritative.
+ */
+export const pairingBaselines = sqliteTable('pairing_baselines', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	cycleId: integer('cycle_id')
+		.notNull()
+		.references(() => cycles.id),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	createdBy: integer('created_by')
+		.notNull()
+		.references(() => users.id)
+});
+
+export const baselinePreferences = sqliteTable(
+	'baseline_preferences',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		baselineId: integer('baseline_id')
+			.notNull()
+			.references(() => pairingBaselines.id),
+		memberId: integer('member_id')
+			.notNull()
+			.references(() => members.id),
+		choiceMemberId: integer('choice_member_id')
+			.notNull()
+			.references(() => members.id),
+		rank: integer('rank').notNull(),
+		reason: text('reason').notNull()
+	},
+	(t) => [unique('baseline_preferences_member_rank').on(t.baselineId, t.memberId, t.rank)]
+);
+
+export const baselinePairings = sqliteTable(
+	'baseline_pairings',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		baselineId: integer('baseline_id')
+			.notNull()
+			.references(() => pairingBaselines.id),
+		mentorMemberId: integer('mentor_member_id')
+			.notNull()
+			.references(() => members.id),
+		menteeMemberId: integer('mentee_member_id')
+			.notNull()
+			.references(() => members.id),
+		// The algorithm's own output only: a baseline never holds a manual pair.
+		method: text('method', { enum: ['mutual_first', 'mutual_any', 'one_sided'] }).notNull(),
+		// The rank each side gave the other, or null if they did not name them.
+		mentorRank: integer('mentor_rank'),
+		menteeRank: integer('mentee_rank')
+	},
+	(t) => [
+		unique('baseline_pairings_mentor').on(t.baselineId, t.mentorMemberId),
+		unique('baseline_pairings_mentee').on(t.baselineId, t.menteeMemberId)
+	]
+);
+
+/**
+ * Append-only record of every manual override. Live `pairings` only holds the
+ * current state, so an override that is later replaced survives here.
+ */
+export const pairingOverrides = sqliteTable('pairing_overrides', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	cycleId: integer('cycle_id')
+		.notNull()
+		.references(() => cycles.id),
+	baselineId: integer('baseline_id')
+		.notNull()
+		.references(() => pairingBaselines.id),
+	mentorMemberId: integer('mentor_member_id')
+		.notNull()
+		.references(() => members.id),
+	menteeMemberId: integer('mentee_member_id')
+		.notNull()
+		.references(() => members.id),
+	reason: text('reason').notNull(),
+	// Each member's live partner immediately before this override, or null if
+	// they had none (or were already paired with each other).
+	displacedMenteeId: integer('displaced_mentee_id').references(() => members.id),
+	displacedMentorId: integer('displaced_mentor_id').references(() => members.id),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	createdBy: integer('created_by')
+		.notNull()
+		.references(() => users.id)
+});

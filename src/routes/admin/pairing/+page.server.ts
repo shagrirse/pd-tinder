@@ -50,11 +50,13 @@ const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
 
 export const actions: Actions = {
 	close: async ({ locals }) => {
-		requireAdmin(locals);
+		const user = requireAdmin(locals);
 		const db = getDb();
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
-		closeForm(db, cycle.id);
+		if (closeForm(db, cycle.id, user.id) === null) {
+			return fail(400, problem('The form is not open, so there is nothing to close.'));
+		}
 		return { error: null, updateError: null } satisfies ActionResult;
 	},
 
