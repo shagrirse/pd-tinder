@@ -14,7 +14,7 @@ async function signIn(page: import('@playwright/test').Page) {
 }
 
 test.describe('roster import', () => {
-	test('imports selected mentees and shows them in the roster', async ({ page }) => {
+	test('imports selected mentees and shows them on the members page', async ({ page }) => {
 		await signIn(page);
 		await page.goto('/admin/roster');
 
@@ -28,6 +28,7 @@ test.describe('roster import', () => {
 		await page.getByRole('button', { name: /Import 2 mentees/ }).click();
 		await expect(page.getByText(/2 mentees added/)).toBeVisible();
 
+		await page.goto('/admin/members');
 		await expect(page.getByText('Ada Fictional')).toBeVisible();
 		await expect(page.getByText('Bo Fictional')).toBeVisible();
 	});
@@ -41,6 +42,7 @@ test.describe('roster import', () => {
 		await page.getByRole('button', { name: /Import 2 mentors/ }).click();
 		await expect(page.getByText(/2 mentors added/)).toBeVisible();
 
+		await page.goto('/admin/members');
 		await expect(page.getByText('Mentor Alpha')).toBeVisible();
 		await expect(page.getByText('Mentor Beta')).toBeVisible();
 	});
@@ -65,8 +67,8 @@ test.describe('roster import', () => {
 
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText(/1 mentee added/)).toBeVisible();
-		// The roster list now shows names only; the button targets the row.
-		await expect(page.getByRole('button', { name: 'New Mentee' })).toBeVisible();
+		await page.goto('/admin/members');
+		await expect(page.getByRole('button', { name: 'New Mentee', exact: true })).toBeVisible();
 	});
 
 	test('a mentee file missing the email column is blocked', async ({ page }) => {
@@ -107,14 +109,14 @@ test.describe('roster import', () => {
 
 	test('generates and downloads member links for the current roster', async ({ page }) => {
 		await signIn(page);
-		await page.goto('/admin/roster');
+		await page.goto('/admin/members');
 
 		// Runs after the earlier tests in this file, which already committed
 		// mentors and mentees into the shared e2e database — nothing to import here.
 		await expect(page.getByText('Ada Fictional')).toBeVisible();
 
 		const downloadPromise = page.waitForEvent('download');
-		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		await page.getByRole('button', { name: 'Regenerate links' }).click();
 		await page.getByRole('dialog').getByRole('button', { name: 'Regenerate links' }).click();
 		const download = await downloadPromise;
 
@@ -174,8 +176,9 @@ test.describe('roster import', () => {
 		await page.getByRole('button', { name: 'Validate mentees' }).click();
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText('Roster updated')).toBeVisible();
+		await page.goto('/admin/members');
 
-		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		await page.getByRole('button', { name: 'Ada Fictional', exact: true }).click();
 		let modal = page.getByRole('dialog');
 		await expect(modal.getByRole('link', { name: 'adafictional' })).toHaveAttribute(
 			'href',
@@ -199,7 +202,7 @@ test.describe('roster import', () => {
 		await expect(modal.getByRole('link', { name: 'adachanged' })).toBeVisible();
 		await page.keyboard.press('Escape');
 		await page.reload();
-		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		await page.getByRole('button', { name: 'Ada Fictional', exact: true }).click();
 		modal = page.getByRole('dialog');
 		await expect(modal.getByRole('link', { name: 'adachanged' })).toHaveAttribute(
 			'href',
@@ -213,7 +216,7 @@ test.describe('roster import', () => {
 		await expect(modal.getByText('Not provided').first()).toBeVisible();
 		await page.keyboard.press('Escape');
 		await page.reload();
-		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		await page.getByRole('button', { name: 'Ada Fictional', exact: true }).click();
 		await expect(page.getByRole('dialog').getByText('Not provided').first()).toBeVisible();
 	});
 
@@ -231,6 +234,7 @@ test.describe('roster import', () => {
 		await page.getByRole('button', { name: 'Validate mentees' }).click();
 		await page.getByRole('button', { name: /Import 1 mentee/ }).click();
 		await expect(page.getByText('Roster updated')).toBeVisible();
+		await page.goto('/admin/members');
 
 		// The chip lives in the member modal: open this test's own direct
 		// mentee and look inside the dialog.
@@ -241,10 +245,10 @@ test.describe('roster import', () => {
 
 	test('traps Tab focus inside the member detail dialog', async ({ page }) => {
 		await signIn(page);
-		await page.goto('/admin/roster');
+		await page.goto('/admin/members');
 		await expect(page.getByText('Ada Fictional')).toBeVisible();
 
-		await page.getByRole('button', { name: 'Ada Fictional' }).click();
+		await page.getByRole('button', { name: 'Ada Fictional', exact: true }).click();
 		const modal = page.getByRole('dialog');
 		await expect(modal).toBeVisible();
 
@@ -260,13 +264,20 @@ test.describe('roster import', () => {
 
 	test('cancels the member-link regeneration without generating anything', async ({ page }) => {
 		await signIn(page);
-		await page.goto('/admin/roster');
+		await page.goto('/admin/members');
 		await expect(page.getByText('Ada Fictional')).toBeVisible();
 
-		await page.getByRole('button', { name: 'Generate & export member links' }).click();
+		await page.getByRole('button', { name: 'Regenerate links' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Regenerate member links?' });
 		await expect(dialog).toBeVisible();
 		await dialog.getByRole('button', { name: 'Cancel' }).click();
 		await expect(dialog).toBeHidden();
+	});
+
+	test('the roster page no longer lists members', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/roster');
+		await expect(page.getByText('Current roster')).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Ada Fictional', exact: true })).toHaveCount(0);
 	});
 });

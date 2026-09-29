@@ -6,7 +6,6 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 describe('row link tap targets', () => {
 	it('pads .member-link on roster and pairing', () => {
 		for (const file of [
-			'src/routes/admin/roster/+page.svelte',
 			'src/lib/components/MembersTable.svelte',
 			'src/lib/components/MemberPairingPanel.svelte'
 		]) {
