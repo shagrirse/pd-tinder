@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { parse } from 'csv-parse/sync';
-import { baselineCsv, overridesCsv, pairingsCsv } from '../../../src/lib/server/pairing/exportCsv';
+import {
+	baselineCsv,
+	overridesCsv,
+	pairingsCsv,
+	safeCell
+} from '../../../src/lib/server/pairing/exportCsv';
 import type { PairingRow } from '../../../src/lib/server/pairing/list';
 import type { BaselineRecord, OverrideRecord } from '../../../src/lib/server/pairing/records';
 
@@ -183,5 +188,48 @@ describe('overridesCsv', () => {
 
 	it('still writes the header when nothing has been overridden', () => {
 		expect(overridesCsv([]).trim()).toBe(OVERRIDES_HEADER);
+	});
+});
+
+describe('safeCell', () => {
+	it.each(['=', '+', '-', '@', '\t', '\r'])(
+		'prefixes a quote when a cell starts with %j',
+		(char) => {
+			expect(safeCell(`${char}SUM(A1)`)).toBe(`'${char}SUM(A1)`);
+		}
+	);
+
+	it('leaves a normal value and an empty string unchanged', () => {
+		expect(safeCell('Priya Mentor')).toBe('Priya Mentor');
+		expect(safeCell('a=b')).toBe('a=b');
+		expect(safeCell('')).toBe('');
+	});
+});
+
+describe('formula neutralising in the generators', () => {
+	it('neutralises a formula in a baseline choice reason', () => {
+		const rows = rowsOf(
+			baselineCsv([
+				{
+					...SUBMITTED,
+					choices: [{ rank: 1, name: 'Jordan Mentee', reason: '=HYPERLINK("x")' }]
+				}
+			])
+		);
+		expect(rows[0].choice_1_reason).toBe(`'=HYPERLINK("x")`);
+	});
+
+	it('neutralises formulas in applicant-authored names and reasons in every export', () => {
+		const evil = '=cmd|calc';
+		const pairings = rowsOf(pairingsCsv([{ ...PAIR, mentor: { ...PAIR.mentor, fullName: evil } }]));
+		expect(pairings[0].mentor_name).toBe(`'${evil}`);
+
+		const baseline = rowsOf(
+			baselineCsv([{ ...SUBMITTED, member: { ...SUBMITTED.member, fullName: evil } }])
+		);
+		expect(baseline[0].name).toBe(`'${evil}`);
+
+		const overrides = rowsOf(overridesCsv([{ ...OVERRIDE, reason: '@reason' }]));
+		expect(overrides[0].reason).toBe(`'@reason`);
 	});
 });
