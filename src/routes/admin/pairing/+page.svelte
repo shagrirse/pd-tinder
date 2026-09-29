@@ -27,6 +27,17 @@
 		data.submissions.submitted.length + data.submissions.notSubmitted.length
 	);
 
+	// The same UTC format as the CSV exports, so the server's locale and time
+	// zone never leak into what an admin reads.
+	let baselineSavedAt = $derived(
+		data.baseline
+			? new Date(data.baseline.createdAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+			: ''
+	);
+	// A cycle can be closed without a baseline: closed before baselines existed,
+	// or the member link expired on its own.
+	let closedWithoutBaseline = $derived(data.status === 'closed' && !data.baseline);
+
 	let detailMemberId = $state<number | null>(null);
 
 	const reopen = createPendingSubmit();
@@ -84,7 +95,7 @@
 			<p class="done-body">{data.submissions.submitted.length} of {totalRoster} submitted.</p>
 			{#if data.baseline}
 				<p class="done-body">
-					Baseline saved {new Date(data.baseline.createdAt).toLocaleString()}.
+					Baseline saved {baselineSavedAt}.
 				</p>
 			{/if}
 
@@ -130,7 +141,11 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Reconciliation</span></div>
-			{#if data.status === 'closed'}
+			{#if closedWithoutBaseline}
+				<p class="done-body">
+					No baseline was saved for this close. Reopen the form and close it again to save one.
+				</p>
+			{:else if data.status === 'closed'}
 				<p class="done-body">
 					The form is closed, so these pairs are the saved baseline plus any overrides. Reopen the
 					form to rerun reconciliation.
@@ -221,7 +236,11 @@
 
 		<div class="panel">
 			<div class="panel-head"><span>Override a pair</span></div>
-			{#if !data.baseline}
+			{#if closedWithoutBaseline}
+				<p class="notice">
+					No baseline was saved for this close. Reopen the form and close it again to save one.
+				</p>
+			{:else if !data.baseline}
 				<p class="notice">
 					Close the preference form first. Overrides are measured against the baseline it saves.
 				</p>

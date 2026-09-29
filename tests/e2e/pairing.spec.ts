@@ -98,7 +98,25 @@ test.describe('pairing admin surface', () => {
 		await expect(page.getByRole('button', { name: 'Run reconciliation' })).toBeHidden();
 		await expect(page.getByRole('button', { name: 'Save override' })).toBeEnabled();
 
-		// Closing rebuilt the live pairs from the frozen choices.
+		// The UI hides the reconcile button, so the server guard is exercised
+		// with a same-origin fetch (passes SvelteKit's CSRF origin check).
+		const result = await page.evaluate(async () => {
+			const res = await fetch('/admin/pairing?/reconcile', {
+				method: 'POST',
+				headers: { 'x-sveltekit-action': 'true' },
+				body: new FormData()
+			});
+			return res.json();
+		});
+		expect(result).toMatchObject({ type: 'failure', status: 400 });
+		// `data` is the devalue-serialised action payload, so the message is
+		// readable as a substring.
+		expect(result.data).toContain(
+			'The form is closed, so the pairings already reflect the saved baseline.'
+		);
+
+		// Closing rebuilt the live pairs from the frozen choices, and the
+		// rejected reconcile left them alone.
 		const row = page.locator('tr', { hasText: 'Priya Mentor' });
 		await expect(row.getByText('Jordan Mentee')).toBeVisible();
 	});
