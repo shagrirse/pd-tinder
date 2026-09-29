@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import { displacementWarning, METHOD_LABEL, type MemberRow } from '$lib/members/rows';
@@ -20,6 +21,8 @@
 	let partnerId = $state('');
 	let reason = $state('');
 	let error = $state<string | null>(null);
+	let pairButtonEl: HTMLButtonElement | undefined = $state();
+	let partnerSelectEl: HTMLSelectElement | undefined = $state();
 
 	let candidates = $derived(rows.filter((m) => m.role !== member.role));
 	let partner = $derived(candidates.find((m) => String(m.id) === partnerId) ?? null);
@@ -102,14 +105,25 @@
 		</button>
 		<p class="note" id="pair-locked-{member.id}">{lockedReason}</p>
 	{:else if !pairing}
-		<button type="button" class="btn btn-ghost" onclick={() => (pairing = true)}>Pair with…</button>
+		<button
+			type="button"
+			class="btn btn-ghost"
+			bind:this={pairButtonEl}
+			onclick={async () => {
+				pairing = true;
+				await tick();
+				partnerSelectEl?.focus();
+			}}
+		>
+			Pair with…
+		</button>
 	{:else}
 		<form method="POST" action="?/override" class="pair-form" use:enhance={save.submit}>
 			<input type="hidden" name="mentorMemberId" value={mentorId} />
 			<input type="hidden" name="menteeMemberId" value={menteeId} />
 			<label class="field">
 				<span class="field-label">Pair with</span>
-				<select bind:value={partnerId} required>
+				<select bind:value={partnerId} bind:this={partnerSelectEl} required>
 					<option value="">Choose a {member.role === 'mentor' ? 'mentee' : 'mentor'}</option>
 					{#each candidates as candidate (candidate.id)}
 						<option value={String(candidate.id)}>
@@ -120,7 +134,7 @@
 					{/each}
 				</select>
 			</label>
-			{#if warning}<p class="warn-inline" role="status">{warning}</p>{/if}
+			<p class="warn-inline" role="status">{warning ?? ''}</p>
 			<label class="field">
 				<span class="field-label">Reason</span>
 				<textarea name="reason" bind:value={reason} required></textarea>
@@ -133,9 +147,11 @@
 				<button
 					type="button"
 					class="btn btn-ghost"
-					onclick={() => {
+					onclick={async () => {
 						pairing = false;
 						error = null;
+						await tick();
+						pairButtonEl?.focus();
 					}}
 				>
 					Cancel

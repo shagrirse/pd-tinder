@@ -162,7 +162,7 @@
 </div>
 
 <div class="summary">
-	<span>Showing {table.getRowModel().rows.length} of {rows.length}</span>
+	<span aria-live="polite">Showing {table.getRowModel().rows.length} of {rows.length}</span>
 	<button type="button" class="reset" onclick={reset}>Reset filters</button>
 </div>
 
@@ -176,8 +176,9 @@
 	{:else if columnId === 'studentId'}
 		<span class="mono">{m.studentId ?? ''}</span>
 	{:else if columnId === 'submitted'}
-		{#if m.submitted}<span aria-label="Submitted">✓</span>{:else}<span aria-label="Not submitted"
-				>–</span
+		{#if m.submitted}<span role="img" aria-label="Submitted">✓</span>{:else}<span
+				role="img"
+				aria-label="Not submitted">–</span
 			>{/if}
 	{:else if columnId === 'pairedWith'}
 		{#if m.pair}
@@ -190,7 +191,9 @@
 	{/if}
 {/snippet}
 
-<div class="scroll">
+<!-- A scrollable region must be focusable so keyboard users can scroll it. -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div class="scroll" tabindex="0" role="region" aria-label="Members table">
 	<table>
 		<thead>
 			{#each table.getHeaderGroups() as group (group.id)}
@@ -224,7 +227,7 @@
 		</tbody>
 	</table>
 	{#if table.getRowModel().rows.length === 0}
-		<p class="empty">No members match these filters.</p>
+		<p class="empty" role="status">No members match these filters.</p>
 	{/if}
 </div>
 
