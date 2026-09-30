@@ -273,8 +273,11 @@
 	.reset:hover {
 		color: var(--flame);
 	}
+	/* A fixed height, so the page doesn't grow with the roster or jump when a
+	   filter changes the row count. The header row sticks while rows scroll. */
 	.scroll {
-		overflow-x: auto;
+		overflow: auto;
+		height: min(70dvh, 40rem);
 	}
 	table {
 		border-collapse: collapse;
@@ -286,7 +289,7 @@
 		padding: 0.5rem 0.7rem;
 		border-bottom: 1px solid var(--line);
 		font-size: 0.88rem;
-		vertical-align: top;
+		vertical-align: middle;
 		white-space: nowrap;
 	}
 	th {
@@ -296,6 +299,12 @@
 		letter-spacing: 0.05em;
 		color: var(--text-faint);
 		font-weight: 600;
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background: var(--bg-raised);
+		/* Collapsed borders scroll away with the rows, so the rule is drawn here. */
+		box-shadow: inset 0 -1px var(--line);
 	}
 	/* The name stays in view while the rest of the row scrolls sideways on a phone. */
 	.col-name {
@@ -303,6 +312,10 @@
 		left: 0;
 		background: var(--bg-raised);
 		z-index: 1;
+	}
+	/* The corner cell sticks both ways, above the header row and the name column. */
+	th.col-name {
+		z-index: 2;
 	}
 	.sort {
 		background: none;
@@ -330,6 +343,10 @@
 		border: none;
 		padding: 0.4rem 0;
 		display: inline-block;
+		/* Long names wrap, so the pinned name column never fills a phone screen. */
+		max-width: min(12rem, 40vw);
+		white-space: normal;
+		text-align: left;
 		color: var(--text);
 		font: inherit;
 		text-decoration: underline;

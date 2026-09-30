@@ -88,7 +88,7 @@
 	<header class="page-head">
 		<p class="eyebrow">Admin</p>
 		<h1>
-			Members{#if data.cycle}<span class="cycle-name"> · {data.cycle.name}</span>{/if}
+			Members{#if data.cycle}<span class="cycle-name">&nbsp;· {data.cycle.name}</span>{/if}
 		</h1>
 	</header>
 

@@ -63,6 +63,9 @@ test.describe('members table', () => {
 		await signIn(page);
 		await page.goto('/admin/members');
 
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+			'Members · Mentee Recruitment 2026'
+		);
 		await expect(page.getByText('Showing 4 of 4')).toBeVisible();
 		for (const name of ['Priya Mentor', 'Sam Mentor', 'Alex Mentor', 'Jordan Mentee']) {
 			await expect(rowOf(page, name)).toBeVisible();
@@ -136,6 +139,71 @@ test.describe('members table', () => {
 		await expect(modal.getByRole('heading', { name: 'Priya Mentor' })).toBeVisible();
 		await page.keyboard.press('Escape');
 		await expect(modal).toBeHidden();
+	});
+});
+
+const LONG_NAME = 'Muhammad Hafiz Bin Abdul Rahman Mohamed Ismail';
+
+/**
+ * Gives a seeded member a long name for the duration of `run`, since long
+ * names are what widen the name columns. Restored afterwards so later tests
+ * can still find them.
+ */
+async function withLongName(fullName: string, run: () => Promise<void>) {
+	const db = new Database(E2E_DB);
+	const rename = db.prepare('update members set full_name = ? where full_name = ?');
+	rename.run(LONG_NAME, fullName);
+	try {
+		await run();
+	} finally {
+		rename.run(fullName, LONG_NAME);
+		db.close();
+	}
+}
+
+const tableBox = (page: Page) => page.getByRole('region', { name: 'Members table' });
+
+test.describe('members table layout', () => {
+	test('keeps the other columns reachable beside the pinned name on a phone', async ({ page }) => {
+		await withLongName('Sam Mentor', async () => {
+			await signIn(page);
+			await page.goto('/admin/members');
+			await tableBox(page).evaluate((el) => (el.scrollLeft = el.scrollWidth));
+
+			const name = await page.getByRole('columnheader', { name: 'Name' }).boundingBox();
+			const method = await page.getByRole('columnheader', { name: 'Method' }).boundingBox();
+			expect(method!.x).toBeGreaterThanOrEqual(name!.x + name!.width);
+		});
+	});
+
+	test('keeps the same height whatever the filters match', async ({ page }) => {
+		await signIn(page);
+		await page.goto('/admin/members');
+		const before = (await tableBox(page).boundingBox())!.height;
+
+		await page.getByLabel('Search').fill('nobody at all');
+		await expect(page.getByText('Showing 0 of 4')).toBeVisible();
+		expect((await tableBox(page).boundingBox())!.height).toBe(before);
+	});
+
+	test.describe('on a desktop', () => {
+		test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false });
+
+		test('fits every column without scrolling sideways', async ({ page }) => {
+			// Paired, so the long name fills both the Name and Paired with columns.
+			seedMutualFirstChoice();
+			await withLongName('Jordan Mentee', async () => {
+				await signIn(page);
+				await page.goto('/admin/members');
+				await page.getByRole('button', { name: 'Run reconciliation' }).click();
+				await expect(rowOf(page, 'Priya Mentor').getByText(LONG_NAME)).toBeVisible();
+				const { scrollWidth, clientWidth } = await tableBox(page).evaluate((el) => ({
+					scrollWidth: el.scrollWidth,
+					clientWidth: el.clientWidth
+				}));
+				expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+			});
+		});
 	});
 });
 
