@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import Database from 'better-sqlite3';
 import { E2E_DB } from './global-setup';
@@ -83,15 +84,52 @@ test.describe('reviewer journey', () => {
 		await signIn(page, REVIEWER);
 		await expect(page.getByText('1 · 2 · 3 to rate')).toBeVisible();
 	});
+
+	test('revisits a verdict from the reviewed list and changes it', async ({ page }) => {
+		await signIn(page, REVIEWER);
+		await expect(page.getByRole('heading', { name: 'Applicant #1' })).toBeVisible();
+		await page.getByRole('group').first().getByRole('button', { name: 'Good' }).click();
+		await page.getByLabel('Note for the admin').fill('First impressions only.');
+		await page.getByRole('button', { name: 'Meh', exact: true }).last().click();
+		await expect(page.getByRole('heading', { name: 'Applicant #2' })).toBeVisible();
+
+		await page.goto('/review/reviewed');
+		await page.getByRole('link', { name: /^#1 / }).click();
+
+		// The deck reopens on the reviewed applicant with the saved answers.
+		await expect(page.getByRole('heading', { name: 'Applicant #1' })).toBeVisible();
+		await expect(
+			page.getByRole('group').first().getByRole('button', { name: 'Good' })
+		).toHaveAttribute('aria-pressed', 'true');
+		await expect(page.getByLabel('Note for the admin')).toHaveValue('First impressions only.');
+
+		const saved = page.waitForResponse(
+			(res) => res.request().method() === 'POST' && new URL(res.url()).pathname === '/review'
+		);
+		await page.getByRole('button', { name: 'Weak', exact: true }).last().click();
+		expect((await saved).ok()).toBe(true);
+
+		await page.goto('/review/reviewed');
+		const rows = page.locator('li');
+		await expect(rows).toHaveCount(1);
+		await expect(rows.first().getByText('Weak', { exact: true })).toBeVisible();
+	});
 });
 
 test.describe('admin journey', () => {
-	test('sees results and can reach the export', async ({ page }) => {
+	test('sees results and downloads the export', async ({ page }) => {
 		await signIn(page, ADMIN);
 		await page.goto('/results');
 
 		await expect(page.getByRole('heading', { name: /Results/ })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Download full CSV' })).toBeVisible();
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('link', { name: 'Download full CSV' }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename()).toBe('pd-tinder-mentee-recruitment-2026.csv');
+		const csv = readFileSync((await download.path())!, 'utf8');
+		expect(csv.split('\n')[0]).toMatch(
+			/^public_ref,full_name,email,smu_email,student_id,contact_number,telegram,linkedin_url,linkedin_status,industry_1,industry_2,faculty,faculty_2,gender,prior_mentee,submitted_at,reviewer,overall,red_flag,red_flag_reason,note,score,rated,total,rating_/
+		);
 	});
 
 	test('blocks a reviewer from the results page', async ({ page }) => {

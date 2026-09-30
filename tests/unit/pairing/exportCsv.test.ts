@@ -89,6 +89,12 @@ describe('pairingsCsv', () => {
 			mentee_linkedin: 'jordan-mentor'
 		});
 	});
+
+	it('still writes the header when nothing is paired', () => {
+		expect(pairingsCsv([]).trim()).toBe(
+			'mentor_name,mentor_email,mentor_telegram,mentor_linkedin,mentor_student_id,mentee_name,mentee_email,mentee_telegram,mentee_linkedin,mentee_student_id,method,override_reason'
+		);
+	});
 });
 
 const BASELINE_HEADER =

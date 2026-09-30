@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import Database from 'better-sqlite3';
+import { hashPassword } from '../../src/lib/server/auth/password';
 import { E2E_DB } from './global-setup';
 
 const ADMIN = { email: 'admin@example.com', password: 'admin-password-1' };
@@ -47,6 +48,20 @@ function seedVerdict() {
 function clearClaims() {
 	const db = new Database(E2E_DB);
 	db.exec('delete from claims;');
+	db.close();
+}
+
+/** A reviewer who already set a password and was then deactivated. */
+async function seedDeactivatedReviewer(email: string, password: string) {
+	const db = new Database(E2E_DB);
+	const { lastInsertRowid } = db
+		.prepare(
+			"insert into users (name, email, password_hash, role, active) values ('Back Again', ?, ?, 'reviewer', 0)"
+		)
+		.run(email, await hashPassword(password));
+	db.prepare("insert into assignments (user_id, cycle_id, industry) values (?, 1, 'Finance')").run(
+		lastInsertRowid
+	);
 	db.close();
 }
 
@@ -222,6 +237,80 @@ test.describe('admin people management', () => {
 
 		await expect(row.getByText('Deactivated', { exact: true })).toHaveCount(0);
 		await expect(row.getByRole('button', { name: 'Deactivate' })).toBeVisible();
+	});
+
+	test('a new invite retires the old link', async ({ page, context }) => {
+		const email = `reissued-${Date.now()}@example.com`;
+
+		await signIn(page, ADMIN);
+		await page.goto('/admin/people');
+		await page.getByLabel('Name').fill('Reissued Reviewer');
+		await page.getByLabel('Email').fill(email);
+		await page.getByRole('checkbox', { name: 'Finance', exact: true }).check();
+		await page.getByRole('button', { name: 'Create and issue invite' }).click();
+
+		const inviteLink = page.getByText(/\/invite\//).first();
+		const oldUrl = await inviteLink.innerText();
+
+		const row = page.getByRole('row', { name: new RegExp(email) });
+		await row.getByRole('button', { name: 'New invite' }).click();
+		await expect(inviteLink).not.toHaveText(oldUrl);
+		const newUrl = await inviteLink.innerText();
+
+		const fresh = await context.browser()!.newContext();
+		const invitee = await fresh.newPage();
+		await invitee.goto(oldUrl);
+		await invitee.getByLabel('Password').fill('a-brand-new-password');
+		await invitee.getByRole('button', { name: 'Set password and sign in' }).click();
+		await expect(invitee.getByRole('alert')).toContainText(
+			'This invite link is invalid, expired, or already used.'
+		);
+
+		await invitee.goto(newUrl);
+		await invitee.getByLabel('Password').fill('a-brand-new-password');
+		await invitee.getByRole('button', { name: 'Set password and sign in' }).click();
+		await expect(invitee.getByRole('heading', { name: /Applicant #/ })).toBeVisible();
+		await fresh.close();
+	});
+
+	test('reactivating restores the sign-in', async ({ page, context }) => {
+		const email = `reactivated-${Date.now()}@example.com`;
+		const password = 'a-perfectly-fine-password';
+		await seedDeactivatedReviewer(email, password);
+
+		await signIn(page, ADMIN);
+		await page.goto('/admin/people');
+		const row = page.getByRole('row', { name: new RegExp(email) });
+		await expect(row.getByText('Deactivated', { exact: true })).toBeVisible();
+		await row.getByRole('button', { name: 'Reactivate' }).click();
+		await expect(row.getByText('Deactivated', { exact: true })).toHaveCount(0);
+		await expect(row.getByRole('button', { name: 'Deactivate' })).toBeVisible();
+
+		const fresh = await context.browser()!.newContext();
+		const freshPage = await fresh.newPage();
+		await signIn(freshPage, { email, password });
+		await expect(freshPage.getByRole('heading', { name: /Applicant #/ })).toBeVisible();
+		await fresh.close();
+	});
+});
+
+test.describe('sign out', () => {
+	test('ends the session, so protected pages send you to sign in', async ({ page, context }) => {
+		await signIn(page, ADMIN);
+		await page.goto('/results');
+		const signedIn = await context.cookies();
+
+		await page.getByRole('button', { name: 'Sign out' }).click();
+		await expect(page).toHaveURL(/\/login$/);
+		for (const path of ['/results', '/admin/people', '/review']) {
+			await page.goto(path);
+			await expect(page).toHaveURL(/\/login$/);
+		}
+
+		// The session is gone on the server too, not just the cookie.
+		await context.addCookies(signedIn);
+		await page.goto('/results');
+		await expect(page).toHaveURL(/\/login$/);
 	});
 });
 
