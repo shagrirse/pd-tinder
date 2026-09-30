@@ -13,6 +13,22 @@ export function safeCell(value: string): string {
 	return FORMULA_TRIGGERS.test(value) ? `'${value}` : value;
 }
 
+// Explicit column lists so an export with no rows still has its header line.
+const PAIRING_COLUMNS = [
+	'mentor_name',
+	'mentor_email',
+	'mentor_telegram',
+	'mentor_linkedin',
+	'mentor_student_id',
+	'mentee_name',
+	'mentee_email',
+	'mentee_telegram',
+	'mentee_linkedin',
+	'mentee_student_id',
+	'method',
+	'override_reason'
+];
+
 /** The pairing record for the programme's own use. Spec §8.1: names, emails, student IDs (the future attendance join key), method, and override reason. */
 export function pairingsCsv(rows: PairingRow[]): string {
 	const records = rows.map((row) => ({
@@ -30,7 +46,7 @@ export function pairingsCsv(rows: PairingRow[]): string {
 		override_reason: safeCell(row.overrideReason ?? '')
 	}));
 
-	return stringify(records, { header: true });
+	return stringify(records, { header: true, columns: PAIRING_COLUMNS });
 }
 
 // Explicit column lists so an export with no rows still has its header line.

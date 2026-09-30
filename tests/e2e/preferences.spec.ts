@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
+import Database from 'better-sqlite3';
 import { expect, test } from '@playwright/test';
-import { MEMBER_TOKENS_FILE } from './global-setup';
+import { E2E_DB, MEMBER_TOKENS_FILE } from './global-setup';
 
 type TokenRow = { id: number; fullName: string; email: string; token: string };
 
@@ -18,6 +19,32 @@ function idFor(fullName: string): string {
 	const row = rows().find((r) => r.fullName === fullName);
 	if (!row) throw new Error(`No seeded member for ${fullName}`);
 	return String(row.id);
+}
+
+/**
+ * The seeded roster has one mentee, and a mentor must rank three. Adds two
+ * more for the duration of `run`, then removes them along with the mentor's
+ * choices, so the other specs keep their four-member roster.
+ */
+async function withExtraMentees(mentorName: string, run: (ids: string[]) => Promise<void>) {
+	const db = new Database(E2E_DB);
+	const insert = db.prepare(
+		"insert into members (cycle_id, role, full_name, email, industry) values (1, 'mentee', ?, ?, 'Finance')"
+	);
+	const ids = [
+		insert.run('Casey Mentee', 'casey-mentee@example.com').lastInsertRowid,
+		insert.run('Robin Mentee', 'robin-mentee@example.com').lastInsertRowid
+	].map(String);
+	try {
+		await run(ids);
+	} finally {
+		const extra = ids.join(',');
+		db.prepare(
+			`delete from preferences where member_id = ? or member_id in (${extra}) or choice_member_id in (${extra})`
+		).run(idFor(mentorName));
+		db.exec(`delete from members where id in (${extra})`);
+		db.close();
+	}
 }
 
 test.describe('preference submission page', () => {
@@ -109,5 +136,32 @@ test.describe('preference submission page', () => {
 
 		await page.getByRole('button', { name: 'Save my choices' }).click();
 		await expect(page.getByText('Give a reason for each choice.')).toBeVisible();
+	});
+
+	test('a mentor ranks three mentees and saves', async ({ page }) => {
+		await withExtraMentees('Priya Mentor', async ([casey, robin]) => {
+			await page.goto(`/member/${tokenFor('Priya Mentor')}`);
+			await expect(
+				page.getByRole('heading', { name: 'Rank your top three mentees' })
+			).toBeVisible();
+
+			const first = page.getByLabel('First choice', { exact: true });
+			const second = page.getByLabel('Second choice', { exact: true });
+			const third = page.getByLabel('Third choice', { exact: true });
+			await first.selectOption({ value: idFor('Jordan Mentee') });
+			await second.selectOption({ value: casey });
+			await third.selectOption({ value: robin });
+			await page.getByLabel('First choice reason').fill('Asked the best questions');
+			await page.getByLabel('Second choice reason').fill('Same industry focus');
+			await page.getByLabel('Third choice reason').fill('Keen on finance');
+
+			await page.getByRole('button', { name: 'Save my choices' }).click();
+			await expect(page.getByText('Saved.')).toBeVisible();
+
+			await page.reload();
+			await expect(first.locator('option:checked')).toHaveText('Jordan Mentee');
+			await expect(second.locator('option:checked')).toHaveText('Casey Mentee');
+			await expect(third.locator('option:checked')).toHaveText('Robin Mentee');
+		});
 	});
 });
