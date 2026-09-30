@@ -233,7 +233,7 @@ test.describe('nav active state', () => {
 			'/admin/people',
 			'/admin/import',
 			'/admin/roster',
-			'/admin/pairing'
+			'/admin/members'
 		];
 		for (const path of routes) {
 			await page.goto(path);

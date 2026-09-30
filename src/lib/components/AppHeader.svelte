@@ -43,9 +43,9 @@
 				class:active={page.url.pathname === '/admin/roster'}>Roster</a
 			>
 			<a
-				href="/admin/pairing"
-				aria-current={page.url.pathname === '/admin/pairing' ? 'page' : undefined}
-				class:active={page.url.pathname === '/admin/pairing'}>Pairing</a
+				href="/admin/members"
+				aria-current={page.url.pathname === '/admin/members' ? 'page' : undefined}
+				class:active={page.url.pathname === '/admin/members'}>Members</a
 			>
 		{/if}
 	</nav>

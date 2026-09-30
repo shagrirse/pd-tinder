@@ -2,12 +2,10 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
 
 	let { data, form } = $props();
 
-	// One shared cycle selection feeds both panels and the roster list below.
+	// One shared cycle selection feeds both import panels.
 	// Initialised once from the load data; later cycles can only change via
 	// navigation, which remounts the page anyway.
 	let selectedCycleId = $state<number | null>(untrack(() => data.cycles[0]?.id ?? null));
@@ -17,9 +15,6 @@
 		reviewing: 'Reviewing',
 		closed: 'Closed'
 	};
-
-	let selectedCycle = $derived(data.cycles.find((c) => c.id === Number(selectedCycleId)) ?? null);
-	let roster = $derived(selectedCycleId === null ? null : (data.rosters[selectedCycleId] ?? null));
 
 	let mentees = $derived(form && form.stage === 'validateMentees' ? form : null);
 	let mentors = $derived(form && form.stage === 'validateMentors' ? form : null);
@@ -32,18 +27,7 @@
 	const validateMentees = createPendingSubmit();
 	const commitMentees = createPendingSubmit();
 
-	let tokensConfirmOpen = $state(false);
-	let tokensFormEl: HTMLFormElement | undefined = $state();
 	let menteeDone = $derived(menteeCommit?.committed ?? null);
-
-	let detailMemberId = $state<number | null>(null);
-	let detailRole = $state<'mentor' | 'mentee'>('mentee');
-	let detailMember = $derived.by(() => {
-		if (detailMemberId === null || !roster) return null;
-		const list = detailRole === 'mentor' ? roster.mentors : roster.mentees;
-		const found = list.find((m) => m.id === detailMemberId);
-		return found ? { ...found, role: detailRole } : null;
-	});
 
 	const MENTOR_EXAMPLE_CSV =
 		'full_name,email,industry,student_id,telegram,linkedin\nAda Mentor,ada.mentor@example.com,Tech,02000001,adamentor,ada-mentor\n';
@@ -271,102 +255,7 @@
 				{/if}
 			{/if}
 		</div>
-
-		<div class="panel">
-			<div class="panel-head"><span>Current roster</span></div>
-
-			{#if selectedCycle && roster}
-				{#if roster.mentors.length === 0 && roster.mentees.length === 0}
-					<p class="notice">No members imported for this cycle yet.</p>
-				{:else}
-					<p class="done-title">
-						{roster.mentors.length} mentor{roster.mentors.length === 1 ? '' : 's'} ·
-						{roster.mentees.length} mentee{roster.mentees.length === 1 ? '' : 's'}
-					</p>
-
-					<form
-						method="POST"
-						action="/admin/roster/tokens"
-						class="upload-form"
-						bind:this={tokensFormEl}
-					>
-						<input type="hidden" name="cycleId" value={selectedCycleId} />
-						<button
-							type="button"
-							class="btn btn-primary"
-							onclick={() => (tokensConfirmOpen = true)}
-						>
-							Generate &amp; export member links
-						</button>
-					</form>
-					<p class="warn-inline">
-						Regenerating replaces every member's link — anyone with an old one loses access.
-					</p>
-
-					<h2 class="roster-role">Mentors</h2>
-					{#if roster.mentors.length === 0}
-						<p class="notice">None yet.</p>
-					{:else}
-						<ul class="roster-list">
-							{#each roster.mentors as member (member.id)}
-								<li>
-									<button
-										class="member-link"
-										onclick={() => {
-											detailMemberId = member.id;
-											detailRole = 'mentor';
-										}}
-									>
-										{member.fullName}
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{/if}
-
-					<h2 class="roster-role">Mentees</h2>
-					{#if roster.mentees.length === 0}
-						<p class="notice">None yet.</p>
-					{:else}
-						<ul class="roster-list">
-							{#each roster.mentees as member (member.id)}
-								<li>
-									<button
-										class="member-link"
-										onclick={() => {
-											detailMemberId = member.id;
-											detailRole = 'mentee';
-										}}
-									>
-										{member.fullName}
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{/if}
-				{/if}
-			{/if}
-		</div>
 	{/if}
-
-	<MemberDetailModal
-		member={detailMember}
-		actionUrl="?/updateMember"
-		onclose={() => (detailMemberId = null)}
-	/>
-
-	<ConfirmDialog
-		open={tokensConfirmOpen}
-		title="Regenerate member links?"
-		body="Every existing member's link stops working immediately. Anyone who hasn't opened theirs yet will need the new one."
-		confirmLabel="Regenerate links"
-		danger
-		onconfirm={() => {
-			tokensConfirmOpen = false;
-			tokensFormEl?.requestSubmit();
-		}}
-		oncancel={() => (tokensConfirmOpen = false)}
-	/>
 </section>
 
 <style>
@@ -481,30 +370,5 @@
 		padding-left: 1.1rem;
 		font-size: 0.88rem;
 		line-height: 1.6;
-	}
-
-	.roster-role {
-		font-size: 1rem;
-		margin: 1rem 0 0.4rem;
-	}
-	.roster-list {
-		margin: 0;
-		padding-left: 1.1rem;
-		font-size: 0.88rem;
-		line-height: 1.6;
-	}
-	.member-link {
-		background: none;
-		border: none;
-		padding: 0.4rem 0;
-		display: inline-block;
-		color: var(--text);
-		font: inherit;
-		text-decoration: underline;
-		text-underline-offset: 2px;
-		cursor: pointer;
-	}
-	.member-link:hover {
-		color: var(--flame);
 	}
 </style>

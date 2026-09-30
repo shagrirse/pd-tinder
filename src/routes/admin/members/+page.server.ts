@@ -2,12 +2,11 @@ import { fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db/instance';
 import { requireAdmin } from '$lib/server/auth/guards';
 import { getActiveCycle } from '$lib/server/import/cycle';
+import { listMemberRows } from '$lib/server/members/rows';
 import { getLatestBaseline } from '$lib/server/pairing/baseline';
-import { closeForm, getFormStatus, reopenForm, submissionStatus } from '$lib/server/pairing/form';
-import { computeResidual, listPairings } from '$lib/server/pairing/list';
-import { runReconciliation } from '$lib/server/pairing/run';
+import { closeForm, getFormStatus, reopenForm } from '$lib/server/pairing/form';
 import { OverrideError, overridePair } from '$lib/server/pairing/override';
-import { listActiveRoster } from '$lib/server/roster/list';
+import { runReconciliation } from '$lib/server/pairing/run';
 import { updateMemberContact } from '$lib/server/roster/members';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -15,37 +14,31 @@ export const load: PageServerLoad = async ({ locals }) => {
 	requireAdmin(locals);
 	const db = getDb();
 	const cycle = getActiveCycle(db);
-
 	if (!cycle) {
-		return {
-			cycle: null,
-			status: 'not_opened' as const,
-			submissions: { submitted: [], notSubmitted: [] },
-			pairings: [],
-			residual: { unpaired: [], gotNoChoice: [] },
-			baseline: null,
-			mentors: [],
-			mentees: []
-		};
+		return { cycle: null, rows: [], status: 'not_opened' as const, baseline: null };
 	}
-
 	return {
 		cycle,
+		rows: listMemberRows(db, cycle.id),
 		status: getFormStatus(db, cycle.id),
-		submissions: submissionStatus(db, cycle.id),
-		pairings: listPairings(db, cycle.id),
-		residual: computeResidual(db, cycle.id),
-		baseline: getLatestBaseline(db, cycle.id),
-		mentors: listActiveRoster(db, cycle.id, 'mentor'),
-		mentees: listActiveRoster(db, cycle.id, 'mentee')
+		baseline: getLatestBaseline(db, cycle.id)
 	};
 };
 
-type ActionResult = { error: string | null; updateError: string | null };
-const problem = (message: string): ActionResult => ({ error: message, updateError: null });
+type ActionResult = {
+	error: string | null;
+	updateError: string | null;
+	overrideError: string | null;
+};
+const OK: ActionResult = { error: null, updateError: null, overrideError: null };
+const problem = (message: string): ActionResult => ({
+	error: message,
+	updateError: null,
+	overrideError: null
+});
 
 const OVERRIDE_ERROR_MESSAGES: Record<OverrideError['code'], string> = {
-	not_found: 'Choose a mentor and a mentee from the lists above.',
+	not_found: 'Choose a mentor and a mentee from the lists.',
 	reason_required: 'An override needs a reason.',
 	role_mismatch: 'Choose one mentor and one mentee.',
 	wrong_cycle: 'Both members must belong to the active cycle.',
@@ -62,7 +55,7 @@ export const actions: Actions = {
 		if (closeForm(db, cycle.id, user.id) === null) {
 			return fail(400, problem('The form is not open, so there is nothing to close.'));
 		}
-		return { error: null, updateError: null } satisfies ActionResult;
+		return OK;
 	},
 
 	reopen: async ({ locals }) => {
@@ -71,7 +64,7 @@ export const actions: Actions = {
 		const cycle = getActiveCycle(db);
 		if (!cycle) return fail(400, problem('No active cycle.'));
 		reopenForm(db, cycle.id);
-		return { error: null, updateError: null } satisfies ActionResult;
+		return OK;
 	},
 
 	reconcile: async ({ locals }) => {
@@ -90,7 +83,7 @@ export const actions: Actions = {
 			);
 		}
 		runReconciliation(db, cycle.id);
-		return { error: null, updateError: null } satisfies ActionResult;
+		return OK;
 	},
 
 	override: async ({ request, locals }) => {
@@ -105,19 +98,26 @@ export const actions: Actions = {
 		const reason = String(form.get('reason') ?? '');
 
 		if (!Number.isInteger(mentorMemberId) || !Number.isInteger(menteeMemberId)) {
-			return fail(400, problem('Choose a mentor and a mentee.'));
+			return fail(400, {
+				error: null,
+				updateError: null,
+				overrideError: 'Choose a mentor and a mentee.'
+			});
 		}
 
 		try {
 			overridePair(db, cycle.id, mentorMemberId, menteeMemberId, reason, user.id);
 		} catch (cause) {
 			if (cause instanceof OverrideError) {
-				return fail(400, problem(OVERRIDE_ERROR_MESSAGES[cause.code]));
+				return fail(400, {
+					error: null,
+					updateError: null,
+					overrideError: OVERRIDE_ERROR_MESSAGES[cause.code]
+				});
 			}
 			throw cause;
 		}
-
-		return { error: null, updateError: null } satisfies ActionResult;
+		return OK;
 	},
 
 	updateMember: async ({ request, locals }) => {
@@ -127,7 +127,7 @@ export const actions: Actions = {
 
 		const memberId = Number(form.get('memberId'));
 		if (!Number.isInteger(memberId)) {
-			return fail(400, { error: null, updateError: 'Choose a member first.' });
+			return fail(400, { error: null, updateError: 'Choose a member first.', overrideError: null });
 		}
 
 		try {
@@ -137,11 +137,10 @@ export const actions: Actions = {
 			});
 		} catch (cause) {
 			if (cause instanceof Error) {
-				return fail(400, { error: null, updateError: cause.message });
+				return fail(400, { error: null, updateError: cause.message, overrideError: null });
 			}
 			throw cause;
 		}
-
-		return { error: null, updateError: null } satisfies ActionResult;
+		return OK;
 	}
 };
