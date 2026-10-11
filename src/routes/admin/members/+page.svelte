@@ -29,8 +29,7 @@
 			? new Date(data.baseline.createdAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
 			: ''
 	);
-	// A cycle can be closed without a baseline: closed before baselines existed,
-	// or the member links expired on their own.
+	// A cycle can be closed without a baseline: closed before baselines existed.
 	let closedWithoutBaseline = $derived(data.status === 'closed' && !data.baseline);
 
 	let lockedReason = $derived(
