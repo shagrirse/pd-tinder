@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
@@ -113,6 +114,7 @@
 							</button>
 						</form>
 					{:else if data.status === 'open'}
+						<a href={resolve('/admin/members/import')} class="btn btn-primary">Import responses</a>
 						<form method="POST" action="?/close" use:enhance={close.submit} bind:this={closeFormEl}>
 							<button
 								type="button"
@@ -124,33 +126,40 @@
 							</button>
 						</form>
 					{/if}
+				</div>
+
+				{#if data.status === 'open'}
 					<!-- Member links are for the optional in-app preference page. -->
-					<form
-						method="POST"
-						action="/admin/roster/tokens"
-						bind:this={tokensFormEl}
-						onsubmit={generateLinks}
-					>
-						<input type="hidden" name="cycleId" value={data.cycle.id} />
-						{#if data.status === 'open'}
+					<div class="member-links">
+						<p class="member-links-note">
+							Member links (optional): only needed if members rank in the app instead of the Google
+							Form.
+						</p>
+						<form
+							method="POST"
+							action="/admin/roster/tokens"
+							bind:this={tokensFormEl}
+							onsubmit={generateLinks}
+						>
+							<input type="hidden" name="cycleId" value={data.cycle.id} />
 							{#if data.memberLinksIssued}
 								<button
 									type="button"
-									class="btn btn-ghost"
+									class="btn btn-ghost btn-quiet"
 									disabled={tokensPending}
 									onclick={() => (regenConfirmOpen = true)}
 								>
 									Regenerate links
 								</button>
 							{:else}
-								<button type="submit" class="btn btn-primary" disabled={tokensPending}>
+								<button type="submit" class="btn btn-ghost btn-quiet" disabled={tokensPending}>
 									Generate &amp; export links
 								</button>
 							{/if}
-						{/if}
-					</form>
-				</div>
-				{#if tokensError}<p class="form-error" role="alert">{tokensError}</p>{/if}
+						</form>
+						{#if tokensError}<p class="form-error" role="alert">{tokensError}</p>{/if}
+					</div>
+				{/if}
 			</div>
 
 			<div class="panel">
@@ -318,6 +327,33 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.6rem;
+	}
+	/* Set apart below Import and Close, in a lower voice, because few cycles use it. */
+	.member-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem 1rem;
+		border-top: 1px solid var(--line);
+		margin-top: 1rem;
+		padding-top: 0.9rem;
+	}
+	.member-links-note {
+		flex: 1 1 12rem;
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--text-faint);
+	}
+	.btn-quiet {
+		font-weight: 500;
+		font-size: 0.85rem;
+		color: var(--text-dim);
+		border-color: var(--line);
+	}
+	.member-links .form-error {
+		flex-basis: 100%;
+		margin: 0;
 	}
 	.warn-inline {
 		margin: 0.9rem 0 0;
