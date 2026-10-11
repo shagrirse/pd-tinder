@@ -12,8 +12,8 @@ describe('normalizeName', () => {
 		expect(normalizeName('  Ada   LOVELACE ')).toBe('ada lovelace');
 	});
 
-	it('folds compatibility characters such as a non-breaking space', () => {
-		expect(normalizeName('Ada Lovelace')).toBe('ada lovelace');
+	it('folds compatibility characters such as fullwidth letters', () => {
+		expect(normalizeName('\uFF21da Lovelace')).toBe('ada lovelace');
 	});
 });
 
