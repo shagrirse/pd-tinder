@@ -14,7 +14,11 @@ export const cycles = sqliteTable('cycles', {
 		.default({}),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
-		.default(sql`(unixepoch())`)
+		.default(sql`(unixepoch())`),
+	// Set when the admin closes the preference form, null while it is open. The
+	// flag is the single source of truth for open/closed, independent of whether
+	// any member link was ever issued.
+	preferencesClosedAt: integer('preferences_closed_at', { mode: 'timestamp' })
 });
 
 export const questions = sqliteTable(
