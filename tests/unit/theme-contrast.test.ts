@@ -33,6 +33,7 @@ describe('dark-surface form-error and danger-text usage', () => {
 		'src/routes/admin/roster/+page.svelte',
 		'src/routes/admin/members/+page.svelte',
 		'src/routes/admin/import/+page.svelte',
+		'src/routes/admin/members/import/+page.svelte',
 		'src/lib/components/MemberDetailModal.svelte',
 		'src/lib/components/MemberPairingPanel.svelte'
 	];
@@ -103,10 +104,18 @@ describe('remaining dark-surface danger text', () => {
 		}
 	});
 
-	it('repaints the import report error title', () => {
+	it.each(['src/routes/admin/import/+page.svelte', 'src/routes/admin/members/import/+page.svelte'])(
+		'%s repaints the report error title',
+		(file) => {
+			const rule = read(file).match(/\.report-block\.errors \.report-title\s*{([^}]*)}/)?.[1] ?? '';
+			expect(rule).toContain('color: var(--danger-text);');
+		}
+	);
+
+	it('repaints the preference import blocking title', () => {
 		const rule =
-			read('src/routes/admin/import/+page.svelte').match(
-				/\.report-block\.errors \.report-title\s*{([^}]*)}/
+			read('src/routes/admin/members/import/+page.svelte').match(
+				/\.block-title\s*{([^}]*)}/
 			)?.[1] ?? '';
 		expect(rule).toContain('color: var(--danger-text);');
 	});

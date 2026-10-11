@@ -8,6 +8,7 @@ import { closeForm, getFormStatus, reopenForm } from '$lib/server/pairing/form';
 import { OverrideError, overridePair } from '$lib/server/pairing/override';
 import { runReconciliation } from '$lib/server/pairing/run';
 import { updateMemberContact } from '$lib/server/roster/members';
+import { hasMemberLinks } from '$lib/server/roster/tokens';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -15,12 +16,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const db = getDb();
 	const cycle = getActiveCycle(db);
 	if (!cycle) {
-		return { cycle: null, rows: [], status: 'not_opened' as const, baseline: null };
+		return {
+			cycle: null,
+			rows: [],
+			status: 'open' as const,
+			memberLinksIssued: false,
+			baseline: null
+		};
 	}
 	return {
 		cycle,
 		rows: listMemberRows(db, cycle.id),
 		status: getFormStatus(db, cycle.id),
+		memberLinksIssued: hasMemberLinks(db, cycle.id),
 		baseline: getLatestBaseline(db, cycle.id)
 	};
 };

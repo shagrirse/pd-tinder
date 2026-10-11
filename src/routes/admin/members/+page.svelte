@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import MemberDetailModal from '$lib/components/MemberDetailModal.svelte';
@@ -10,12 +11,10 @@
 	let { data, form } = $props();
 
 	const STATUS_LABEL: Record<string, string> = {
-		not_opened: 'Not opened yet',
 		open: 'Open',
 		closed: 'Closed'
 	};
 	const STATUS_TAG: Record<string, string> = {
-		not_opened: 'verdict-meh',
 		open: 'verdict-like',
 		closed: 'verdict-flag'
 	};
@@ -31,8 +30,7 @@
 			? new Date(data.baseline.createdAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
 			: ''
 	);
-	// A cycle can be closed without a baseline: closed before baselines existed,
-	// or the member links expired on their own.
+	// A cycle can be closed without a baseline: closed before baselines existed.
 	let closedWithoutBaseline = $derived(data.status === 'closed' && !data.baseline);
 
 	let lockedReason = $derived(
@@ -116,6 +114,7 @@
 							</button>
 						</form>
 					{:else if data.status === 'open'}
+						<a href={resolve('/admin/members/import')} class="btn btn-primary">Import responses</a>
 						<form method="POST" action="?/close" use:enhance={close.submit} bind:this={closeFormEl}>
 							<button
 								type="button"
@@ -127,31 +126,40 @@
 							</button>
 						</form>
 					{/if}
-					<!-- Generating links is what opens the form. -->
-					<form
-						method="POST"
-						action="/admin/roster/tokens"
-						bind:this={tokensFormEl}
-						onsubmit={generateLinks}
-					>
-						<input type="hidden" name="cycleId" value={data.cycle.id} />
-						{#if data.status === 'not_opened'}
-							<button type="submit" class="btn btn-primary" disabled={tokensPending}>
-								Generate &amp; export links
-							</button>
-						{:else if data.status === 'open'}
-							<button
-								type="button"
-								class="btn btn-ghost"
-								disabled={tokensPending}
-								onclick={() => (regenConfirmOpen = true)}
-							>
-								Regenerate links
-							</button>
-						{/if}
-					</form>
 				</div>
-				{#if tokensError}<p class="form-error" role="alert">{tokensError}</p>{/if}
+
+				{#if data.status === 'open'}
+					<!-- Member links are for the optional in-app preference page. -->
+					<div class="member-links">
+						<p class="member-links-note">
+							Member links (optional): only needed if members rank in the app instead of the Google
+							Form.
+						</p>
+						<form
+							method="POST"
+							action="/admin/roster/tokens"
+							bind:this={tokensFormEl}
+							onsubmit={generateLinks}
+						>
+							<input type="hidden" name="cycleId" value={data.cycle.id} />
+							{#if data.memberLinksIssued}
+								<button
+									type="button"
+									class="btn btn-ghost btn-quiet"
+									disabled={tokensPending}
+									onclick={() => (regenConfirmOpen = true)}
+								>
+									Regenerate links
+								</button>
+							{:else}
+								<button type="submit" class="btn btn-ghost btn-quiet" disabled={tokensPending}>
+									Generate &amp; export links
+								</button>
+							{/if}
+						</form>
+						{#if tokensError}<p class="form-error" role="alert">{tokensError}</p>{/if}
+					</div>
+				{/if}
 			</div>
 
 			<div class="panel">
@@ -211,7 +219,7 @@
 		<ConfirmDialog
 			open={closeConfirmOpen}
 			title="Close the preference form?"
-			body="Members who haven't submitted yet will no longer be able to. Closing also saves the baseline: everyone's choices and the pairs they produce. You can reopen it later."
+			body="Closing saves the baseline: everyone's choices and the pairs they produce. It also stops further imports and in-app submissions, so turn off &quot;Accepting responses&quot; in the Google Form too. You can reopen it later."
 			confirmLabel="Close form"
 			danger
 			onconfirm={() => {
@@ -319,6 +327,33 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.6rem;
+	}
+	/* Set apart below Import and Close, in a lower voice, because few cycles use it. */
+	.member-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem 1rem;
+		border-top: 1px solid var(--line);
+		margin-top: 1rem;
+		padding-top: 0.9rem;
+	}
+	.member-links-note {
+		flex: 1 1 12rem;
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--text-faint);
+	}
+	.btn-quiet {
+		font-weight: 500;
+		font-size: 0.85rem;
+		color: var(--text-dim);
+		border-color: var(--line);
+	}
+	.member-links .form-error {
+		flex-basis: 100%;
+		margin: 0;
 	}
 	.warn-inline {
 		margin: 0.9rem 0 0;

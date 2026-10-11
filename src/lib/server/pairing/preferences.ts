@@ -1,5 +1,5 @@
 import { asc, eq, inArray } from 'drizzle-orm';
-import type { AppDb } from '../db';
+import type { AppDb, AppExecutor } from '../db';
 import { members, preferences } from '../db/schema';
 
 export type ChoiceInput = { rank: 1 | 2 | 3; choiceMemberId: number; reason: string };
@@ -24,7 +24,7 @@ const REQUIRED_RANKS = [1, 2, 3];
  * submissions revisable until the form closes, and it keeps the (member, rank)
  * uniqueness constraint satisfiable without an upsert dance.
  */
-export function setPreferences(db: AppDb, memberId: number, choices: ChoiceInput[]): void {
+export function setPreferences(db: AppExecutor, memberId: number, choices: ChoiceInput[]): void {
 	const member = db.select().from(members).where(eq(members.id, memberId)).get();
 	if (!member) throw new PreferenceError('not_found', `No member ${memberId}`);
 	if (!member.active) throw new PreferenceError('inactive', `Member ${memberId} is inactive`);
