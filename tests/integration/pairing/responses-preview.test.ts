@@ -195,6 +195,18 @@ describe('previewResponses: blocking', () => {
 		expect(report.blocking).toEqual([]);
 	});
 
+	it('ignores a blank-header column, which is not a signed-in email', () => {
+		const headers = [...HEADERS, ''];
+		const { report, plan } = preview(
+			[mentorRow('02000001', 'Priya Mentor', MENTEES, { '': 'a note in an untitled column' })],
+			headers
+		);
+		expect(report.unmappedHeaders).toEqual([]);
+		expect(report.warnings).toEqual([]);
+		expect(report.blocking).toEqual([]);
+		expect(plan.map((p) => p.memberId)).toEqual([ids.priya]);
+	});
+
 	it('shortens a very long extra header, such as a consent paragraph, in the report', () => {
 		const consent = `By submitting this Form, you agree to the collection of your personal data.\n\nSecond paragraph with more detail than any report needs.`;
 		const headers = [...HEADERS, consent];
@@ -235,6 +247,13 @@ describe('previewResponses: respondent', () => {
 	it('reports a blank admin ID', () => {
 		const { report } = preview([mentorRow('', 'Blank Person', MENTEES)]);
 		expect(report.errors[0].message).toBe('School Admin ID is blank.');
+	});
+
+	it('labels a row with no name and no admin ID once', () => {
+		const { report } = preview([mentorRow('', '', MENTEES)]);
+		expect(report.errors).toEqual([
+			{ response: 1, who: '(no name)', message: 'School Admin ID is blank.' }
+		]);
 	});
 
 	it('matches an admin ID whose leading zero was stripped', () => {
@@ -292,6 +311,49 @@ describe('previewResponses: respondent', () => {
 		const { report } = preview([mentorRow('02000001', 'Priya Mentor', MENTEES)]);
 		expect(report.blocking).toEqual([]);
 		expect(report.warnings).toEqual([]);
+	});
+});
+
+describe('previewResponses: admin IDs that collide', () => {
+	it('matches no one when two roster IDs normalise to the same key, and still imports the rest', () => {
+		addMember('mentor', 'Zed Mentor', '03000001', 'zed@example.com');
+		addMember('mentor', 'Zoe Mentor', '3000001', 'zoe@example.com');
+		const { report, plan } = preview([
+			mentorRow('03000001', 'Zed Mentor', MENTEES),
+			mentorRow('3000001', 'Zoe Mentor', MENTEES),
+			mentorRow('02000001', 'Priya Mentor', MENTEES)
+		]);
+		expect(report.errors).toEqual([
+			{
+				response: 1,
+				who: 'Zed Mentor',
+				message: 'School Admin ID "03000001" matches more than one roster member.'
+			},
+			{
+				response: 2,
+				who: 'Zoe Mentor',
+				message: 'School Admin ID "3000001" matches more than one roster member.'
+			}
+		]);
+		expect(report.blocking).toEqual([]);
+		expect(plan.map((p) => p.memberId)).toEqual([ids.priya]);
+	});
+
+	it('treats IDs that differ only by case as a collision', () => {
+		addMember('mentee', 'Ann Mentee', 'A1', 'ann@example.com');
+		addMember('mentee', 'Abe Mentee', 'a1', 'abe@example.com');
+		const { report, plan } = preview([
+			menteeRow('a1', '', MENTORS),
+			menteeRow('01000001', 'Jordan Mentee', MENTORS)
+		]);
+		expect(report.errors).toEqual([
+			{
+				response: 1,
+				who: '(no name)',
+				message: 'School Admin ID "a1" matches more than one roster member.'
+			}
+		]);
+		expect(plan.map((p) => p.memberId)).toEqual([ids.jordan]);
 	});
 });
 

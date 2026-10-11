@@ -71,7 +71,8 @@ refuses until the roster names are distinct.
 
 1. In the form's Responses tab, download the responses as a CSV file. Each person has one
    row, and edits update it in place. If a file ever holds two rows for one person, the later
-   row wins, so do not sort the sheet.
+   row wins, so do not sort the sheet. If the download is a zip, unzip it and upload the CSV
+   inside.
 2. On the import page, upload the file and validate. The report shows how many responses
    will be imported or replaced, which were skipped and why, warnings for a typed name or
    email that differs from the roster, and who has no choices yet.

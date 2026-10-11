@@ -71,7 +71,18 @@ export const actions: Actions = {
 		}
 
 		const csvText = await file.text();
-		const { report } = previewResponses(db, cycle.id, parseCsv(csvText));
+		let parsed: ReturnType<typeof parseCsv>;
+		try {
+			parsed = parseCsv(csvText);
+		} catch {
+			return fail(
+				400,
+				problem(
+					'That file could not be read as a CSV. If you downloaded a .zip, unzip it and upload the .csv inside.'
+				)
+			);
+		}
+		const { report } = previewResponses(db, cycle.id, parsed);
 
 		return {
 			...EMPTY,

@@ -105,7 +105,7 @@ export function previewResponses(
 	const known = new Set([...REQUIRED_HEADERS, OPTIONAL.signedInEmail]);
 	// A consent question's title can be a whole paragraph, so only its opening is shown.
 	report.unmappedHeaders = parsed.headers
-		.filter((h) => !known.has(headerKey(h)))
+		.filter((h) => headerKey(h) !== '' && !known.has(headerKey(h)))
 		.map((h) => {
 			const flat = h.replace(/\s+/g, ' ').trim();
 			return flat.length > 60 ? `${flat.slice(0, 57)}...` : flat;
@@ -137,8 +137,16 @@ export function previewResponses(
 	}
 	if (report.blocking.length > 0) return { report, plan };
 
+	// Two roster IDs can normalise to one key (a stripped leading zero, a different case).
+	// Neither is a safe match, so a response typing that ID is reported instead.
 	const byAdminId = new Map<string, RosterMember>();
-	for (const m of roster) if (m.studentId) byAdminId.set(normalizeAdminId(m.studentId), m);
+	const collidingIds = new Set<string>();
+	for (const m of roster) {
+		if (!m.studentId) continue;
+		const key = normalizeAdminId(m.studentId);
+		if (byAdminId.has(key)) collidingIds.add(key);
+		byAdminId.set(key, m);
+	}
 
 	const byName: Record<ResponseRole, Map<string, RosterMember>> = {
 		mentor: new Map(),
@@ -163,18 +171,28 @@ export function previewResponses(
 	);
 
 	const cell = (row: Record<string, string>, header: string): string =>
-		(row[keyOf.get(header) ?? ''] ?? '').trim();
+		(keyOf.has(header) ? (row[keyOf.get(header)!] ?? '') : '').trim();
 
 	// Last row per respondent wins, by position in the file.
 	const latest = new Map<number, { response: number; row: Record<string, string> }>();
 	parsed.rows.forEach((row, index) => {
 		const response = index + 1;
 		const typedId = cell(row, FIXED.adminId);
-		const member = typedId ? byAdminId.get(normalizeAdminId(typedId)) : undefined;
+		const typedKey = typedId ? normalizeAdminId(typedId) : '';
+		const who = cell(row, FIXED.name) || '(no name)';
+		if (collidingIds.has(typedKey)) {
+			report.errors.push({
+				response,
+				who,
+				message: `School Admin ID "${typedId}" matches more than one roster member.`
+			});
+			return;
+		}
+		const member = typedId ? byAdminId.get(typedKey) : undefined;
 		if (!member) {
 			report.errors.push({
 				response,
-				who: cell(row, FIXED.name) || `Response ${response}`,
+				who,
 				message: typedId
 					? `School Admin ID "${typedId}" is not on the roster.`
 					: 'School Admin ID is blank.'

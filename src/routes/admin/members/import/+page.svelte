@@ -108,7 +108,8 @@
 				<a class="btn btn-ghost" href={resolve('/admin/members')}>Back to Members</a>
 			{:else}
 				<p class="panel-note">
-					In the form's Responses tab, download the responses as a CSV file, then upload it here.
+					In the form's Responses tab, download the responses as a CSV file, then upload it here. If
+					the download is a zip, unzip it and upload the CSV inside.
 				</p>
 				<form
 					method="POST"

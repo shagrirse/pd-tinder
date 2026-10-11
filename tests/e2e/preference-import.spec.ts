@@ -191,6 +191,26 @@ test.describe('preference response import', () => {
 		await expect(page.getByRole('button', { name: /^Import \d+ response/ })).toHaveCount(0);
 	});
 
+	test('reports a file that is not a readable CSV instead of failing the page', async ({
+		page
+	}) => {
+		await signIn(page);
+		await page.goto('/admin/members/import');
+		await page.getByLabel('Google Form responses CSV file').setInputFiles({
+			name: 'responses.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from('a,"b')
+		});
+		await page.getByRole('button', { name: 'Validate responses' }).click();
+
+		await expect(
+			page.getByText(
+				'That file could not be read as a CSV. If you downloaded a .zip, unzip it and upload the .csv inside.'
+			)
+		).toBeVisible();
+		await expect(page.getByRole('heading', { level: 1, name: 'Import responses' })).toBeVisible();
+	});
+
 	test('shows a failed commit in the review step, where the import button was', async ({
 		page
 	}) => {
