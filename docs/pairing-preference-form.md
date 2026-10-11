@@ -18,7 +18,7 @@ responses" at the deadline, because the form does not close itself.
 > Now that you have met at Circle Initiation, tell us who you would like to be paired
 > with. The PD team will use your choices to form this year's mentor-mentee pairs.
 >
-> Please submit by **<due date>**. Fill in your own details below, then choose whether
+> Please submit by **[due date]**. Fill in your own details below, then choose whether
 > you are a mentor or a mentee. You will be taken to the right questions.
 >
 > If you need to change your choices, use the Edit your response link on the confirmation
@@ -60,16 +60,17 @@ mentee list is for the three dropdowns in Section 2, the mentor list for Section
 Pasting a newline-separated list into the first option box should create one option per
 line. Try it on one dropdown first. The names come straight from the roster, so the
 dropdowns and the importer agree. If the roster changes after the form is live, download
-the lists again and update the dropdowns. A choice naming someone who is no longer on the
-roster is skipped as an unknown name.
+the lists again and update the dropdowns. A response naming someone who is no longer on the
+roster is skipped as a whole, and the person's existing choices are kept, so ask them to
+edit their response.
 
 Two people in the same role with the same name make a choice ambiguous. The import
 refuses until the roster names are distinct.
 
 ## Import
 
-1. Download the responses from the form's linked sheet as CSV. Each person has one row,
-   and edits update it in place. If a file ever holds two rows for one person, the later
+1. In the form's Responses tab, download the responses as a CSV file. Each person has one
+   row, and edits update it in place. If a file ever holds two rows for one person, the later
    row wins, so do not sort the sheet.
 2. On the import page, upload the file and validate. The report shows how many responses
    will be imported or replaced, which were skipped and why, warnings for a typed name or
