@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { makeTestDb } from '../../helpers/db';
 import { cycles, members } from '../../../src/lib/server/db/schema';
-import { generateMemberTokens } from '../../../src/lib/server/roster/tokens';
+import { generateMemberTokens, hasMemberLinks } from '../../../src/lib/server/roster/tokens';
 import { resolveMemberToken } from '../../../src/lib/server/auth/memberToken';
 import type { AppDb } from '../../../src/lib/server/db';
 
@@ -75,5 +75,25 @@ describe('generateMemberTokens', () => {
 
 		expect(resolveMemberToken(db, oldToken)).toBeNull();
 		expect(resolveMemberToken(db, newToken)?.id).toBe(memberId);
+	});
+});
+
+describe('hasMemberLinks', () => {
+	it('is false until a link has been issued for the cycle', () => {
+		addMember(1, 'mentor', 'a@example.com');
+		expect(hasMemberLinks(db, 1)).toBe(false);
+	});
+
+	it('is true once any member of the cycle has been issued a link', () => {
+		addMember(1, 'mentor', 'a@example.com');
+		generateMemberTokens(db, 1);
+		expect(hasMemberLinks(db, 1)).toBe(true);
+	});
+
+	it("ignores another cycle's links", () => {
+		db.insert(cycles).values({ name: 'Other', year: 2025 }).run();
+		addMember(2, 'mentor', 'other@example.com');
+		generateMemberTokens(db, 2);
+		expect(hasMemberLinks(db, 1)).toBe(false);
 	});
 });

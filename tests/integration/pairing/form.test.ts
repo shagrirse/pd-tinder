@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
 import { makeTestDb, seedAdmin } from '../../helpers/db';
-import { cycles, memberTokens, members, preferences } from '../../../src/lib/server/db/schema';
+import { cycles, members, preferences } from '../../../src/lib/server/db/schema';
 import { createMemberToken, resolveMemberToken } from '../../../src/lib/server/auth/memberToken';
 import {
 	closeForm,
@@ -9,6 +8,7 @@ import {
 	reopenForm,
 	submissionStatus
 } from '../../../src/lib/server/pairing/form';
+import { getLatestBaseline } from '../../../src/lib/server/pairing/baseline';
 import type { AppDb } from '../../../src/lib/server/db';
 
 let db: AppDb;
@@ -33,59 +33,54 @@ beforeEach(() => {
 });
 
 describe('getFormStatus', () => {
-	it('is not_opened before any token exists', () => {
-		expect(getFormStatus(db, 1)).toBe('not_opened');
-	});
-
-	it('is open once a live token exists', () => {
-		createMemberToken(db, mentor);
+	it('is open on a fresh cycle, with no member link ever issued', () => {
 		expect(getFormStatus(db, 1)).toBe('open');
 	});
 
-	it('is closed once every token has expired', () => {
-		createMemberToken(db, mentor);
+	it('is closed once the form is closed', () => {
 		closeForm(db, 1, admin);
+		expect(getFormStatus(db, 1)).toBe('closed');
+	});
+
+	it('is open again after reopen', () => {
+		closeForm(db, 1, admin);
+		reopenForm(db, 1);
+		expect(getFormStatus(db, 1)).toBe('open');
+	});
+
+	it('does not depend on member links: issuing one does not reopen a closed form', () => {
+		closeForm(db, 1, admin);
+		createMemberToken(db, mentor);
 		expect(getFormStatus(db, 1)).toBe('closed');
 	});
 });
 
 describe('closeForm / reopenForm', () => {
-	it('denies access after close and regrants it after reopen, on the same token', () => {
+	it('closes and saves a baseline without any member link ever issued', () => {
+		const baselineId = closeForm(db, 1, admin);
+
+		expect(baselineId).not.toBeNull();
+		expect(getLatestBaseline(db, 1)?.id).toBe(baselineId);
+	});
+
+	it('does nothing the second time, so a repeated close cannot stack baselines', () => {
+		expect(closeForm(db, 1, admin)).not.toBeNull();
+		expect(closeForm(db, 1, admin)).toBeNull();
+	});
+
+	it('leaves member tokens alone: closing is the flag, not token expiry', () => {
 		const token = createMemberToken(db, mentor);
-		expect(resolveMemberToken(db, token)).not.toBeNull();
 
 		closeForm(db, 1, admin);
-		expect(resolveMemberToken(db, token)).toBeNull();
+		expect(resolveMemberToken(db, token)).not.toBeNull();
 
 		reopenForm(db, 1);
 		expect(resolveMemberToken(db, token)).not.toBeNull();
 	});
 
-	it("only touches each member's most recently issued token", () => {
-		// An already-expired earlier token, inserted directly — mirroring what
-		// a real regeneration via generateMemberTokens leaves behind — rather
-		// than relying on createMemberToken to retire it. createMemberToken
-		// itself never touches other rows; only its caller does that.
-		const past = new Date(Math.floor(Date.now() / 1000) * 1000 - 1000);
-		db.insert(memberTokens)
-			.values({ memberId: mentor, tokenHash: 'already-retired-hash', expiresAt: past })
-			.run();
-
-		const current = createMemberToken(db, mentor);
-		closeForm(db, 1, admin);
-
-		expect(resolveMemberToken(db, current)).toBeNull();
-		const rows = db.select().from(memberTokens).where(eq(memberTokens.memberId, mentor)).all();
-		expect(rows).toHaveLength(2);
-		// The already-expired row's expiresAt must be untouched by close —
-		// proving closeForm only touches the newest row per member, not every row.
-		const oldest = rows.find((r) => r.tokenHash === 'already-retired-hash')!;
-		expect(oldest.expiresAt.getTime()).toBe(past.getTime());
-	});
-
-	it('does nothing when no member has ever had a token', () => {
-		expect(closeForm(db, 1, admin)).toBeNull();
+	it('reopening an open form is harmless', () => {
 		expect(() => reopenForm(db, 1)).not.toThrow();
+		expect(getFormStatus(db, 1)).toBe('open');
 	});
 });
 

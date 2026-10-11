@@ -291,15 +291,16 @@ test.describe('roster import', () => {
 
 		await signIn(page);
 		await page.goto('/admin/members');
-		await expect(page.getByText('Not opened yet')).toBeVisible();
+		await expect(page.getByText('Open', { exact: true })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Generate & export links' })).toBeVisible();
 
 		const downloadPromise = page.waitForEvent('download');
 		await page.getByRole('button', { name: 'Generate & export links' }).click();
 		const download = await downloadPromise;
 		expect(download.suggestedFilename()).toMatch(/member-links\.csv$/);
 
-		await expect(page.locator('.verdict-tag')).toHaveText('Open');
 		await expect(page.getByRole('button', { name: 'Generate & export links' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Regenerate links' })).toBeVisible();
+		await expect(page.locator('.verdict-tag')).toHaveText('Open');
 	});
 });

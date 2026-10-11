@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db/instance';
 import { resolveMemberToken } from '$lib/server/auth/memberToken';
+import { getFormStatus } from '$lib/server/pairing/form';
 import { listActiveRoster } from '$lib/server/roster/list';
 import {
 	getPreferences,
@@ -25,6 +26,11 @@ function resolveOrNotFound(token: string) {
 	const db = getDb();
 	const member = resolveMemberToken(db, token);
 	if (!member) throw error(404, 'This link is invalid or has expired.');
+	// Closing is a mark on the cycle, not token expiry, so a link stays valid
+	// but must not change choices once the baseline is saved.
+	if (getFormStatus(db, member.cycleId) === 'closed') {
+		throw error(404, 'The preference form is closed.');
+	}
 	return { db, member };
 }
 

@@ -10,12 +10,10 @@
 	let { data, form } = $props();
 
 	const STATUS_LABEL: Record<string, string> = {
-		not_opened: 'Not opened yet',
 		open: 'Open',
 		closed: 'Closed'
 	};
 	const STATUS_TAG: Record<string, string> = {
-		not_opened: 'verdict-meh',
 		open: 'verdict-like',
 		closed: 'verdict-flag'
 	};
@@ -127,7 +125,7 @@
 							</button>
 						</form>
 					{/if}
-					<!-- Generating links is what opens the form. -->
+					<!-- Member links are for the optional in-app preference page. -->
 					<form
 						method="POST"
 						action="/admin/roster/tokens"
@@ -135,19 +133,21 @@
 						onsubmit={generateLinks}
 					>
 						<input type="hidden" name="cycleId" value={data.cycle.id} />
-						{#if data.status === 'not_opened'}
-							<button type="submit" class="btn btn-primary" disabled={tokensPending}>
-								Generate &amp; export links
-							</button>
-						{:else if data.status === 'open'}
-							<button
-								type="button"
-								class="btn btn-ghost"
-								disabled={tokensPending}
-								onclick={() => (regenConfirmOpen = true)}
-							>
-								Regenerate links
-							</button>
+						{#if data.status === 'open'}
+							{#if data.memberLinksIssued}
+								<button
+									type="button"
+									class="btn btn-ghost"
+									disabled={tokensPending}
+									onclick={() => (regenConfirmOpen = true)}
+								>
+									Regenerate links
+								</button>
+							{:else}
+								<button type="submit" class="btn btn-primary" disabled={tokensPending}>
+									Generate &amp; export links
+								</button>
+							{/if}
 						{/if}
 					</form>
 				</div>

@@ -46,3 +46,16 @@ export function generateMemberTokens(
 		return { ...member, token: createMemberToken(db, member.id, now) };
 	});
 }
+
+/** Whether any member of the cycle has ever been issued a link. */
+export function hasMemberLinks(db: AppDb, cycleId: number): boolean {
+	return (
+		db
+			.select({ id: memberTokens.id })
+			.from(memberTokens)
+			.innerJoin(members, eq(members.id, memberTokens.memberId))
+			.where(eq(members.cycleId, cycleId))
+			.limit(1)
+			.get() !== undefined
+	);
+}
