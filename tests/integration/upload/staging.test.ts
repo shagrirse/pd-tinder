@@ -75,4 +75,11 @@ describe('upload staging', () => {
 		expect(readStagedUpload<Payload>('mentees', first)!.csvText).toBe('one');
 		expect(readStagedUpload<Payload>('mentors', second)!.cycleId).toBe(2);
 	});
+
+	it('keeps preference uploads separate from every other kind', () => {
+		const token = stageUpload('preferences', { csvText: 'x', cycleId: 1 });
+		expect(readStagedUpload<Payload>('applicants', token)).toBeNull();
+		expect(readStagedUpload<Payload>('mentees', token)).toBeNull();
+		expect(readStagedUpload<Payload>('preferences', token)).toEqual({ csvText: 'x', cycleId: 1 });
+	});
 });

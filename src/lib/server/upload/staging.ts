@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 
 export const STAGING_TTL_MS = 30 * 60 * 1000;
 
-export type UploadKind = 'applicants' | 'mentees' | 'mentors';
+export type UploadKind = 'applicants' | 'mentees' | 'mentors' | 'preferences';
 
 type Staged = { kind: UploadKind; payload: unknown; stagedAt: number };
 

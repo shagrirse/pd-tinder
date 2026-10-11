@@ -3,7 +3,8 @@ import type { AppDb } from '../db';
 import { members, preferences } from '../db/schema';
 import { normalizeHeader } from '../import/columns';
 import type { ParsedCsv } from '../import/parse';
-import type { ChoiceInput } from './preferences';
+import { getFormStatus } from './form';
+import { setPreferences, type ChoiceInput } from './preferences';
 import {
 	duplicateNames,
 	headerKey,
@@ -272,4 +273,37 @@ export function previewResponses(
 	if (plan.length === 0) report.blocking.push('No valid responses to import.');
 
 	return { report, plan };
+}
+
+export class ResponsesError extends Error {
+	constructor(
+		readonly code: 'closed' | 'blocked',
+		message: string
+	) {
+		super(message);
+		this.name = 'ResponsesError';
+	}
+}
+
+export type CommitSummary = { imported: number; replaced: number };
+
+/**
+ * Apply a file's plan, all or nothing. The preview is re-run here on the text the
+ * caller staged, so a roster that changed since validation is judged as it is now.
+ */
+export function commitResponses(db: AppDb, cycleId: number, parsed: ParsedCsv): CommitSummary {
+	if (getFormStatus(db, cycleId) === 'closed') {
+		throw new ResponsesError('closed', 'The preference form is closed.');
+	}
+
+	const { report, plan } = previewResponses(db, cycleId, parsed);
+	if (report.blocking.length > 0) {
+		throw new ResponsesError('blocked', report.blocking.join(' '));
+	}
+
+	db.transaction((tx) => {
+		for (const entry of plan) setPreferences(tx, entry.memberId, entry.choices);
+	});
+
+	return { imported: plan.length, replaced: report.toReplace };
 }
