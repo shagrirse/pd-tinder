@@ -219,7 +219,7 @@
 		<ConfirmDialog
 			open={closeConfirmOpen}
 			title="Close the preference form?"
-			body="Members who haven't submitted yet will no longer be able to. Closing also saves the baseline: everyone's choices and the pairs they produce. You can reopen it later."
+			body="Closing saves the baseline: everyone's choices and the pairs they produce. It also stops further imports and in-app submissions, so turn off &quot;Accepting responses&quot; in the Google Form too. You can reopen it later."
 			confirmLabel="Close form"
 			danger
 			onconfirm={() => {
