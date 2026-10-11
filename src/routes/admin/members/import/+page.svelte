@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import { createPendingSubmit } from '$lib/actions/pendingSubmit.svelte';
 
 	let { data, form } = $props();
@@ -28,6 +29,19 @@
 
 	const validate = createPendingSubmit();
 	const commit = createPendingSubmit();
+
+	// The step whose form was last submitted, so an error shows where the admin is
+	// looking. A failed commit drops the report, and an alert at the top of the page
+	// would be off-screen. Without JavaScript the page reloads at the top, so it stays there.
+	let lastAction = $state<'validate' | 'commit' | null>(null);
+	const submitValidate: SubmitFunction = (input) => {
+		lastAction = 'validate';
+		return validate.submit(input);
+	};
+	const submitCommit: SubmitFunction = (input) => {
+		lastAction = 'commit';
+		return commit.submit(input);
+	};
 </script>
 
 <section class="wrap">
@@ -49,7 +63,9 @@
 	{#if data.cycle === null}
 		<p class="notice">No active cycle. Open one before importing preference responses.</p>
 	{:else}
-		{#if showError}<p class="form-error" role="alert">{form?.error}</p>{/if}
+		{#snippet alert()}<p class="form-error" role="alert">{form?.error}</p>{/snippet}
+
+		{#if showError && lastAction === null}{@render alert()}{/if}
 
 		<div class="panel">
 			<h2 class="panel-head">1 &middot; Fill the form's dropdowns</h2>
@@ -99,7 +115,7 @@
 					action="?/validate"
 					enctype="multipart/form-data"
 					class="upload-form"
-					use:enhance={validate.submit}
+					use:enhance={submitValidate}
 				>
 					<label class="field">
 						<span class="field-label">Google Form responses CSV file</span>
@@ -109,6 +125,7 @@
 						{validate.pending ? 'Validating\u2026' : 'Validate responses'}
 					</button>
 				</form>
+				{#if showError && lastAction === 'validate'}{@render alert()}{/if}
 			{/if}
 		</div>
 
@@ -205,7 +222,7 @@
 				{/if}
 
 				{#if !blocked && form?.token}
-					<form method="POST" action="?/commit" class="confirm-form" use:enhance={commit.submit}>
+					<form method="POST" action="?/commit" class="confirm-form" use:enhance={submitCommit}>
 						<input type="hidden" name="token" value={form.token} />
 						<button type="submit" class="btn btn-primary" disabled={commit.pending}>
 							{commit.pending
@@ -215,6 +232,11 @@
 						<span class="confirm-note">Nothing has been written yet.</span>
 					</form>
 				{/if}
+			</div>
+		{:else if showError && lastAction === 'commit'}
+			<div class="panel">
+				<h2 class="panel-head">3 &middot; Review and import</h2>
+				{@render alert()}
 			</div>
 		{/if}
 	{/if}
@@ -253,6 +275,12 @@
 		border-radius: var(--radius-sm);
 		padding: 0.7rem 0.9rem;
 		margin-bottom: 1.25rem;
+	}
+	.panel .form-error {
+		margin: 1rem 0 0;
+	}
+	.panel .panel-head + .form-error {
+		margin-top: 0;
 	}
 
 	.panel {

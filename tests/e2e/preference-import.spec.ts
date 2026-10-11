@@ -126,6 +126,10 @@ test.describe('preference response import', () => {
 		await page.goto('/admin/members');
 		await page.getByRole('link', { name: 'Import responses' }).click();
 		await expect(page.getByRole('heading', { level: 1, name: 'Import responses' })).toBeVisible();
+		// A child of Members: its nav item is lit, but aria-current stays on exact matches only.
+		await expect(page.locator('.app-nav a[href="/admin/members"]')).toHaveClass(/\bactive\b/);
+		await expect(page.locator('.app-nav a[href="/admin/import"]')).not.toHaveClass(/\bactive\b/);
+		await expect(page.locator('.app-nav a[aria-current="page"]')).toHaveCount(0);
 
 		const downloadPromise = page.waitForEvent('download');
 		await page.getByRole('link', { name: 'Download mentee names' }).click();
@@ -185,6 +189,30 @@ test.describe('preference response import', () => {
 		await expect(page.getByText('Nothing was staged. Fix these and upload again:')).toBeVisible();
 		await expect(page.getByText(/Missing columns/)).toBeVisible();
 		await expect(page.getByRole('button', { name: /^Import \d+ response/ })).toHaveCount(0);
+	});
+
+	test('shows a failed commit in the review step, where the import button was', async ({
+		page
+	}) => {
+		await signIn(page);
+		await page.goto('/admin/members/import');
+		await page.getByLabel('Google Form responses CSV file').setInputFiles({
+			name: 'responses.csv',
+			mimeType: 'text/csv',
+			buffer: csv([mentorResponse, menteeResponse])
+		});
+		await page.getByRole('button', { name: 'Validate responses' }).click();
+		await expect(page.getByText('2 responses ready to import')).toBeVisible();
+
+		// The roster changes under the staged file, so the commit no longer validates.
+		cleanUp();
+		await page.getByRole('button', { name: 'Import 2 responses' }).click();
+
+		const reviewStep = page.locator('.panel', { hasText: '3 \u00b7 Review and import' });
+		await expect(reviewStep.getByRole('alert')).toHaveText(
+			'That file no longer validates. Upload it again.'
+		);
+		await expect(page.getByRole('alert')).toHaveCount(1);
 	});
 
 	test('refuses uploads and hides the entry point while the form is closed', async ({ page }) => {
